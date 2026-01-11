@@ -4,7 +4,7 @@ const navItems = [
   { href: "/", label: "Home" },
   { href: "/search", label: "Search" },
   { href: "/watchlist", label: "Watchlist" },
-  { href: "/auth/login", label: "Login" },
+  { href: "/login", label: "Login" },
 ];
 
 export default function Navbar() {
