@@ -5,7 +5,7 @@ export default function LoginPage() {
 
       <div className="flex flex-col gap-6 w-full">
         <div className="flex flex-col gap-2">
-          <label className="font-semibold text-gray-700">
+          <label className="font-semibo	ld text-gray-700">
             Email address
           </label>
           <input
