@@ -1,21 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import SearchBar from "./components/SearchBar";
 
 export default function HomePage() {
-  const router = useRouter();
-
-  const [from, setFrom] = useState("YYZ");
-  const [to, setTo] = useState("ORD");
-  const [dateRange, setDateRange] = useState("Depart - Return");
-  const [passengers, setPassengers] = useState("1 adult");
-
-  const handleSearch = () => {
-    router.push("/search");
-  };
-
   return (
     <main className="min-h-screen bg-white">
       {/* HERO */}
@@ -48,64 +36,8 @@ export default function HomePage() {
             Please search for your flight below:
           </p>
 
-          {/* Search Bar (Figma처럼 한 줄) */}
-          <div className="mt-8 w-full max-w-[960px]">
-            <div className="flex w-full items-stretch overflow-hidden rounded-md border bg-white shadow-sm">
-              {/* From */}
-              <div className="flex h-[48px] w-[327.5px] items-center gap-2 px-3">
-                <span className="text-sm text-gray-500">✈️</span>
-                <input
-                  className="w-full bg-transparent text-sm outline-none"
-                  value={from}
-                  onChange={(e) => setFrom(e.target.value)}
-                />
-              </div>
-
-              <div className="h-[48px] w-px bg-gray-200" />
-
-              {/* To */}
-              <div className="flex h-[48px] w-[327.5px] items-center gap-2 px-3">
-                <span className="text-sm text-gray-500">✈️</span>
-                <input
-                  className="w-full bg-transparent text-sm outline-none"
-                  value={to}
-                  onChange={(e) => setTo(e.target.value)}
-                />
-              </div>
-
-              <div className="h-[48px] w-px bg-gray-200" />
-
-              {/* Depart - Return */}
-              <div className="flex h-[48px] w-[246px] items-center gap-2 px-3">
-                <span className="text-sm text-gray-500">📅</span>
-                <input
-                  className="w-full bg-transparent text-sm outline-none"
-                  value={dateRange}
-                  onChange={(e) => setDateRange(e.target.value)}
-                />
-              </div>
-
-              <div className="h-[48px] w-px bg-gray-200" />
-
-              {/* Passengers */}
-              <div className="flex h-[48px] w-[200px] items-center gap-2 px-3">
-                <span className="text-sm text-gray-500">👤</span>
-                <input
-                  className="w-full bg-transparent text-sm outline-none"
-                  value={passengers}
-                  onChange={(e) => setPassengers(e.target.value)}
-                />
-              </div>
-
-              {/* Search Button */}
-              <button
-                onClick={handleSearch}
-                className="h-[48px] bg-black px-6 text-sm font-medium text-white"
-              >
-                Search
-              </button>
-            </div>
-          </div>
+          {/* ✅ SearchBar 컴포넌트 사용 */}
+          <SearchBar />
         </div>
       </section>
 

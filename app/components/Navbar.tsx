@@ -1,26 +1,47 @@
+// app/components/Navbar.tsx
 import Link from "next/link";
-
-const navItems = [
-  { href: "/", label: "Home" },
-  { href: "/search", label: "Search" },
-  { href: "/watchlist", label: "Watchlist" },
-  { href: "/login", label: "Login" },
-];
+import Image from "next/image";
 
 export default function Navbar() {
   return (
-    <header className="border-b">
-      <div className="mx-auto flex max-w-5xl items-center justify-between p-4">
-        <Link href="/" className="font-bold text-lg">
-          SkyTrackR
+    <header className="border-b bg-white">
+      <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+        {/* Left: Logo + Brand */}
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/images/logo.png"
+            alt="SkyTrackR logo"
+            width={22}
+            height={22}
+            priority
+          />
+          <span className="text-lg font-semibold tracking-tight">SkyTrackR</span>
         </Link>
 
-        <nav className="flex gap-4">
-          {navItems.map((item) => (
-            <Link key={item.href} href={item.href} className="text-sm underline">
-              {item.label}
-            </Link>
-          ))}
+        {/* Right: Nav items */}
+        <nav className="flex items-center gap-6 text-sm">
+          {/* Flights = 너희 프로젝트에선 Search 페이지로 연결 */}
+          <Link href="/search" className="hover:underline">
+            Flights
+          </Link>
+
+          {/* CAD (나중에 dropdown/토글로 바꾸면 됨) */}
+          <button type="button" className="cursor-default select-none">
+            CAD <span className="ml-1">🇨🇦</span>
+          </button>
+
+          {/* Pricing: 아직 페이지 없으면 나중에 만들기 */}
+          <Link href="/pricing" className="hover:underline">
+            Pricing
+          </Link>
+
+          {/* Login button */}
+          <Link
+            href="/login"
+            className="rounded-lg bg-black px-4 py-2 font-medium text-white hover:opacity-90"
+          >
+            Login
+          </Link>
         </nav>
       </div>
     </header>
