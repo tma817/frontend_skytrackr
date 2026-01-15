@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SearchBar from "../components/SearchBar";
 
@@ -13,285 +12,400 @@ type FlightResult = {
   stops: string;
   price: number;
   note?: string;
-  layover?: string;
-  tag?: string;
+  tag?: "best" | "value";
 };
 
 const ALL_RESULTS: FlightResult[] = [
   {
-    id: "123",
+    id: "1",
     airline: "Hawaiian Airlines",
     duration: "16h 45m",
     time: "7:00AM - 4:15PM",
     stops: "1 stop",
     price: 624,
-    note: "round trip",
-    layover: "2h 45m in HNL",
+    note: "2h 45m in HNL",
     tag: "value",
   },
   {
-    id: "234",
+    id: "2",
     airline: "Japan Airlines",
     duration: "18h 22m",
     time: "7:35AM - 12:15PM",
     stops: "1 stop",
     price: 663,
-    note: "round trip",
-    layover: "50m in HKG",
+    note: "50m in HKG",
   },
   {
-    id: "345",
+    id: "3",
     airline: "Delta",
     duration: "18h 52m",
     time: "9:47AM - 4:15PM",
     stops: "1 stop",
     price: 756,
-    note: "round trip",
-    layover: "4h 05m in ICN",
+    note: "4h 05m in ICN",
   },
   {
-    id: "456",
+    id: "4",
     airline: "Korean Air",
     duration: "22h 37m",
     time: "6:45PM - 7:15PM",
     stops: "2 stops",
     price: 989,
-    note: "round trip",
-    tag: "Arrives next day",
-    layover: "2h 45m in PVG",
+    note: "Arrives next day",
+  },
+  {
+    id: "5",
+    airline: "EVA Air",
+    duration: "18h 55m",
+    time: "2:15PM - 11:15PM",
+    stops: "1 stop",
+    price: 913,
+    note: "2h 45m in HNL",
   },
 ];
 
+function airlineBadge(airline: string) {
+  // 이미지 대신 “로고 느낌” 원형 배지
+  const letter = airline.trim().charAt(0).toUpperCase();
+  return (
+    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-700">
+      {letter}
+    </div>
+  );
+}
+
 export default function SearchPage() {
   const router = useRouter();
-  const sp = useSearchParams();
+  const searchParams = useSearchParams();
 
-  const [from, setFrom] = useState("YYZ");
-  const [to, setTo] = useState("ORD");
-  const [date, setDate] = useState("Depart - Return");
-  const [pax, setPax] = useState("1 adult");
+  const from = searchParams.get("from") ?? "YYZ";
+  const to = searchParams.get("to") ?? "ORD";
+  const date = searchParams.get("date") ?? "Depart - Return";
+  const pax = searchParams.get("pax") ?? "1 adult";
 
+  // ✅ Filters (두번째 사진에서 “필수 느낌만”)
   const [bestValue, setBestValue] = useState(true);
   const [membersDeals, setMembersDeals] = useState(false);
 
-  // ✅ URL query -> state로 반영 (새로고침/공유 링크도 OK)
-  useEffect(() => {
-    const qFrom = sp.get("from");
-    const qTo = sp.get("to");
-    const qDate = sp.get("date");
-    const qPax = sp.get("pax");
+  const [budget, setBudget] = useState<"any" | "150" | "250" | "350" | "1000">("any");
+  const [rating, setRating] = useState<"any" | "1" | "2" | "3" | "4" | "5">("any");
 
-    if (qFrom) setFrom(qFrom);
-    if (qTo) setTo(qTo);
-    if (qDate) setDate(qDate);
-    if (qPax) setPax(qPax);
-  }, [sp]);
+  const filtered = useMemo(() => {
+    let list = [...ALL_RESULTS];
 
-  const results = useMemo(() => {
-    let r = [...ALL_RESULTS];
+    // Deals
+    if (bestValue) {
+      // bestValue 체크되면 "tag=best/value" 먼저 위로 올리는 느낌만 살림 (제거하진 않음)
+      list.sort((a, b) => (b.tag ? 1 : 0) - (a.tag ? 1 : 0));
+    }
+    if (membersDeals) {
+      // 데모: 멤버딜은 가격 800 아래만 보여주기 (느낌용)
+      list = list.filter((x) => x.price < 800);
+    }
 
-    if (bestValue) r = r.filter((x) => x.price <= 1000);
-    if (membersDeals) r = r.filter((x) => x.price <= 800);
+    // Budget (간단 필수만)
+    if (budget === "150") list = list.filter((x) => x.price < 150);
+    if (budget === "250") list = list.filter((x) => x.price >= 150 && x.price <= 250);
+    if (budget === "350") list = list.filter((x) => x.price > 250 && x.price <= 350);
+    if (budget === "1000") list = list.filter((x) => x.price <= 1000);
 
-    return r;
-  }, [bestValue, membersDeals]);
+    // Rating은 아직 실제 데이터가 없어서 UI만 (나중에 연결)
+    // if (rating !== "any") ...
 
-  const updateUrl = (next: { from: string; to: string; date: string; pax: string }) => {
-    const qs = new URLSearchParams({
-      from: next.from,
-      to: next.to,
-      date: next.date,
-      pax: next.pax,
-    });
-    router.push(`/search?${qs.toString()}`);
-  };
+    return list;
+  }, [bestValue, membersDeals, budget, rating]);
 
-  // ✅ SearchBar에서 Search 누르면 여기로 들어와서 즉시 반영됨
-  const handleSearch = (params: {
+  const handleSearch = (payload: {
     from: string;
     to: string;
     dateRange: string;
     passengers: string;
   }) => {
-    const nextFrom = params.from || "YYZ";
-    const nextTo = params.to || "ORD";
-    const nextDate = params.dateRange || "Depart - Return";
-    const nextPax = params.passengers || "1 adult";
-
-    setFrom(nextFrom);
-    setTo(nextTo);
-    setDate(nextDate);
-    setPax(nextPax);
-
-    updateUrl({ from: nextFrom, to: nextTo, date: nextDate, pax: nextPax });
+    const qs = new URLSearchParams({
+      from: payload.from,
+      to: payload.to,
+      date: payload.dateRange,
+      pax: payload.passengers,
+    });
+    router.push(`/search?${qs.toString()}`);
   };
 
   return (
-    <main className="min-h-screen bg-white">
-      {/* Top hero bg */}
-      <div className="relative border-b">
-        <div className="absolute inset-0">
-          <div className="h-full w-full bg-gradient-to-r from-yellow-100 via-white to-pink-100 opacity-80" />
-          <div className="absolute inset-0 backdrop-blur-[2px]" />
-        </div>
+    <main className="min-h-screen">
+      {/* ✅ 상단 바탕(두번째 사진처럼 SearchBar 뒤에 배경 느낌) */}
+      <div className="border-b">
+        <div className="bg-gradient-to-r from-yellow-50 via-pink-50 to-purple-50">
+          <div className="mx-auto max-w-6xl px-8 py-8">
+            {/* breadcrumb line */}
+            <div className="text-sm text-gray-700">
+              <span className="font-medium text-gray-900">{from}</span> →{" "}
+              <span className="font-medium text-gray-900">{to}</span>
+              <span className="mx-2 text-gray-300">|</span>
+              <span>{date}</span>
+              <span className="mx-2 text-gray-300">|</span>
+              <span>{pax}</span>
+            </div>
 
-        <div className="relative mx-auto w-full max-w-6xl px-6 py-6">
-          <div className="text-sm text-gray-600">
-            <span className="font-medium text-gray-900">{from}</span> →{" "}
-            <span className="font-medium text-gray-900">{to}</span>
-            <span className="mx-2 text-gray-300">|</span>
-            <span>{date}</span>
-            <span className="mx-2 text-gray-300">|</span>
-            <span>{pax}</span>
-          </div>
+            {/* SearchBar */}
+            <SearchBar
+              className="mt-4"
+              defaultFrom={from}
+              defaultTo={to}
+              defaultDateRange={date}
+              defaultPassengers={pax}
+              onSearch={handleSearch}
+            />
 
-          <SearchBar
-            className="mt-4"
-            defaultFrom={from}
-            defaultTo={to}
-            defaultDateRange={date}
-            defaultPassengers={pax}
-            onSearch={handleSearch}
-          />
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            {["Max price", "Stops", "Times", "Airlines", "Seat class", "More"].map((item) => (
-              <button
-                key={item}
-                className="rounded-md border border-gray-300 bg-white/80 px-3 py-1 text-sm text-gray-700 hover:bg-white"
-              >
-                {item} <span className="text-gray-400">▾</span>
-              </button>
-            ))}
+            {/* ✅ Filter pills row (두번째 사진 느낌) */}
+            <div className="mt-3 flex flex-wrap gap-2">
+              {["Max price", "Stops", "Times", "Airlines", "Seat class", "More"].map((t) => (
+                <button
+                  key={t}
+                  className="rounded-md border border-gray-200 bg-white px-3 py-1 text-xs text-gray-700 shadow-sm hover:bg-gray-50"
+                  type="button"
+                >
+                  {t} <span className="ml-1 text-gray-400">▾</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-6xl px-6 py-6">
+      {/* ✅ 본문 */}
+      <div className="mx-auto max-w-6xl px-8 py-10">
         <div className="grid grid-cols-12 gap-8">
-          {/* Filters */}
-          <aside className="col-span-12 md:col-span-3">
-            <div className="text-sm font-semibold text-gray-900">Filters</div>
+          {/* LEFT FILTERS */}
+          <aside className="col-span-3">
+            <h2 className="text-sm font-semibold text-gray-900">Filters</h2>
 
-            <div className="mt-4 space-y-6">
-              <div>
-                <div className="flex items-center justify-between text-sm font-medium text-gray-800">
-                  <span>Deals</span>
-                  <span className="text-gray-400">▾</span>
-                </div>
-
-                <div className="mt-3 space-y-2 text-sm text-gray-700">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={bestValue}
-                      onChange={(e) => setBestValue(e.target.checked)}
-                    />
-                    Best value
-                  </label>
-
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={membersDeals}
-                      onChange={(e) => setMembersDeals(e.target.checked)}
-                    />
-                    Members deals
-                  </label>
-                </div>
+            {/* Deals */}
+            <div className="mt-4 border-b pb-4">
+              <div className="flex items-center justify-between text-sm font-medium">
+                <span className="text-gray-900">Deals</span>
+                <span className="text-gray-400">▾</span>
               </div>
 
-              <div>
-                <div className="flex items-center justify-between text-sm font-medium text-gray-800">
-                  <span>Your Budget</span>
-                  <span className="text-gray-400">▾</span>
-                </div>
+              <div className="mt-3 space-y-2 text-sm text-gray-700">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={bestValue}
+                    onChange={(e) => setBestValue(e.target.checked)}
+                  />
+                  Best value
+                </label>
 
-                <div className="mt-3 space-y-2 text-sm text-gray-700">
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" />
-                    Less than $150
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" />
-                    $150 - $250
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" />
-                    $250 - $350
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" />
-                    $500 - $1000
-                  </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={membersDeals}
+                    onChange={(e) => setMembersDeals(e.target.checked)}
+                  />
+                  Members deals
+                </label>
+              </div>
+            </div>
 
-                  <button className="pt-2 text-xs text-blue-600 hover:underline">
-                    Show more
-                  </button>
-                </div>
+            {/* Budget */}
+            <div className="mt-4 border-b pb-4">
+              <div className="flex items-center justify-between text-sm font-medium">
+                <span className="text-gray-900">Your Budget</span>
+                <span className="text-gray-400">▾</span>
               </div>
 
-              <div>
-                <div className="flex items-center justify-between text-sm font-medium text-gray-800">
-                  <span>Rating</span>
-                  <span className="text-gray-400">▾</span>
-                </div>
+              <div className="mt-3 space-y-2 text-sm text-gray-700">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="budget"
+                    checked={budget === "150"}
+                    onChange={() => setBudget("150")}
+                  />
+                  Less than $150
+                </label>
 
-                <div className="mt-3 space-y-2 text-sm text-gray-700">
-                  {["1 Star", "2 Stars", "3 Stars", "4 Stars", "5 Stars"].map((r, i) => (
-                    <label key={r} className="flex items-center gap-2">
-                      <input type="radio" name="rating" defaultChecked={i === 4} />
-                      {r}
-                    </label>
-                  ))}
-                </div>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="budget"
+                    checked={budget === "250"}
+                    onChange={() => setBudget("250")}
+                  />
+                  $150 - $250
+                </label>
+
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="budget"
+                    checked={budget === "350"}
+                    onChange={() => setBudget("350")}
+                  />
+                  $250 - $350
+                </label>
+
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="budget"
+                    checked={budget === "1000"}
+                    onChange={() => setBudget("1000")}
+                  />
+                  $500 - $1000
+                </label>
+
+                <button
+                  type="button"
+                  className="mt-1 text-xs text-blue-600 hover:underline"
+                  onClick={() => setBudget("any")}
+                >
+                  Show more
+                </button>
+              </div>
+            </div>
+
+            {/* Rating */}
+            <div className="mt-4">
+              <div className="flex items-center justify-between text-sm font-medium">
+                <span className="text-gray-900">Rating</span>
+                <span className="text-gray-400">▾</span>
+              </div>
+
+              <div className="mt-3 space-y-2 text-sm text-gray-700">
+                {["1", "2", "3", "4", "5"].map((r) => (
+                  <label key={r} className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="rating"
+                      checked={rating === r}
+                      onChange={() => setRating(r as any)}
+                    />
+                    {r} Star{r !== "1" ? "s" : ""}
+                  </label>
+                ))}
               </div>
             </div>
           </aside>
 
-          {/* Results */}
-          <section className="col-span-12 md:col-span-9">
-            <div className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white">
-              {results.map((r) => (
-                <Link
-                  key={r.id}
-                  href={`/ticket/${r.id}`}
-                  className="group flex items-center justify-between gap-6 border-b border-gray-100 px-5 py-4 last:border-b-0 hover:bg-gray-50"
+          {/* RESULTS */}
+          <section className="col-span-9">
+            <div className="space-y-3">
+              {filtered.map((f) => (
+                <div
+                  key={f.id}
+                  className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-4 shadow-sm"
                 >
-                  <div className="flex min-w-[220px] items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-xs">
-                      ✈️
-                    </div>
+                  <div className="flex items-center gap-3">
+                    {airlineBadge(f.airline)}
+
                     <div>
-                      <div className="text-xs text-gray-500">{r.duration}</div>
-                      <div className="text-sm font-medium text-gray-900">{r.airline}</div>
-                      <div className="text-xs text-gray-400">{r.tag ?? "\u00A0"}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-sm font-semibold text-gray-900">
+                          {f.duration}
+                        </div>
+                        <div className="text-sm text-gray-700">{f.airline}</div>
+                      </div>
+
+                      <div className="mt-1 text-xs text-gray-500">
+                        {f.tag === "value" ? "value" : ""}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="hidden md:block min-w-[170px] text-sm text-gray-700">
-                    {r.time}
-                    <div className="text-xs text-gray-400">{r.tag === "Arrives next day" ? "Arrives next day" : "\u00A0"}</div>
+                  <div className="text-sm text-gray-700">{f.time}</div>
+
+                  <div className="text-right">
+                    <div className="text-xs text-gray-600">{f.stops}</div>
+                    <div className="text-xs text-gray-400">{f.note ?? ""}</div>
                   </div>
 
-                  <div className="hidden md:block min-w-[110px] text-sm text-gray-700">
-                    {r.stops}
-                    <div className="text-xs text-gray-400">{r.layover ?? "\u00A0"}</div>
+                  <div className="text-right">
+                    <div className="text-sm font-semibold text-gray-900">
+                      ${f.price.toLocaleString()}
+                    </div>
+                    <div className="text-xs text-gray-400">round trip</div>
                   </div>
-
-                  <div className="min-w-[90px] text-right">
-                    <div className="text-sm font-semibold text-gray-900">${r.price}</div>
-                    <div className="text-xs text-gray-400">{r.note ?? ""}</div>
-                  </div>
-                </Link>
+                </div>
               ))}
             </div>
 
-            <div className="mt-10">
-              <h3 className="text-center text-sm font-semibold text-gray-900">AI Prediction</h3>
-              <div className="mt-4 rounded-lg border border-gray-200 bg-white p-5 text-sm text-gray-600">
-                Placeholder: Price grid + price history chart UI will go here.
+            {/* ✅ 아래쪽 섹션 (두번째 사진 느낌) */}
+            <div className="mt-10 grid grid-cols-12 gap-6">
+              {/* Price grid */}
+              <div className="col-span-5 rounded-lg border bg-white p-4">
+                <h3 className="text-sm font-semibold text-gray-900">
+                  Price grid (flexible dates)
+                </h3>
+
+                <div className="mt-3 overflow-hidden rounded-md border">
+                  <table className="w-full text-xs">
+                    <thead className="bg-gray-50 text-gray-600">
+                      <tr>
+                        <th className="p-2 text-left"></th>
+                        {["2/12", "2/13", "2/14", "2/15", "2/16"].map((d) => (
+                          <th key={d} className="p-2 text-center font-medium">
+                            {d}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        ["3/7", ["$837", "$592", "$592", "$1,308", "$837"]],
+                        ["3/8", ["$837", "$592", "$592", "$837", "$1,308"]],
+                        ["3/9", ["$624", "$592", "$624", "$592", "$624"]],
+                        ["3/10", ["$1,308", "$624", "$624", "$837", "$837"]],
+                        ["3/11", ["$592", "$624", "$1,308", "$837", "$624"]],
+                      ].map(([row, vals]) => (
+                        <tr key={row as string} className="border-t">
+                          <td className="p-2 text-gray-600">{row as string}</td>
+                          {(vals as string[]).map((v, idx) => (
+                            <td key={idx} className="p-2 text-center text-gray-700">
+                              {v}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
+
+              {/* Price history */}
+              <div className="col-span-3 rounded-lg border bg-white p-4">
+                <h3 className="text-sm font-semibold text-gray-900">Price history</h3>
+                <div className="mt-3 h-32 rounded-md border bg-gray-50 flex items-center justify-center text-xs text-gray-500">
+                  Chart placeholder
+                </div>
+              </div>
+
+              {/* AI Prediction */}
+              <div className="col-span-4 rounded-lg border bg-white p-4">
+                <h3 className="text-sm font-semibold text-gray-900">AI Prediction</h3>
+                <div className="mt-3 h-32 rounded-md border bg-gray-50 flex items-center justify-center text-xs text-gray-500">
+                  Prediction placeholder
+                </div>
+              </div>
+            </div>
+
+            {/* Price rating */}
+            <div className="mt-8 rounded-lg border bg-white p-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                <span>Price rating</span>
+                <span className="rounded-full bg-black px-2 py-0.5 text-xs text-white">
+                  Buy soon
+                </span>
+              </div>
+
+              <p className="mt-3 text-sm text-gray-700">
+                We recommend booking soon. The average cost of this flight is $750, but could rise
+                in the next few weeks.
+              </p>
+
+              <p className="mt-2 text-xs text-gray-500">
+                This is placeholder text (later: AI model prediction + trend summary).
+              </p>
             </div>
           </section>
         </div>

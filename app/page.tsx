@@ -1,9 +1,47 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import SearchBar from "./components/SearchBar";
 
+type DestinationCard = {
+  title: string;          // 보여줄 텍스트
+  priceText: string;      // "$375+"
+  imageSrc: string;       // /images/...
+  from: string;           // 공항코드
+  to: string;             // 공항코드
+};
+
 export default function HomePage() {
+  // ✅ 데모용: 여기만 바꾸면 홈 카드 목적지 바뀜
+  const popular: DestinationCard[] = [
+    {
+      title: "Toronto → Hawaii",
+      priceText: "$375+",
+      imageSrc: "/images/dest-hawaii.png",
+      from: "YYZ",
+      to: "HNL", // Hawaii(대표 공항)
+    },
+    {
+      title: "Toronto → Tokyo",
+      priceText: "$365+",
+      imageSrc: "/images/dest-tokyo.jpg",
+      from: "YYZ",
+      to: "NRT", // Tokyo(나리타)
+    },
+    {
+      title: "Toronto → Machu Picchu",
+      priceText: "$350+",
+      imageSrc: "/images/dest-machu-picchu.png",
+      from: "YYZ",
+      to: "CUZ", // Machu Picchu 접근 공항(쿠스코)
+    },
+  ];
+
+  // 데모 기본값 (원하면 바꿔도 됨)
+  const defaultDate = "Depart - Return";
+  const defaultPax = "1 adult";
+
   return (
     <main className="min-h-screen bg-white">
       {/* HERO */}
@@ -15,7 +53,6 @@ export default function HomePage() {
           backgroundPosition: "center",
         }}
       >
-        {/* (선택) 가독성용 아주 약한 오버레이 — 필요 없으면 이 div 지워도 됨 */}
         <div className="absolute inset-0 bg-white/20" />
 
         <div className="relative mx-auto flex w-full max-w-5xl flex-col items-center px-6">
@@ -36,7 +73,7 @@ export default function HomePage() {
             Please search for your flight below:
           </p>
 
-          {/* ✅ SearchBar 컴포넌트 사용 */}
+          {/* ✅ SearchBar (이미 잘 붙어있음) */}
           <SearchBar />
         </div>
       </section>
@@ -48,63 +85,42 @@ export default function HomePage() {
         </h2>
 
         <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-          {/* Card 1 */}
-          <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
-            <div className="relative h-[150px] w-full">
-              <Image
-                src="/images/dest-hawaii.png"
-                alt="Toronto to Hawaii"
-                fill
-                className="object-cover"
-                priority
-              />
-            </div>
-            <div className="p-4">
-              <div className="font-semibold">Toronto → Hawaii</div>
-              <div className="mt-1 text-xl text-gray-600">$375+</div>
-              <button className="mt-4 text-sm text-black underline">
-                Book Now →
-              </button>
-            </div>
-          </div>
+          {popular.map((d) => {
+            const href = `/search?from=${encodeURIComponent(
+              d.from
+            )}&to=${encodeURIComponent(d.to)}&date=${encodeURIComponent(
+              defaultDate
+            )}&pax=${encodeURIComponent(defaultPax)}`;
 
-          {/* Card 2 */}
-          <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
-            <div className="relative h-[150px] w-full">
-              <Image
-                src="/images/dest-tokyo.jpg"
-                alt="Toronto to Tokyo"
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div className="p-4">
-              <div className="font-semibold">Toronto → Tokyo</div>
-              <div className="mt-1 text-xl text-gray-600">$365+</div>
-              <button className="mt-4 text-sm text-black underline">
-                Book Now →
-              </button>
-            </div>
-          </div>
+            return (
+              <div
+                key={d.title}
+                className="overflow-hidden rounded-lg border bg-white shadow-sm"
+              >
+                <div className="relative h-[150px] w-full">
+                  <Image
+                    src={d.imageSrc}
+                    alt={d.title}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
 
-          {/* Card 3 */}
-          <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
-            <div className="relative h-[150px] w-full">
-              <Image
-                src="/images/dest-machu-picchu.png"
-                alt="Toronto to Machu Picchu"
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div className="p-4">
-              <div className="font-semibold">Toronto → Machu Picchu</div>
-              <div className="mt-1 text-xl text-gray-600">$350+</div>
-              <button className="mt-4 text-sm text-black underline">
-                Book Now →
-              </button>
-            </div>
-          </div>
+                <div className="p-4">
+                  <div className="font-semibold">{d.title}</div>
+                  <div className="mt-1 text-xl text-gray-600">{d.priceText}</div>
+
+                  {/* ✅ 여기 클릭하면 search로 이동 + query 전달 */}
+                  <Link
+                    href={href}
+                    className="mt-4 inline-block text-sm text-black underline"
+                  >
+                    Book Now →
+                  </Link>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
     </main>
