@@ -4,10 +4,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import LoginModal from "./LoginModal";
+import AuthModal from "./AuthModal";
 
 export default function Navbar() {
-	const [loginOpen, setLoginOpen] = useState(false);
+	const [AuthModalOpen, setAuthModalOpen] = useState(false);
+	const [mode, setMode] = useState<"login" | "signup">("login");
 
 	return (
 		<>
@@ -44,15 +45,23 @@ export default function Navbar() {
 						</Link>
 
 						{/* Login button */}
-						<button							className="rounded-lg bg-black px-4 py-2 font-medium text-white hover:opacity-90"
-							onClick={() => setLoginOpen(true)}
+						<button
+							className="rounded-lg bg-black px-4 py-2 font-medium text-white hover:opacity-90"
+							onClick={() => setAuthModalOpen(true)}
 						>
 							Login
 						</button>
 					</nav>
 				</div>
 			</header>
-			{loginOpen && <LoginModal onClose={() => setLoginOpen(false)} />}
+
+			<AuthModal
+				open={AuthModalOpen}
+				mode={mode}
+				setMode={setMode}
+				onClose={() => setAuthModalOpen(false)}
+			/>
+			{/* {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} />} */}
 		</>
 	);
 }
