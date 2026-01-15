@@ -6,11 +6,17 @@ import { useState } from "react";
 type SearchBarProps = {
   className?: string;
 
-  // 필요하면 Home 말고 다른 페이지에서 기본값만 바꾸려고
   defaultFrom?: string;
   defaultTo?: string;
   defaultDateRange?: string;
   defaultPassengers?: string;
+
+  onSearch?: (params: {
+    from: string;
+    to: string;
+    dateRange: string;
+    passengers: string;
+  }) => void;
 };
 
 export default function SearchBar({
@@ -19,6 +25,7 @@ export default function SearchBar({
   defaultTo = "ORD",
   defaultDateRange = "Depart - Return",
   defaultPassengers = "1 adult",
+  onSearch,
 }: SearchBarProps) {
   const router = useRouter();
 
@@ -27,10 +34,32 @@ export default function SearchBar({
   const [dateRange, setDateRange] = useState(defaultDateRange);
   const [passengers, setPassengers] = useState(defaultPassengers);
 
+  const buildQuery = () => {
+    const qs = new URLSearchParams({
+      from: from.trim(),
+      to: to.trim(),
+      date: dateRange.trim(),
+      pax: passengers.trim(),
+    });
+    return qs.toString();
+  };
+
   const handleSearch = () => {
-    // 일단은 /search로만 이동 (너가 기존에 하던 방식 그대로)
-    // 나중에 원하면 query string으로 값 넘기는 것도 가능함.
-    router.push("/search");
+    const payload = {
+      from: from.trim(),
+      to: to.trim(),
+      dateRange: dateRange.trim(),
+      passengers: passengers.trim(),
+    };
+
+    // ✅ Search 페이지에서는 onSearch로 "즉시 반영"
+    if (onSearch) {
+      onSearch(payload);
+      return;
+    }
+
+    // ✅ Home 등 다른 페이지에서는 /search로 이동
+    router.push(`/search?${buildQuery()}`);
   };
 
   return (
@@ -62,7 +91,7 @@ export default function SearchBar({
 
         <div className="h-[48px] w-px bg-gray-200" />
 
-        {/* Depart - Return */}
+        {/* Date */}
         <div className="flex h-[48px] w-[246px] items-center gap-2 px-3">
           <span className="text-sm text-gray-500">📅</span>
           <input
@@ -86,7 +115,7 @@ export default function SearchBar({
           />
         </div>
 
-        {/* Search Button */}
+        {/* Search */}
         <button
           onClick={handleSearch}
           className="h-[48px] bg-black px-6 text-sm font-medium text-white"

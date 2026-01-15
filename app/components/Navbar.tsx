@@ -29,10 +29,6 @@ export default function Navbar() {
 
 					{/* Right: Nav items */}
 					<nav className="flex items-center gap-6 text-sm">
-						{/* Flights = 너희 프로젝트에선 Search 페이지로 연결 */}
-						<Link href="/search" className="hover:underline">
-							Flights
-						</Link>
 
 						{/* CAD (나중에 dropdown/토글로 바꾸면 됨) */}
 						<button type="button" className="cursor-default select-none">
