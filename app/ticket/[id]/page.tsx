@@ -1,4 +1,3 @@
-// app/ticket/[id]/page.tsx
 "use client";
 
 import Image from "next/image";
@@ -41,6 +40,26 @@ export default function TicketDetailPage() {
     router.push(`/search?${qs.toString()}`);
   };
 
+  const goBackToSearch = () => {
+    const qs = new URLSearchParams({ from, to, date, pax });
+    router.push(`/search?${qs.toString()}`);
+  };
+
+  const goTicketDetails2 = () => {
+    // ✅ id는 flight.id를 쓰는 게 가장 안전
+    const qs = new URLSearchParams({
+      id: flight?.id ?? "",
+      from,
+      to,
+      date,
+      pax,
+    });
+
+    const url = `/ticket-details2?${qs.toString()}`;
+    console.log("Going to:", url); // ✅ 이동 확인용
+    router.push(url);
+  };
+
   if (!flight) {
     return (
       <main className="min-h-screen">
@@ -48,8 +67,9 @@ export default function TicketDetailPage() {
           <h1 className="text-xl font-semibold">Ticket not found</h1>
           <p className="mt-2 text-sm text-gray-500">id: {String(id)}</p>
           <button
+            type="button"
             className="mt-4 rounded-lg border px-4 py-2 hover:bg-gray-50"
-            onClick={() => router.push(`/search?from=${from}&to=${to}&date=${date}&pax=${pax}`)}
+            onClick={goBackToSearch}
           >
             Back to search
           </button>
@@ -89,8 +109,8 @@ export default function TicketDetailPage() {
                 (t) => (
                   <button
                     key={t}
-                    className="rounded-md border border-gray-200 bg-white px-3 py-1 text-xs text-gray-700 shadow-sm hover:bg-gray-50"
                     type="button"
+                    className="rounded-md border border-gray-200 bg-white px-3 py-1 text-xs text-gray-700 shadow-sm hover:bg-gray-50"
                   >
                     {t} <span className="ml-1 text-gray-400">▾</span>
                   </button>
@@ -151,9 +171,11 @@ export default function TicketDetailPage() {
                 />
               </div>
 
+              {/* ✅ 여기만 확실히 */}
               <button
+                type="button"
                 className="mt-4 w-full rounded-lg bg-black px-4 py-3 text-sm font-medium text-white hover:bg-black/90"
-                onClick={() => router.push(`/checkout/payment?id=${flight.id}`)}
+                onClick={goTicketDetails2}
               >
                 Book Now
               </button>
