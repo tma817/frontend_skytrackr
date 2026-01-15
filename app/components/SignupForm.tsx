@@ -10,32 +10,68 @@ export default function SignupForm({ setMode }: Props) {
 
 			<form className="flex flex-col gap-6">
 				<div className="flex gap-4">
+					<div className="flex-1">
+						<label className="mb-1 block text-sm font-medium">
+							First Name <span className="text-red-500">*</span>
+						</label>
+						<input required className="w-full rounded-lg border px-4 py-3" />
+					</div>
+
+					<div className="flex-1">
+						<label className="mb-1 block text-sm font-medium">
+							Last Name <span className="text-red-500">*</span>
+						</label>
+						<input required className="w-full rounded-lg border px-4 py-3" />
+					</div>
+				</div>
+
+				<div>
+					<label className="mb-1 block text-sm font-medium">
+						Email <span className="text-red-500">*</span>
+					</label>
 					<input
-						placeholder="First Name"
-						className="min-w-0 flex-1 rounded-lg border px-4 py-3"
-					/>
-					<input
-						placeholder="Last Name"
-						className="min-w-0 flex-1 rounded-lg border px-4 py-3"
+						required
+						type="email"
+						className="w-full rounded-lg border px-4 py-3"
 					/>
 				</div>
-				<input placeholder="Email" className="rounded-lg border px-4 py-3" />
-				<input
-					placeholder="Phone Number"
-					className="rounded-lg border px-4 py-3"
-				/>
-				<input
-					type="password"
-					placeholder="Password"
-					className="rounded-lg border px-4 py-3"
-				/>
-				<input
-					type="password"
-					placeholder="Confirm Password"
-					className="rounded-lg border px-4 py-3"
-				/>
 
-				<button className="self-center rounded-lg cursor-pointer bg-blue-600 px-8 py-3 text-white font-semibold hover:bg-blue-700 transition">
+				<div>
+					<label className="mb-1 block text-sm font-medium">
+						Phone Number{" "}
+						<span className="text-gray-400 text-xs">(optional)</span>
+					</label>
+					<input type="tel" className="w-full rounded-lg border px-4 py-3" />
+				</div>
+
+				<div>
+					<label className="mb-1 block text-sm font-medium">
+						Password <span className="text-red-500">*</span>
+					</label>
+					<input
+						required
+						type="password"
+						className="w-full rounded-lg border px-4 py-3"
+					/>
+				</div>
+
+				<div>
+					<label className="mb-1 block text-sm font-medium">
+						Confirm Password <span className="text-red-500">*</span>
+					</label>
+					<input
+						required
+						type="password"
+						className="w-full rounded-lg border px-4 py-3"
+					/>
+				</div>
+
+				<p className="text-xs text-gray-500">
+					Fields marked with <span className="text-red-500">*</span> are
+					required.
+				</p>
+
+				<button className="self-center rounded-lg bg-blue-600 px-8 py-3 text-white font-semibold hover:bg-blue-700">
 					Create Account
 				</button>
 			</form>
