@@ -3,14 +3,23 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+type SearchPayload = {
+  from: string;
+  to: string;
+  dateRange: string;
+  passengers: string;
+};
+
 type SearchBarProps = {
   className?: string;
 
-  // 필요하면 Home 말고 다른 페이지에서 기본값만 바꾸려고
   defaultFrom?: string;
   defaultTo?: string;
   defaultDateRange?: string;
   defaultPassengers?: string;
+
+  // search 페이지에서는 onSearch로 바로 재검색 가능
+  onSearch?: (payload: SearchPayload) => void;
 };
 
 export default function SearchBar({
@@ -19,6 +28,7 @@ export default function SearchBar({
   defaultTo = "ORD",
   defaultDateRange = "Depart - Return",
   defaultPassengers = "1 adult",
+  onSearch,
 }: SearchBarProps) {
   const router = useRouter();
 
@@ -27,14 +37,36 @@ export default function SearchBar({
   const [dateRange, setDateRange] = useState(defaultDateRange);
   const [passengers, setPassengers] = useState(defaultPassengers);
 
+  const pushToSearch = (payload: SearchPayload) => {
+    const qs = new URLSearchParams({
+      from: payload.from,
+      to: payload.to,
+      date: payload.dateRange,
+      pax: payload.passengers,
+    });
+
+    router.push(`/search?${qs.toString()}`);
+  };
+
   const handleSearch = () => {
-    // 일단은 /search로만 이동 (너가 기존에 하던 방식 그대로)
-    // 나중에 원하면 query string으로 값 넘기는 것도 가능함.
-    router.push("/search");
+    const payload = { from, to, dateRange, passengers };
+
+    // search 페이지에서만 onSearch가 들어오면 그걸 사용
+    if (onSearch) {
+      onSearch(payload);
+      return;
+    }
+
+    // home 등 다른 페이지에서는 query 붙여서 /search로 이동
+    pushToSearch(payload);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") handleSearch();
   };
 
   return (
-    <div className={`mt-8 w-full max-w-[960px] ${className}`}>
+    <div className={`w-full max-w-[960px] ${className}`}>
       <div className="flex w-full items-stretch overflow-hidden rounded-md border bg-white shadow-sm">
         {/* From */}
         <div className="flex h-[48px] w-[327.5px] items-center gap-2 px-3">
@@ -43,6 +75,7 @@ export default function SearchBar({
             className="w-full bg-transparent text-sm outline-none"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
+            onKeyDown={handleKeyDown}
             aria-label="From"
           />
         </div>
@@ -56,6 +89,7 @@ export default function SearchBar({
             className="w-full bg-transparent text-sm outline-none"
             value={to}
             onChange={(e) => setTo(e.target.value)}
+            onKeyDown={handleKeyDown}
             aria-label="To"
           />
         </div>
@@ -69,6 +103,7 @@ export default function SearchBar({
             className="w-full bg-transparent text-sm outline-none"
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
+            onKeyDown={handleKeyDown}
             aria-label="Date range"
           />
         </div>
@@ -82,6 +117,7 @@ export default function SearchBar({
             className="w-full bg-transparent text-sm outline-none"
             value={passengers}
             onChange={(e) => setPassengers(e.target.value)}
+            onKeyDown={handleKeyDown}
             aria-label="Passengers"
           />
         </div>

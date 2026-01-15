@@ -1,9 +1,23 @@
+// app/page.tsx
 "use client";
 
 import Image from "next/image";
 import SearchBar from "./components/SearchBar";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
+  const router = useRouter();
+
+  const goSearch = (from: string, to: string) => {
+    const qs = new URLSearchParams({
+      from,
+      to,
+      date: "Depart - Return",
+      pax: "1 adult",
+    });
+    router.push(`/search?${qs.toString()}`);
+  };
+
   return (
     <main className="min-h-screen bg-white">
       {/* HERO */}
@@ -15,7 +29,6 @@ export default function HomePage() {
           backgroundPosition: "center",
         }}
       >
-        {/* (선택) 가독성용 아주 약한 오버레이 — 필요 없으면 이 div 지워도 됨 */}
         <div className="absolute inset-0 bg-white/20" />
 
         <div className="relative mx-auto flex w-full max-w-5xl flex-col items-center px-6">
@@ -36,7 +49,6 @@ export default function HomePage() {
             Please search for your flight below:
           </p>
 
-          {/* ✅ SearchBar 컴포넌트 사용 */}
           <SearchBar />
         </div>
       </section>
@@ -62,7 +74,10 @@ export default function HomePage() {
             <div className="p-4">
               <div className="font-semibold">Toronto → Hawaii</div>
               <div className="mt-1 text-xl text-gray-600">$375+</div>
-              <button className="mt-4 text-sm text-black underline">
+              <button
+                className="mt-4 text-sm text-black underline"
+                onClick={() => goSearch("YYZ", "HNL")}
+              >
                 Book Now →
               </button>
             </div>
@@ -81,7 +96,10 @@ export default function HomePage() {
             <div className="p-4">
               <div className="font-semibold">Toronto → Tokyo</div>
               <div className="mt-1 text-xl text-gray-600">$365+</div>
-              <button className="mt-4 text-sm text-black underline">
+              <button
+                className="mt-4 text-sm text-black underline"
+                onClick={() => goSearch("YYZ", "NRT")}
+              >
                 Book Now →
               </button>
             </div>
@@ -100,7 +118,10 @@ export default function HomePage() {
             <div className="p-4">
               <div className="font-semibold">Toronto → Machu Picchu</div>
               <div className="mt-1 text-xl text-gray-600">$350+</div>
-              <button className="mt-4 text-sm text-black underline">
+              <button
+                className="mt-4 text-sm text-black underline"
+                onClick={() => goSearch("YYZ", "LIM")}
+              >
                 Book Now →
               </button>
             </div>
