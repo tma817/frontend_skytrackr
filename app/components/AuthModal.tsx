@@ -35,7 +35,7 @@ export default function AuthModal({ open, mode, setMode, onClose }: Props) {
 				{/* Close */}
 				<button
 					onClick={onClose}
-					className="self-end text-gray-500 hover:text-black"
+					className="self-end cursor-pointer text-gray-500 hover:text-black"
 				>
 					✕
 				</button>
