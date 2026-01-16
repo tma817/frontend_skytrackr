@@ -27,11 +27,7 @@ export default function Navbar() {
 							SkyTrackR
 						</span>
 					</Link>
-
-					{/* Right: Nav items */}
 					<nav className="flex items-center gap-6 text-sm">
-
-						{/* CAD (나중에 dropdown/토글로 바꾸면 됨) */}
 						<button type="button" className="cursor-default select-none">
 							CAD <span className="ml-1">🇨🇦</span>
 						</button>
