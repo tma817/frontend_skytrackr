@@ -8,15 +8,19 @@ export default function VerifyForm({ email, setMode, onVerifySuccess }: any) {
     const handleVerify = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        // Gọi API: POST /auth/verify { email, code }
-        // Nếu ok -> onVerifySuccess()
 
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, otpCode: code }),
         });
-
+        if (response.ok)
+        {
+            setMode("login")
+        } else{
+            alert("Expired token, Please try again")
+            setMode("login")
+        }
         setIsLoading(false);
     };
 
