@@ -8,7 +8,7 @@ import AuthModal from "./AuthModal";
 
 export default function Navbar() {
 	const [AuthModalOpen, setAuthModalOpen] = useState(false);
-	const [mode, setMode] = useState<"login" | "signup">("login");
+	const [mode, setMode] = useState<"login" | "signup" | "verify" >("login");
 
 	return (
 		<>
@@ -41,7 +41,7 @@ export default function Navbar() {
 							className="rounded-lg bg-black px-4 py-2 font-medium text-white hover:opacity-90"
 							onClick={() => setAuthModalOpen(true)}
 						>
-							Login
+							{mode == "login" ? "Login" : "Sign up" }
 						</button>
 					</nav>
 				</div>

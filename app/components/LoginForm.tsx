@@ -3,7 +3,7 @@ import { useState } from "react";
 import { setCookie } from "cookies-next";
 
 type Props = {
-  setMode: (m: "login" | "signup") => void;
+  setMode: (m: "login" | "signup" | "verify") => void;
 };
 
 export default function LoginForm({ setMode }: Props) {

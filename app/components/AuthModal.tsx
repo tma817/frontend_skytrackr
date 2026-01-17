@@ -2,15 +2,20 @@
 import { useEffect } from "react";
 import LoginForm from "./LoginForm";
 import SignupForm from "./SignupForm";
-
+import { useState } from "react";
+import VerifyForm from "./VerifyForm";
 type Props = {
 	open: boolean;
-	mode: "login" | "signup";
-	setMode: (m: "login" | "signup") => void;
+	mode: "login" | "signup" | "verify";
+	setMode: (m: "login" | "signup" | "verify") => void;
 	onClose: () => void;
+
 };
 
 export default function AuthModal({ open, mode, setMode, onClose }: Props) {
+	
+	const [emailForVerify, setEmailForVerify] = useState("")
+
 	// ESC to close
 	useEffect(() => {
 		if (!open) return;
@@ -42,7 +47,22 @@ export default function AuthModal({ open, mode, setMode, onClose }: Props) {
 
 				{/* Swap forms */}
 				{mode === "login" && <LoginForm setMode={setMode} />}
-				{mode === "signup" && <SignupForm setMode={setMode} />}
+				{mode === "signup" && 
+					<SignupForm 
+						setMode={setMode}
+						onSignupSuccess={(email) => {
+							setEmailForVerify(email);
+							setMode("verify");
+						}}
+					/>
+				}
+				{mode === "verify" && (
+                    <VerifyForm 
+                        email={emailForVerify} 
+                        setMode={setMode} 
+                        onVerifySuccess={() => setMode("login")}
+                    />
+                )}
 			</div>
 		</div>
 	);
