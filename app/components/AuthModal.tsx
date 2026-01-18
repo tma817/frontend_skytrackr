@@ -1,8 +1,7 @@
 "use client";
-import { useEffect } from "react";
 import LoginForm from "./LoginForm";
 import SignupForm from "./SignupForm";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import VerifyForm from "./VerifyForm";
 type Props = {
 	open: boolean;
@@ -13,6 +12,7 @@ type Props = {
 
 export default function AuthModal({ open, mode, setMode, onClose }: Props) {
 	const [emailForVerify, setEmailForVerify] = useState("");
+	const mouseDownOnBackdrop = useRef(false);
 
 	// ESC to close
 	useEffect(() => {
@@ -29,7 +29,17 @@ export default function AuthModal({ open, mode, setMode, onClose }: Props) {
 	return (
 		<div
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-			onClick={onClose}
+			onMouseDown={(e) => {
+				if (e.target === e.currentTarget) {
+					mouseDownOnBackdrop.current = true;
+				}
+			}}
+			onMouseUp={(e) => {
+				if (mouseDownOnBackdrop.current && e.target === e.currentTarget) {
+					onClose();
+				}
+				mouseDownOnBackdrop.current = false;
+			}}
 		>
 			<div
 				className="w-full max-w-lg rounded-2xl bg-white p-10 shadow-lg flex flex-col gap-5"
