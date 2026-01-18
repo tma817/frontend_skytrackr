@@ -4,6 +4,7 @@ import { useState } from "react";
 export default function VerifyForm({ email, setMode, onVerifySuccess }: any) {
     const [code, setCode] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [sentAgain, setsentAgain] = useState(false);
 
     const handleVerify = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -17,12 +18,19 @@ export default function VerifyForm({ email, setMode, onVerifySuccess }: any) {
         if (response.ok)
         {
             setMode("login")
-        } else{
-            alert("Expired token, Please try again")
-            setMode("login")
+        } 
+		else{
+            alert("Incorrect Token, please try again.");
+			console.log(response);
+            setMode("verify");
         }
         setIsLoading(false);
     };
+
+	// WIP need to add route to resend verification code
+	// const resendCode = await fetch({
+
+	// });
 
     return (
         <div className="flex flex-col gap-4 text-center">
@@ -38,6 +46,9 @@ export default function VerifyForm({ email, setMode, onVerifySuccess }: any) {
                     {isLoading ? "Checking..." : "Confirm Code"}
                 </button>
             </form>
+			<button onClick={resendCode} className="bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition-colors">
+				{sentAgain ? "Code Re-sent" : "Resend Code"}
+			</button>
         </div>
     );
 }
