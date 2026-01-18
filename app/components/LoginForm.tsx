@@ -4,9 +4,10 @@ import { setCookie } from "cookies-next";
 
 type Props = {
 	setMode: (m: "login" | "signup" | "verify") => void;
+	onLoginSuccess: (email: string) => void;
 };
 
-export default function LoginForm({ setMode }: Props) {
+export default function LoginForm({ setMode, onLoginSuccess }: Props) {
 	const [showPassword, setShowPassword] = useState(false);
 
 	const [email, setEmail] = useState("");
@@ -47,7 +48,13 @@ export default function LoginForm({ setMode }: Props) {
 				window.location.href = "/dashboard";
 			}
 		} catch (err: any) {
-			setError(err.message);
+			if (err.message.includes("verify")) {
+				setMode("verify");
+				onLoginSuccess(email);
+			}
+			else {
+				setError(err.message);
+			}
 		} finally {
 			setIsLoading(false);
 		}

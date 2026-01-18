@@ -9,12 +9,10 @@ type Props = {
 	mode: "login" | "signup" | "verify";
 	setMode: (m: "login" | "signup" | "verify") => void;
 	onClose: () => void;
-
 };
 
 export default function AuthModal({ open, mode, setMode, onClose }: Props) {
-	
-	const [emailForVerify, setEmailForVerify] = useState("")
+	const [emailForVerify, setEmailForVerify] = useState("");
 
 	// ESC to close
 	useEffect(() => {
@@ -46,23 +44,31 @@ export default function AuthModal({ open, mode, setMode, onClose }: Props) {
 				</button>
 
 				{/* Swap forms */}
-				{mode === "login" && <LoginForm setMode={setMode} />}
-				{mode === "signup" && 
-					<SignupForm 
+				{mode === "login" && (
+					<LoginForm
+						setMode={setMode}
+						onLoginSuccess={(email) => {
+							setEmailForVerify(email);
+							setMode("verify");
+						}}
+					/>
+				)}
+				{mode === "signup" && (
+					<SignupForm
 						setMode={setMode}
 						onSignupSuccess={(email) => {
 							setEmailForVerify(email);
 							setMode("verify");
 						}}
 					/>
-				}
+				)}
 				{mode === "verify" && (
-                    <VerifyForm 
-                        email={emailForVerify} 
-                        setMode={setMode} 
-                        onVerifySuccess={() => setMode("login")}
-                    />
-                )}
+					<VerifyForm
+						email={emailForVerify}
+						setMode={setMode}
+						onVerifySuccess={() => setMode("login")}
+					/>
+				)}
 			</div>
 		</div>
 	);

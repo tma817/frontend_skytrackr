@@ -17,9 +17,11 @@ export default function VerifyForm({ email, setMode, onVerifySuccess }: any) {
         if (response.ok)
         {
             setMode("login")
-        } else{
-            alert("Expired token, Please try again")
-            setMode("login")
+        } 
+		else{
+            alert("Expired token, Please try again");
+			console.log(response);
+            setMode("verify");
         }
         setIsLoading(false);
     };
