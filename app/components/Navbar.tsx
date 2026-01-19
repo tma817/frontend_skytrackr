@@ -28,28 +28,37 @@ export default function Navbar() {
 						</span>
 					</Link>
 					<nav className="flex items-center gap-6 text-sm">
-						<button type="button" className="cursor-default select-none">
+						<button
+							type="button"
+							className="cursor-pointer  select-none min-h-10 min-w-23 rounded-lg transition-colors duration-150
+							hover:bg-gray-100"
+						>
 							CAD <span className="ml-1">🇨🇦</span>
 						</button>
 
-						<Link href="/subscribe" className="hover:underline">
+						<Link
+							href="/subscribe"
+							className="hover:underline text-center flex justify-center items-center rounded-lg 
+							min-h-10 min-w-23 transition-colors duration-150
+							hover:bg-gray-100"
+						>
 							Subscribe
 						</Link>
 
 						{/* Login button */}
 						<button
-							className="rounded-lg bg-black px-4 py-2 font-medium text-white hover:opacity-90"
+							className="cursor-pointer rounded-lg border-2 border-black bg-black min-h-10 min-w-23 font-medium text-white transition-colors duration-150 hover:opacity-80"
 							onClick={() => {
-								setAuthModalOpen(true)
+								setAuthModalOpen(true);
 								setMode("login");
-							
 							}}
 						>
 							Login
 						</button>
 						<button
 							type="button"
-							className="cursor-pointer hover:underline"
+							className="cursor-pointer rounded-lg border-2 min-h-10 min-w-23 hover:underline transition-colors duration-150
+							hover:bg-gray-100"
 							onClick={() => {
 								setAuthModalOpen(true);
 								setMode("signup");
