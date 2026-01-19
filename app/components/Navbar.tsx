@@ -8,7 +8,7 @@ import AuthModal from "./AuthModal";
 
 export default function Navbar() {
 	const [AuthModalOpen, setAuthModalOpen] = useState(false);
-	const [mode, setMode] = useState<"login" | "signup" | "verify" >("login");
+	const [mode, setMode] = useState<"login" | "signup" | "verify">("login");
 
 	return (
 		<>
@@ -39,9 +39,23 @@ export default function Navbar() {
 						{/* Login button */}
 						<button
 							className="rounded-lg bg-black px-4 py-2 font-medium text-white hover:opacity-90"
-							onClick={() => setAuthModalOpen(true)}
+							onClick={() => {
+								setAuthModalOpen(true)
+								setMode("login");
+							
+							}}
 						>
-							{mode == "login" ? "Login" : "Sign up" }
+							Login
+						</button>
+						<button
+							type="button"
+							className="cursor-pointer hover:underline"
+							onClick={() => {
+								setAuthModalOpen(true);
+								setMode("signup");
+							}}
+						>
+							Sign Up
 						</button>
 					</nav>
 				</div>
@@ -53,7 +67,6 @@ export default function Navbar() {
 				setMode={setMode}
 				onClose={() => setAuthModalOpen(false)}
 			/>
-			{/* {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} />} */}
 		</>
 	);
 }
