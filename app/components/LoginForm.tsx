@@ -72,7 +72,6 @@ export default function LoginForm({ setMode, onLoginSuccess }: Props) {
 					</label>
 					<input
 						type="email"
-						placeholder="Email"
 						required
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
@@ -85,18 +84,17 @@ export default function LoginForm({ setMode, onLoginSuccess }: Props) {
 					<div className="relative">
 						<input
 							type={showPassword ? "text" : "password"}
-							placeholder="Password"
 							required
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
 							className="rounded-lg border px-4 py-3 w-full"
-							autoComplete="new-password"
 							spellCheck="false"
 						/>
 						<button
 							type="button"
 							onClick={() => setShowPassword(!showPassword)}
 							className="absolute inset-y-0 end-0 flex items-center z-20 px-3 cursor-pointer text-gray-400 rounded-e-md focus:outline-none focus:text-blue-600 dark:text-neutral-600 dark:focus:text-blue-500"
+							tabIndex={-1}
 						>
 							{showPassword ? (
 								// Eye open

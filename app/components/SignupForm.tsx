@@ -129,12 +129,14 @@ export default function SignupForm({ setMode, onSignupSuccess }: Props) {
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
 							className="w-full rounded-lg border px-4 py-3"
+							autoComplete="new-password"
 						/>
 
 						<button
 							type="button"
 							onClick={() => setShowPassword(!showPassword)}
 							className="absolute inset-y-0 end-0 flex items-center z-20 px-3 cursor-pointer text-gray-400 rounded-e-md focus:outline-none focus:text-blue-600 dark:text-neutral-600 dark:focus:text-blue-500"
+							tabIndex={-1}
 						>
 							{showPassword ? (
 								// Eye open
@@ -173,11 +175,13 @@ export default function SignupForm({ setMode, onSignupSuccess }: Props) {
 							onChange={(e) => setConfirmPassword(e.target.value)}
 							required
 							className="w-full rounded-lg border px-4 py-3"
+							autoComplete="new-password"
 						/>
 						<button
 							type="button"
 							onClick={() => setShowConfirmPassword(!showConfirmPassword)}
 							className="absolute inset-y-0 end-0 flex items-center z-20 px-3 cursor-pointer text-gray-400 rounded-e-md focus:outline-none focus:text-blue-600 dark:text-neutral-600 dark:focus:text-blue-500"
+							tabIndex={-1}
 						>
 							{showConfirmPassword ? (
 								// Eye open
