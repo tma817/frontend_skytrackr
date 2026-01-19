@@ -70,7 +70,7 @@ export default function SearchBar({
       <div className="flex w-full items-stretch overflow-hidden rounded-md border bg-white shadow-sm">
         {/* From */}
         <div className="flex h-[48px] w-[327.5px] items-center gap-2 px-3">
-          <span className="text-sm text-gray-500">✈️</span>
+          <span className="text-sm text-gray-500"></span>
           <input
             className="w-full bg-transparent text-sm outline-none"
             value={from}
@@ -84,7 +84,7 @@ export default function SearchBar({
 
         {/* To */}
         <div className="flex h-[48px] w-[327.5px] items-center gap-2 px-3">
-          <span className="text-sm text-gray-500">✈️</span>
+          <span className="text-sm text-gray-500"></span>
           <input
             className="w-full bg-transparent text-sm outline-none"
             value={to}
@@ -98,7 +98,7 @@ export default function SearchBar({
 
         {/* Depart - Return */}
         <div className="flex h-[48px] w-[246px] items-center gap-2 px-3">
-          <span className="text-sm text-gray-500">📅</span>
+          <span className="text-sm text-gray-500"></span>
           <input
             className="w-full bg-transparent text-sm outline-none"
             value={dateRange}
@@ -112,7 +112,7 @@ export default function SearchBar({
 
         {/* Passengers */}
         <div className="flex h-[48px] w-[200px] items-center gap-2 px-3">
-          <span className="text-sm text-gray-500">👤</span>
+          <span className="text-sm text-gray-500"></span>
           <input
             className="w-full bg-transparent text-sm outline-none"
             value={passengers}
