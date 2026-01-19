@@ -1,36 +1,69 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 
 export default function VerifyForm({ email, setMode, onVerifySuccess }: any) {
     const [code, setCode] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [sentAgain, setsentAgain] = useState(false);
+    const [countdown, setCountdown] = useState(0);
+    const [errorMessage, setErrorMessage] = useState("");
 
     const handleVerify = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, otpCode: code }),
-        });
-        if (response.ok)
-        {
-            setMode("login")
-        } 
-		else{
-            alert("Incorrect Token, please try again.");
-			console.log(response);
-            setMode("verify");
+        setErrorMessage("");
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, otpCode: code }),
+            });
+            if (response.ok) {
+                alert("Verification successful! Please log in.");
+                setMode("login");
+            } else {
+                const data = await response.json();
+                setErrorMessage(data.message || "Incorrect Token, please try again.");
+            }
+        } catch (err) {
+            setErrorMessage("Connection error, please try again.");
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     };
 
-	// WIP need to add route to resend verification code
-	// const resendCode = await fetch({
+	const handleResendCode = async () => {
+        if (countdown > 0) return;
 
-	// });
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/resend-otp`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email }),
+            });
+
+            if (response.ok) {
+                setCountdown(60); 
+                setCode("");
+                setErrorMessage(""); 
+                alert("New OTP Code has been sent to your email.");
+            } else {
+                const data = await response.json();
+                alert(data.message || "Please try again later.");
+            }
+        } catch (err) {
+            alert("Something went wrong, please try again");
+        }
+    };
+
+    useEffect(() => {
+        let timer: any;
+        if (countdown > 0) {
+            timer = setInterval(() => {
+                setCountdown((prev) => prev - 1);
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [countdown]);
 
     return (
         <div className="flex flex-col gap-4 text-center">
@@ -41,14 +74,26 @@ export default function VerifyForm({ email, setMode, onVerifySuccess }: any) {
                     className="border p-3 rounded-lg text-center text-2xl tracking-widest"
                     maxLength={6}
                     onChange={(e) => setCode(e.target.value)}
+                    placeholder="000000"
+                    required
                 />
+                {errorMessage && <p className="text-red-500 text-xs font-medium">{errorMessage}</p>}
+
                 <button className="bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition-colors">
                     {isLoading ? "Checking..." : "Confirm Code"}
                 </button>
             </form>
-			<button onClick={resendCode} className="bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition-colors">
-				{sentAgain ? "Code Re-sent" : "Resend Code"}
-			</button>
+
+            <div className="mt-2 text-sm">
+                <p className="text-gray-500">Did not receive the code?</p>
+                <button
+                    onClick={handleResendCode}
+                    disabled={countdown > 0}
+                    className="text-blue-600 font-semibold hover:underline disabled:text-gray-400 cursor-pointer disabled:cursor-not-allowed"
+                >
+                    {countdown > 0 ? `Resend after ${countdown}s` : "Send it again"}
+                </button>
+            </div>
         </div>
     );
 }
