@@ -46,7 +46,7 @@ export default function LoginForm({ setMode, onLoginSuccess }: Props) {
 					// sameSite: 'lax'
 				});
 				alert("Login successfully");
-				window.location.href = "/dashboard";
+				window.location.href = "/profile";
 			}
 		} catch (err: any) {
 			if (err.message.includes("verify")) {

@@ -5,10 +5,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import AuthModal from "./AuthModal";
+import { deleteCookie } from "cookies-next";
 
-export default function Navbar() {
+export default function Navbar({ isLoggedIn }: { isLoggedIn: boolean }) {
 	const [AuthModalOpen, setAuthModalOpen] = useState(false);
 	const [mode, setMode] = useState<"login" | "signup" | "verify">("login");
+
+	function logout() {
+		deleteCookie("accessToken");
+		window.location.reload();
+	}
 
 	return (
 		<>
@@ -45,27 +51,47 @@ export default function Navbar() {
 							Subscribe
 						</Link>
 
-						{/* Login button */}
-						<button
-							className="cursor-pointer rounded-lg border-2 border-black bg-black min-h-10 min-w-23 font-medium text-white transition-colors duration-150 hover:opacity-80"
-							onClick={() => {
-								setAuthModalOpen(true);
-								setMode("login");
-							}}
-						>
-							Login
-						</button>
-						<button
-							type="button"
-							className="cursor-pointer rounded-lg border-2 min-h-10 min-w-23 hover:underline transition-colors duration-150
+						{isLoggedIn ? (
+							<>
+								<Link
+									href="/profile"
+									className="hover:underline text-center flex justify-center items-center rounded-lg 
+							min-h-10 min-w-23 transition-colors duration-150
 							hover:bg-gray-100"
-							onClick={() => {
-								setAuthModalOpen(true);
-								setMode("signup");
-							}}
-						>
-							Sign Up
-						</button>
+								>
+									Profile
+								</Link>
+								<button
+									onClick={logout}
+									className="cursor-pointer rounded-lg border-2 border-black bg-black min-h-10 min-w-23 font-medium text-white transition-colors duration-150 hover:opacity-80"
+								>
+									Logout
+								</button>
+							</>
+						) : (
+							<>
+								<button
+									className="cursor-pointer rounded-lg border-2 border-black bg-black min-h-10 min-w-23 font-medium text-white transition-colors duration-150 hover:opacity-80"
+									onClick={() => {
+										setAuthModalOpen(true);
+										setMode("login");
+									}}
+								>
+									Login
+								</button>
+								<button
+									type="button"
+									className="cursor-pointer rounded-lg border-2 min-h-10 min-w-23 hover:underline transition-colors duration-150
+							hover:bg-gray-100"
+									onClick={() => {
+										setAuthModalOpen(true);
+										setMode("signup");
+									}}
+								>
+									Sign Up
+								</button>
+							</>
+						)}
 					</nav>
 				</div>
 			</header>
