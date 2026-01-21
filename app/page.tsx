@@ -22,11 +22,12 @@ export default function HomePage() {
     <main className="min-h-screen bg-white">
       {/* HERO */}
       <section
-        className="relative flex h-[612px] w-full items-center justify-center overflow-hidden border-b"
+        className="relative flex h-[612px] w-full items-center justify-center overflow-visible border-b"
         style={{
           backgroundImage: "url(/images/hero-bg.png)",
           backgroundSize: "cover",
           backgroundPosition: "center",
+          overflow: "visible"
         }}
       >
         <div className="absolute inset-0 bg-white/20" />

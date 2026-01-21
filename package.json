@@ -9,10 +9,14 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@types/lodash": "^4.17.23",
     "cookies-next": "^6.1.1",
+    "date-fns": "^4.1.0",
     "jwt-decode": "^4.0.0",
+    "lodash": "^4.17.21",
     "next": "16.1.1",
     "react": "19.2.3",
+    "react-day-picker": "^9.13.0",
     "react-dom": "19.2.3"
   },
   "devDependencies": {
