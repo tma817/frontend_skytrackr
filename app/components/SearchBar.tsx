@@ -28,6 +28,10 @@ export default function SearchBar({
   className = "",
   defaultFrom = "",
   defaultTo = "",
+  defaultDateRange = "",
+  defaultPassengers = "",
+  defaultFrom = "",
+  defaultTo = "",
   defaultPassengers = "1",
   onSearch,
 }: SearchBarProps) {
