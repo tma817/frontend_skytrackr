@@ -26,8 +26,12 @@ function SeatButton({
       onClick={onClick}
       className={[
         "h-8 w-10 rounded-md text-xs font-medium transition",
-        disabled ? "bg-gray-100 text-gray-300 cursor-not-allowed" : "bg-white hover:bg-gray-50 border",
-        selected ? "bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-600" : "border-gray-200 text-gray-700",
+        disabled
+          ? "bg-gray-100 text-gray-300 cursor-not-allowed"
+          : "bg-white hover:bg-gray-50 border",
+        selected
+          ? "bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-600"
+          : "border-gray-200 text-gray-700",
       ].join(" ")}
     >
       {label}
@@ -50,7 +54,6 @@ export default function TicketDetails2Page() {
     return getFlightById(id);
   }, [id]);
 
-  // ✅ state
   const [selectedSeat, setSelectedSeat] = useState("8E");
   const [cabin, setCabin] = useState<Cabin>("Economy");
   const [showUpgrade, setShowUpgrade] = useState(true);
@@ -66,7 +69,9 @@ export default function TicketDetails2Page() {
           <p className="mt-2 text-sm text-gray-500">id: {id || "(empty)"}</p>
           <button
             className="mt-4 rounded-lg border px-4 py-2 hover:bg-gray-50"
-            onClick={() => router.push(`/search?from=${from}&to=${to}&date=${date}&pax=${pax}`)}
+            onClick={() =>
+              router.push(`/search?from=${from}&to=${to}&date=${date}&pax=${pax}`)
+            }
           >
             Back to search
           </button>
@@ -80,8 +85,8 @@ export default function TicketDetails2Page() {
     router.push(`/ticket/${flight.id}?${qs.toString()}`);
   };
 
-  const confirmToPayment = () => {
-    // 필요하면 seat/cabin도 같이 넘길 수 있음
+  // ✅ 이제 customer details로 이동
+  const confirmToCustomer = () => {
     const qs = new URLSearchParams({
       id: flight.id,
       seat: selectedSeat,
@@ -92,19 +97,15 @@ export default function TicketDetails2Page() {
       date,
       pax,
     });
-    router.push(`/checkout/payment?${qs.toString()}`);
+    router.push(`/checkout/customer?${qs.toString()}`);
   };
 
-  // 간단 seat map 데이터 (figma 느낌만)
   const rows = Array.from({ length: 12 }, (_, i) => i + 1);
   const cols = ["A", "B", "C", "D", "E", "F"];
-
-  // 예시로 몇 좌석 비활성화
   const disabledSeats = new Set(["1C", "1D", "2C", "2D", "8C", "8D", "9C", "9D"]);
 
   return (
     <main className="min-h-screen bg-white">
-      {/* ✅ 여기엔 Navbar 만들지 말고, “브레드크럼” 줄만 (헤더 중복 방지) */}
       <div className="border-b">
         <div className="mx-auto max-w-6xl px-8 py-6">
           <div className="text-sm text-gray-700">
@@ -120,7 +121,7 @@ export default function TicketDetails2Page() {
 
       <div className="mx-auto max-w-6xl px-8 py-10">
         <div className="grid grid-cols-12 gap-8 items-start">
-          {/* LEFT: Seat map */}
+          {/* LEFT */}
           <div className="col-span-4 rounded-xl border p-6">
             <div className="text-sm font-semibold text-gray-900">Seat map</div>
 
@@ -147,11 +148,12 @@ export default function TicketDetails2Page() {
             </div>
 
             <div className="mt-4 text-xs text-gray-600">
-              Selected seat: <span className="font-semibold text-gray-900">{selectedSeat}</span>
+              Selected seat:{" "}
+              <span className="font-semibold text-gray-900">{selectedSeat}</span>
             </div>
           </div>
 
-          {/* CENTER: Ticket card */}
+          {/* CENTER */}
           <div className="col-span-5 rounded-xl border p-6">
             <div className="text-xs text-gray-500">Ticket</div>
 
@@ -165,7 +167,6 @@ export default function TicketDetails2Page() {
 
               <div className="text-right">
                 <div className="text-xs text-gray-500">Price</div>
-                {/* ✅ 업그레이드 반영된 가격 */}
                 <div className="text-xl font-semibold text-gray-900">
                   ${totalPrice.toLocaleString()}
                 </div>
@@ -178,7 +179,6 @@ export default function TicketDetails2Page() {
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-4">
-              {/* Economy */}
               <button
                 type="button"
                 onClick={() => setCabin("Economy")}
@@ -190,7 +190,9 @@ export default function TicketDetails2Page() {
                 ].join(" ")}
               >
                 <div className="text-sm font-semibold text-gray-900">Economy</div>
-                <div className="mt-1 text-xs text-gray-600">Basic comfort for your flight.</div>
+                <div className="mt-1 text-xs text-gray-600">
+                  Basic comfort for your flight.
+                </div>
                 <ul className="mt-3 space-y-1 text-xs text-gray-700 list-disc pl-4">
                   <li>Built-in entertainment</li>
                   <li>Complimentary snacks</li>
@@ -204,7 +206,6 @@ export default function TicketDetails2Page() {
                 )}
               </button>
 
-              {/* Business */}
               <button
                 type="button"
                 onClick={() => setCabin("Business")}
@@ -215,8 +216,12 @@ export default function TicketDetails2Page() {
                     : "border-gray-200 hover:border-gray-300",
                 ].join(" ")}
               >
-                <div className="text-sm font-semibold text-gray-900">Business class</div>
-                <div className="mt-1 text-xs text-gray-600">More space and premium perks.</div>
+                <div className="text-sm font-semibold text-gray-900">
+                  Business class
+                </div>
+                <div className="mt-1 text-xs text-gray-600">
+                  More space and premium perks.
+                </div>
                 <ul className="mt-3 space-y-1 text-xs text-gray-700 list-disc pl-4">
                   <li>Extended leg room</li>
                   <li>Priority boarding</li>
@@ -232,7 +237,8 @@ export default function TicketDetails2Page() {
             </div>
 
             <div className="mt-6 text-sm text-gray-700">
-              Seat number: <span className="font-semibold text-gray-900">{selectedSeat}</span>
+              Seat number:{" "}
+              <span className="font-semibold text-gray-900">{selectedSeat}</span>
             </div>
 
             <div className="mt-6 flex items-center justify-end gap-3">
@@ -247,20 +253,21 @@ export default function TicketDetails2Page() {
               <button
                 type="button"
                 className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-600/90"
-                onClick={confirmToPayment}
+                onClick={confirmToCustomer}
               >
                 Confirm
               </button>
             </div>
           </div>
 
-          {/* RIGHT: Upgrade card */}
+          {/* RIGHT */}
           <div className="col-span-3">
             {showUpgrade && cabin !== "Business" && (
               <div className="rounded-xl border p-6">
                 <div className="text-sm font-semibold text-gray-900">Upgrade seat</div>
                 <p className="mt-2 text-xs text-gray-600">
-                  Upgrade your seat for only ${UPGRADE_PRICE} and enjoy more leg room, and seats that recline 40% more than economy.
+                  Upgrade your seat for only ${UPGRADE_PRICE} and enjoy more leg
+                  room, and seats that recline 40% more than economy.
                 </p>
 
                 <div className="mt-4 flex gap-3">
@@ -276,8 +283,8 @@ export default function TicketDetails2Page() {
                     type="button"
                     className="flex-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600/90"
                     onClick={() => {
-                      setCabin("Business");       // ✅ 클래스 바꾸고
-                      setShowUpgrade(false);      // ✅ 카드 닫기
+                      setCabin("Business");
+                      setShowUpgrade(false);
                     }}
                   >
                     Upgrade for ${UPGRADE_PRICE}

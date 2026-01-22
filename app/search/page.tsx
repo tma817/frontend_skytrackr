@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SearchBar from "../components/SearchBar";
+
 interface FlightResult {
   id: string;
   airline: string;
@@ -43,7 +44,7 @@ export default function SearchPage() {
   useEffect(() => {
     const fetchFlights = async () => {
       if (!from || !to) return;
-      
+
       setLoading(true);
       try {
         const adultCount = pax.split(" ")[0];
@@ -57,7 +58,7 @@ export default function SearchPage() {
 
         const response = await fetch(`http://localhost:3000/flights/search?${qs.toString()}`);
         const data = await response.json();
-        console.log(data)
+        console.log(data);
         setFlights(data);
       } catch (error) {
         console.error("Fetch error:", error);
@@ -69,25 +70,8 @@ export default function SearchPage() {
     fetchFlights();
   }, [from, to, date, pax]);
 
-  // const filtered = useMemo(() => {
-  //   let list = [...flights];
+  const filtered = flights;
 
-  //   if (bestValue) {
-  //     list.sort((a, b) => (b.tag ? 1 : 0) - (a.tag ? 1 : 0));
-  //   }
-
-  //   if (membersDeals) {
-  //     list = list.filter((x) => x.price < 800);
-  //   }
-
-  //   if (budget !== "any") {
-  //     const b = parseInt(budget);
-  //     list = list.filter((x) => x.price <= b);
-  //   }
-
-  //   return list;
-  // }, [flights, bestValue, membersDeals, budget]);
-  const filtered = flights
   const handleSearch = (payload: any) => {
     const qs = new URLSearchParams({
       from: payload.from,
@@ -129,15 +113,14 @@ export default function SearchPage() {
 
       <div className="mx-auto max-w-6xl px-8 py-10">
         <div className="grid grid-cols-12 gap-8">
-          {/* Sidebar Filters */}
           <aside className="col-span-3">
-             <h2 className="text-sm font-semibold text-gray-900">Filters</h2>
-             <div className="mt-4 border-b pb-4">
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={bestValue} onChange={(e) => setBestValue(e.target.checked)} />
-                  Best value
-                </label>
-             </div>
+            <h2 className="text-sm font-semibold text-gray-900">Filters</h2>
+            <div className="mt-4 border-b pb-4">
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={bestValue} onChange={(e) => setBestValue(e.target.checked)} />
+                Best value
+              </label>
+            </div>
           </aside>
 
           <section className="col-span-9">

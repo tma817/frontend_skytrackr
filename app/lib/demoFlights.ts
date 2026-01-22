@@ -14,7 +14,6 @@ export type FlightResult = {
   note?: string;          // "50m in HKG"
   tag?: "best" | "value";
 
-  // detail page용 (figma 느낌)
   flightNumber?: string;
   aircraft?: string;
   cabinClass?: string;
@@ -121,7 +120,6 @@ export function getFlightById(id: string) {
   return DEMO_FLIGHTS.find((f) => f.id === id);
 }
 
-// search 쿼리(from/to)에 맞춰 “느낌”으로 필터링
 export function getFlightsForRoute(from?: string, to?: string) {
   if (!from && !to) return DEMO_FLIGHTS;
   return DEMO_FLIGHTS.filter((f) => {

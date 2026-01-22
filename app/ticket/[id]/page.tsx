@@ -11,7 +11,6 @@ export default function TicketDetailPage() {
   const searchParams = useSearchParams();
   const params = useParams<{ id: string }>();
 
-  // ✅ id 안전하게 문자열로
   const idRaw = params?.id;
   const id = Array.isArray(idRaw) ? idRaw[0] : idRaw;
 
@@ -46,7 +45,6 @@ export default function TicketDetailPage() {
   };
 
   const goTicketDetails2 = () => {
-    // ✅ id는 flight.id를 쓰는 게 가장 안전
     const qs = new URLSearchParams({
       id: flight?.id ?? "",
       from,
@@ -56,7 +54,7 @@ export default function TicketDetailPage() {
     });
 
     const url = `/ticket-details2?${qs.toString()}`;
-    console.log("Going to:", url); // ✅ 이동 확인용
+    console.log("Going to:", url);
     router.push(url);
   };
 
@@ -82,7 +80,7 @@ export default function TicketDetailPage() {
 
   return (
     <main className="min-h-screen">
-      {/* 상단 SearchBar 영역 */}
+      {}
       <div className="border-b">
         <div className="bg-gradient-to-r from-yellow-50 via-pink-50 to-purple-50">
           <div className="mx-auto max-w-6xl px-8 py-8">
@@ -171,7 +169,7 @@ export default function TicketDetailPage() {
                 />
               </div>
 
-              {/* ✅ 여기만 확실히 */}
+              {/* 여기만 확실히 */}
               <button
                 type="button"
                 className="mt-4 w-full rounded-lg bg-black px-4 py-3 text-sm font-medium text-white hover:bg-black/90"
