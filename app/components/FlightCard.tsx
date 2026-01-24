@@ -1,8 +1,9 @@
 import { format } from "date-fns";
+import { FlightResult } from "../search/page";
 
 
 interface FlightCardProps {
-  flight: any;
+  flight: FlightResult;
   onClick: () => void;
   isAdded: boolean;
   onToggle: () => void;
@@ -22,37 +23,35 @@ function money(value?: number, currency = "CAD") {
   }
 }
 
+
 export default function FlightCard({ flight, onClick, isAdded, onToggle }: FlightCardProps) {
-  const dep = flight?.departure ?? {};
-  const arr = flight?.arrival ?? {};
+    const dep = flight?.departure ?? {};
+    const arr = flight?.arrival ?? {};
 
-  const depCode = dep?.iataCode ?? flight?.originCode ?? "—";
-  const arrCode = arr?.iataCode ?? flight?.destinationCode ?? "—";
+    const depCode = dep?.iataCode ?? flight?.originCode ?? "—";
+    const arrCode = arr?.iataCode ?? flight?.destinationCode ?? "—";
 
-  const depTime = dep?.time ?? "—:—";
-  const arrTime = arr?.time ?? "—:—";
+    const depTime = dep?.time ?? "—:—";
+    const arrTime = arr?.time ?? "—:—";
+    
+    const getDayDifference = (depDate: string, arrDate: string) => {
+        const d1 = new Date(depDate);
+        const d2 = new Date(arrDate);
+        const diffTime = d2.getTime() - d1.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays > 0 ? `+${diffDays} day${diffDays > 1 ? 's' : ''}` : null;
+    };
 
-  const dateStr = dep?.date
-    ? format(new Date(dep.date), "EEE, MMM d, yyyy")
-    : flight?.date
-    ? format(new Date(flight.date), "EEE, MMM d, yyyy")
-    : "";
+    const dayDiff = getDayDifference(flight.departure.date, flight.arrival.date);
+    const stopsText = (flight?.stops ?? "").toLowerCase().includes("direct")
+        ? "Direct"
+        : flight?.stops || "—";
 
-  const durationText = flight?.duration ?? "";
-  const stopsText = (flight?.stops ?? "").toLowerCase().includes("direct")
-    ? "Direct"
-    : flight?.stops || "—";
-
-  const isDirect = stopsText.toLowerCase() === "direct";
-  const airlineName = flight?.airlineName ?? "Airline";
-  const airlineLogo = flight?.airlineLogo;
-  const cabin =
-    flight?.travelerPricings?.[0]?.cabin ??
-    flight?.cabin ??
-    "ECONOMY";
-
-  const terminal =
-    dep?.terminal ? `T${dep.terminal}` : flight?.terminal ? `T${flight.terminal}` : "";
+    const isDirect = stopsText.toLowerCase() === "direct";
+    const airlineName = flight?.airlineName ?? "Airline";
+    const airlineLogo = flight?.airlineLogo;
+    const cabin =
+        flight?.travelerPricings?.[0]?.cabin ??    "ECONOMY";
 
   const priceLabel = money(flight?.price, flight?.currency ?? "CAD");
   const showCheapest = typeof flight?.price === "number" && flight.price < 500;
@@ -137,12 +136,11 @@ export default function FlightCard({ flight, onClick, isAdded, onToggle }: Fligh
                                 </h3>
                             </div>
                             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                                {dateStr && <span>{dateStr}</span>}
-                                {terminal && (
-                                <>
-                                    <span className="text-slate-300">•</span>
-                                    <span>Departure {terminal}</span>
-                                </>
+                                <span className="font-medium text-slate-600">{dep.date}</span>
+                                {dayDiff && (
+                                    <span className="text-[10px] font-bold">
+                                        {dayDiff}
+                                    </span>
                                 )}
                             </div>
                         </div>
