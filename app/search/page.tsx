@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SearchBar from "../components/SearchBar";
+import FlightCard from "../components/FlightCard";
 
 interface FlightResult {
   id: string;
@@ -133,6 +134,19 @@ export default function SearchPage() {
               <div className="space-y-3">
                 {filtered.length > 0 ? (
                   filtered.map((f) => (
+                    <FlightCard 
+                      key={f.id} 
+                      flight={f} 
+                      onClick={() => goTicket(f.id)} 
+                    />
+                  ))
+                ) : (
+                  <div className="text-center py-20 border-2 border-dashed rounded-xl">
+                    <p className="text-gray-500">No flights found for this route. Try another date.</p>
+                  </div>
+                )}
+                {/* {filtered.length > 0 ? (
+                  filtered.map((f) => (
                     <button
                       key={f.id}
                       type="button"
@@ -161,7 +175,7 @@ export default function SearchPage() {
                   <div className="text-center py-20 border-2 border-dashed rounded-xl">
                     <p className="text-gray-500">No flights found for this route. Try another date.</p>
                   </div>
-                )}
+                )} */}
               </div>
             )}
           </section>

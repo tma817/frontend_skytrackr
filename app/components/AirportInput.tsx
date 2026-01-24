@@ -17,7 +17,7 @@ export default function AirportInput({
   placeholder,
 }: {
   value: string;
-  onChange: (val: string) => void;
+  onChange: (iata: string, displayLabel: string) => void;
   placeholder: string;
 }) {
   const [suggestions, setSuggestions] = useState<Airport[]>([]);
@@ -45,7 +45,7 @@ export default function AirportInput({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    onChange(val);
+    onChange(val,val);
     debouncedFetch(val);
     setIsOpen(true);
   };
@@ -67,7 +67,8 @@ export default function AirportInput({
               key={airport.iata}
               className="flex cursor-pointer flex-col px-4 py-2 hover:bg-gray-100"
               onClick={() => {
-                onChange(airport.iata);
+                const displayValue = `${airport.city} (${airport.iata})`;
+                onChange(airport.iata,displayValue); 
                 setIsOpen(false);
               }}
             >

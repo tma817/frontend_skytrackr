@@ -1,4 +1,3 @@
-// app/components/PassengerPicker.tsx
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -25,7 +24,6 @@ export default function PassengerPicker({
 
   return (
     <div className="relative w-full" ref={containerRef}>
-      {/* Ô hiển thị giả lập input */}
       <div
         className="flex w-full cursor-pointer items-center text-sm text-black outline-none"
         onClick={() => setIsOpen(!isOpen)}

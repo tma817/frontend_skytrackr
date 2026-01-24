@@ -26,10 +26,7 @@ type SearchBarProps = {
 
 export default function SearchBar({
   className = "",
-  defaultFrom = "",
-  defaultTo = "",
   defaultDateRange = "",
-  defaultPassengers = "",
   defaultFrom = "",
   defaultTo = "",
   defaultPassengers = "1",
@@ -37,13 +34,18 @@ export default function SearchBar({
 }: SearchBarProps) {
   const router = useRouter();
 
-  const [from, setFrom] = useState(defaultFrom);
-  const [to, setTo] = useState(defaultTo);
+  const [fromLabel, setFromLabel] = useState(defaultFrom);
+  const [toLabel, setToLabel] = useState(defaultTo);
+
+  const [fromCode, setFromCode] = useState(defaultFrom);
+  const [toCode, setToCode] = useState(defaultTo);
+
+
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [passengers, setPassengers] = useState(parseInt(defaultPassengers) || 1);
 
   const handleSearch = () => {
-    if (!from || !to || !dateRange?.from) {
+    if (!fromCode || !toCode || !dateRange?.from) {
       alert("Please select origin, destination and departure date");
       return;
     }
@@ -51,10 +53,10 @@ export default function SearchBar({
     const paxString = `${passengers} adult${passengers > 1 ? 's' : ''}`;
 
     const payload: SearchPayload = {
-      from,
-      to,
-      dateRange: dateString,
-      passengers: paxString,
+      from: fromCode, 
+      to: toCode,
+      dateRange: format(dateRange.from, "yyyy-MM-dd"),
+      passengers: `${passengers} adult`,
     };
 
     if (onSearch) {
@@ -75,12 +77,12 @@ export default function SearchBar({
       <div className="flex w-full items-stretch overflow-visible rounded-md border bg-white shadow-sm">
         {/* From */}
         <div className="flex h-[48px] w-[327.5px] items-center gap-2 px-3 border-r border-gray-200">
-          <AirportInput value={from} onChange={setFrom} placeholder="From where?" />
+          <AirportInput value={fromLabel} onChange={(iata, label) => {setFromCode(iata);setFromLabel(label);}} placeholder="From where?" />
         </div>
 
         {/* To */}
         <div className="flex h-[48px] w-[327.5px] items-center gap-2 px-3 border-r border-gray-200">
-          <AirportInput value={to} onChange={setTo} placeholder="To where?" />
+          <AirportInput value={toLabel} onChange={(iata, label) => {setToCode(iata);setToLabel(label);}} placeholder="To where?" />
         </div>
 
         {/* Date */}

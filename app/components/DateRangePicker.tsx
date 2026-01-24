@@ -14,8 +14,6 @@ export default function DateRangePicker({
   onSelect: (range: DateRange | undefined) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-
-  // Hiển thị text lên ô input
   const displayText = selected?.from
     ? selected.to
       ? `${format(selected.from, "LLL dd")} - ${format(selected.to, "LLL dd")}`
