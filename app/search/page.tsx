@@ -4,16 +4,44 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SearchBar from "../components/SearchBar";
 import FlightCard from "../components/FlightCard";
-
-interface FlightResult {
-  id: string;
-  airline: string;
-  duration: string;
+interface FlightLocation {
   time: string;
+  date: string;
+  iataCode: string;
+  terminal?: string;
+}
+
+interface TravelerPricing {
+  fareOption: string;
+  travelerType: string;
+  cabin: string;
+  amenities?: any[];
+}
+
+interface FlightSegment {
+  departure: any;
+  arrival: any;
+  carrierCode: string;
+  flightNumber: string;
+  aircraft: string;
+  duration: string;
+}
+
+export interface FlightResult {
+  id: string;
+  search_id: string;
+  airlineName: string;
+  airlineLogo: string;
+  departure: FlightLocation;
+  arrival: FlightLocation;
+  originCode: string;
+  destinationCode: string;
+  duration: string;
   price: number;
+  currency: string;
   stops: string;
-  tag?: string;
-  note?: string;
+  segments: FlightSegment[];
+  travelerPricings: TravelerPricing[];
 }
 
 function airlineBadge(airline: string) {
@@ -83,8 +111,15 @@ export default function SearchPage() {
     router.push(`/search?${qs.toString()}`);
   };
 
-  const goTicket = (flightId: string) => {
-    const qs = new URLSearchParams({ from, to, date, pax });
+  const goTicket = (flightId: string, searchId: string) => {
+    const qs = new URLSearchParams({ 
+      searchId,
+      from, 
+      to, 
+      date, 
+      pax 
+    });
+    
     router.push(`/ticket/${flightId}?${qs.toString()}`);
   };
 
@@ -137,7 +172,7 @@ export default function SearchPage() {
                     <FlightCard 
                       key={f.id} 
                       flight={f} 
-                      onClick={() => goTicket(f.id)} 
+                      onClick={() => goTicket(f.id, f.search_id)} 
                     />
                   ))
                 ) : (
