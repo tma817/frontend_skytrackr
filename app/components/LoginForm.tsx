@@ -45,7 +45,7 @@ export default function LoginForm({ setMode, onLoginSuccess }: Props) {
 					// secure: true,
 					// sameSite: 'lax'
 				});
-				alert("Login successfully");
+				alert("Login successful");
 				window.location.href = "/profile";
 			}
 		} catch (err: any) {

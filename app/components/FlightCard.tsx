@@ -1,8 +1,11 @@
 import { format } from "date-fns";
 
+
 interface FlightCardProps {
   flight: any;
   onClick: () => void;
+  isAdded: boolean;
+  onToggle: () => void;
 }
 
 
@@ -19,7 +22,7 @@ function money(value?: number, currency = "CAD") {
   }
 }
 
-export default function FlightCard({ flight, onClick }: FlightCardProps) {
+export default function FlightCard({ flight, onClick, isAdded, onToggle }: FlightCardProps) {
   const dep = flight?.departure ?? {};
   const arr = flight?.arrival ?? {};
 
@@ -54,6 +57,14 @@ export default function FlightCard({ flight, onClick }: FlightCardProps) {
   const priceLabel = money(flight?.price, flight?.currency ?? "CAD");
   const showCheapest = typeof flight?.price === "number" && flight.price < 500;
 
+
+
+	const starClass = isAdded
+	? "fill-amber-500 drop-shadow-[0_0_5px_rgba(245,158,11,0.4)]"
+  	: "fill-slate-600 group-hover:fill-slate-800";
+
+
+
   return (
     <div
       onClick={onClick}
@@ -62,6 +73,47 @@ export default function FlightCard({ flight, onClick }: FlightCardProps) {
         {/* <div className="relative overflow-hidden rounded-2xl border shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"> */}
             <div className="flex flex-row gap-20 p-5 md:flex-row md:items-center md:gap-6">
                 <div className="flex-1 flex flex-col gap-4">
+
+				<button
+				aria-label="Add to watchlist"
+				onClick={(e) => {
+					e.stopPropagation();
+					onToggle();
+				}}
+				className="
+					group
+					flex h-9 w-9 items-center justify-center
+					rounded-full
+					border border-slate-300/60
+					bg-white
+					transition-all duration-200
+					hover:bg-slate-100
+					hover:border-slate-400
+					cursor-pointer
+					active:scale-95
+					focus:outline-none focus:ring-2 focus:ring-slate-300/50
+				"
+				>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 -960 960 960"
+					className={`
+					h-[19px] w-[19px]
+					${starClass}
+					fill-slate-600
+					transition-all duration-200
+					group-hover:fill-slate-800
+					group-hover:scale-105
+					
+					`}
+					
+				>
+					<path d="m354-287 126-76 126 77-33-144 111-96-146-13-58-136-58 135-146 13 111 97-33 143ZM233-120l65-281L80-590l288-25 112-265 112 265 288 25-218 189 65 281-247-149-247 149Zm247-350Z"/>
+				</svg>
+				</button>
+
+
+
                     {/* Airline Information */}
                     <div className="flex min-w-[220px] items-center gap-3">
                         <div className="flex h-12 w-12 items-center justify-center rounded-full border-slate-200 shadow-sm">

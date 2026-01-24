@@ -38,7 +38,7 @@ export default function LoginPage() {
       }
 
       console.log(data);
-      alert("Login successfully")
+      alert("Login successful")
 
     } catch (err: any) {
       setError(err.message);

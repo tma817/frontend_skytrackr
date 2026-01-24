@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SearchBar from "../components/SearchBar";
 import FlightCard from "../components/FlightCard";
+import { getWatchlist, toggleWatchlist } from "@/app/helpers/watchlist";
+
 
 interface FlightResult {
   id: string;
@@ -41,8 +43,20 @@ export default function SearchPage() {
   const [membersDeals, setMembersDeals] = useState(false);
   const [budget, setBudget] = useState<"any" | "150" | "250" | "350" | "1000">("any");
   const [rating, setRating] = useState<"any" | "1" | "2" | "3" | "4" | "5">("any");
+  const [watchlist, setWatchlist] = useState<string[]>([]);
 
+  
   useEffect(() => {
+	async function loadWatchlist() {
+		try {
+			const data = await getWatchlist();
+			setWatchlist(data);
+		} catch (err) {
+			console.error(err);
+		}
+	}
+
+	
     const fetchFlights = async () => {
       if (!from || !to) return;
 
@@ -87,6 +101,26 @@ export default function SearchPage() {
     const qs = new URLSearchParams({ from, to, date, pax });
     router.push(`/ticket/${flightId}?${qs.toString()}`);
   };
+
+
+
+
+	async function handleToggleWatchlist(flightId: string) {
+		setLoading(true);
+		const isAdded = watchlist.includes(flightId);
+
+		try {
+			await toggleWatchlist(flightId, isAdded);
+
+			setWatchlist((prev) =>
+				isAdded ? prev.filter((id) => id !== flightId) : [...prev, flightId],
+			);
+		} catch (err) {
+			console.error(err);
+		} finally {
+			setLoading(false);
+		}
+	}
 
   return (
     <main className="min-h-screen">
@@ -137,7 +171,9 @@ export default function SearchPage() {
                     <FlightCard 
                       key={f.id} 
                       flight={f} 
-                      onClick={() => goTicket(f.id)} 
+                      onClick={() => goTicket(f.id)}
+					  isAdded={watchlist.includes(f.id)}
+					  onToggle={() => handleToggleWatchlist(f.id)}
                     />
                   ))
                 ) : (
