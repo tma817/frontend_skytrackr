@@ -71,14 +71,11 @@ export default function SearchPage() {
     async function loadWatchlist() {
       try {
         const data = await getWatchlist();
-        setWatchlist(Array.isArray(data) ? data : []);
+        setWatchlist(data);
       } catch (err) {
         console.error(err);
-        setWatchlist([]);
       }
     }
-    loadWatchlist();
-  }, []);
 
   useEffect(() => {
     const fetchFlights = async () => {
@@ -173,15 +170,27 @@ export default function SearchPage() {
     setLoading(true);
     const isAdded = watchlist.includes(flightId);
 
-    try {
-      await toggleWatchlist(flightId, isAdded);
-      setWatchlist((prev) => (isAdded ? prev.filter((id) => id !== flightId) : [...prev, flightId]));
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
+
+
+	async function handleToggleWatchlist(f: FlightResult) {
+		setLoading(true);
+		const isAdded = watchlist.includes(f.id);
+
+		try {
+			await toggleWatchlist(f, isAdded);
+
+			setWatchlist((prev) =>
+				isAdded ? prev.filter((id) => id !== f.id) : [...prev, f.id],
+			);
+		} catch (err: any) {
+			if (err.message === "UNAUTHORIZED") {
+        alert("Please login to use this feature");
+        router.push("/login");
+      }
+		} finally {
+			setLoading(false);
+		}
+	}
 
   return (
     <main className="min-h-screen">
@@ -247,7 +256,7 @@ export default function SearchPage() {
                       flight={f}
                       onClick={() => goTicket(f.id, f.search_id)}
                       isAdded={watchlist.includes(f.id)}
-                      onToggle={() => handleToggleWatchlist(f.id)}
+                      onToggle={() => handleToggleWatchlist(f)}
                     />
                   ))
                 ) : (
