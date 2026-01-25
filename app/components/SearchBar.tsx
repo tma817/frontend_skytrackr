@@ -58,7 +58,7 @@ export function SingleDatePicker({ value, onChange, placeholder, minDate }: Date
     <div className="relative w-full" ref={ref}>
       {/* Input box */}
       <div
-        className="h-[48px] border px-3 rounded-md cursor-pointer bg-white hover:bg-gray-50 w-full flex items-center"
+        className="h-[48px] px-3 rounded-md cursor-pointer bg-white hover:bg-gray-50 w-full flex items-center"
         onClick={(e) => {
           e.stopPropagation();
           setOpen(!open);
@@ -214,11 +214,14 @@ export default function SearchBar({
         </div>
 
         {/* Date pickers */}
-        <div className="flex h-[48px] items-center gap-2 px-2 border-r border-gray-200">
+        <div className="flex h-[48px] items-center px-2 border-r border-gray-200">
           {/* Departure */}
           <div className="w-[120px]">
             <SingleDatePicker value={departureDate} onChange={setDepartureDate} placeholder="Departure" />
           </div>
+
+          {/* thin divider between departure and return */}
+          {tripType === "roundtrip" && <div className="self-stretch border-l border-gray-200 mx-2" />}
 
           {/* Return (only show if round-trip) */}
           {tripType === "roundtrip" && (

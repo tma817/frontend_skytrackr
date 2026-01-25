@@ -76,12 +76,10 @@ export default function SearchPage() {
         console.error(err);
       }
     }
-
+  })
   useEffect(() => {
     const fetchFlights = async () => {
       if (!from || !to) return;
-
-      // ✅ 백엔드는 date 1개만 받음 -> 일단 departure로만 검색
       const dateToSearch = departure;
       if (!dateToSearch) return;
 
@@ -165,11 +163,6 @@ export default function SearchPage() {
 
     router.push(`/ticket/${flightId}?${qs.toString()}`);
   };
-
-  async function handleToggleWatchlist(flightId: string) {
-    setLoading(true);
-    const isAdded = watchlist.includes(flightId);
-
 
 
 	async function handleToggleWatchlist(f: FlightResult) {
