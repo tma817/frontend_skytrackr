@@ -46,23 +46,17 @@ export interface FlightResult {
   travelerPricings: TravelerPricing[];
 }
 
-function airlineBadge(airline: string) {
-  const letter = airline.trim().charAt(0).toUpperCase();
-  return (
-    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-700">
-      {letter}
-    </div>
-  );
-}
-
 export default function SearchPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const from = searchParams.get("from") ?? "";
   const to = searchParams.get("to") ?? "";
-  const date = searchParams.get("date") ?? "";
-  const pax = searchParams.get("pax") ?? "1 adult";
+
+  const tripType = (searchParams.get("tripType") ?? "oneway").toLowerCase(); // roundtrip | oneway
+  const departure = searchParams.get("departure") ?? "";
+  const returnDate = searchParams.get("return") ?? "";
+  const numOfPassengers = searchParams.get("numOfPassengers") ?? "1 adult";
 
   const [flights, setFlights] = useState<FlightResult[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,89 +67,121 @@ export default function SearchPage() {
   const [rating, setRating] = useState<"any" | "1" | "2" | "3" | "4" | "5">("any");
   const [watchlist, setWatchlist] = useState<string[]>([]);
 
-  
   useEffect(() => {
-	async function loadWatchlist() {
-		try {
-			const data = await getWatchlist();
-			setWatchlist(data);
-		} catch (err) {
-			console.error(err);
-		}
-	}
+    async function loadWatchlist() {
+      try {
+        const data = await getWatchlist();
+        setWatchlist(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error(err);
+        setWatchlist([]);
+      }
+    }
+    loadWatchlist();
+  }, []);
 
-	
+  useEffect(() => {
     const fetchFlights = async () => {
       if (!from || !to) return;
 
+      // ✅ 백엔드는 date 1개만 받음 -> 일단 departure로만 검색
+      const dateToSearch = departure;
+      if (!dateToSearch) return;
+
       setLoading(true);
       try {
-        const adultCount = pax.split(" ")[0];
+        const adultCount = (numOfPassengers.split(" ")[0] || "1").trim();
 
         const qs = new URLSearchParams({
           origin: from,
           destination: to,
-          date: date,
+          date: dateToSearch,
           adults: adultCount,
         });
 
         const response = await fetch(`http://localhost:3000/flights/search?${qs.toString()}`);
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(`Backend error ${response.status}: ${text}`);
+        }
+
         const data = await response.json();
-        console.log(data);
-        setFlights(data);
+        setFlights(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Fetch error:", error);
+        setFlights([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchFlights();
-  }, [from, to, date, pax]);
+  }, [from, to, departure, numOfPassengers]);
 
   const filtered = flights;
 
   const handleSearch = (payload: any) => {
+
+    const pFrom = payload.from ?? "";
+    const pTo = payload.to ?? "";
+
+    const pTripType = (payload.tripType ?? payload.trip ?? "oneway").toLowerCase();
+
+    const pDeparture =
+      payload.departure ??
+      payload.departureDate ??
+      payload.dateRange?.from ??
+      payload.dateRange ??
+      "";
+
+    const pReturn =
+      payload.return ??
+      payload.returnDate ??
+      payload.dateRange?.to ??
+      "";
+
+    const pPassengers = payload.numOfPassengers ?? payload.passengers ?? "1 adult";
+
     const qs = new URLSearchParams({
-      from: payload.from,
-      to: payload.to,
-      date: payload.dateRange,
-      pax: payload.passengers,
+      from: pFrom,
+      to: pTo,
+      tripType: pTripType,
+      departure: pDeparture,
+      return: pReturn,
+      numOfPassengers: pPassengers,
     });
+
     router.push(`/search?${qs.toString()}`);
   };
 
   const goTicket = (flightId: string, searchId: string) => {
-    const qs = new URLSearchParams({ 
+    const qs = new URLSearchParams({
       searchId,
-      from, 
-      to, 
-      date, 
-      pax 
+      from,
+      to,
+      tripType,
+      departure,
+      return: returnDate,
+      numOfPassengers,
     });
-    
+
     router.push(`/ticket/${flightId}?${qs.toString()}`);
   };
 
+  async function handleToggleWatchlist(flightId: string) {
+    setLoading(true);
+    const isAdded = watchlist.includes(flightId);
 
-
-
-	async function handleToggleWatchlist(flightId: string) {
-		setLoading(true);
-		const isAdded = watchlist.includes(flightId);
-
-		try {
-			await toggleWatchlist(flightId, isAdded);
-
-			setWatchlist((prev) =>
-				isAdded ? prev.filter((id) => id !== flightId) : [...prev, flightId],
-			);
-		} catch (err) {
-			console.error(err);
-		} finally {
-			setLoading(false);
-		}
-	}
+    try {
+      await toggleWatchlist(flightId, isAdded);
+      setWatchlist((prev) => (isAdded ? prev.filter((id) => id !== flightId) : [...prev, flightId]));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <main className="min-h-screen">
@@ -166,15 +192,24 @@ export default function SearchPage() {
               <span className="font-medium text-gray-900">{from}</span> →{" "}
               <span className="font-medium text-gray-900">{to}</span>
               <span className="mx-2 text-gray-300">|</span>
-              <span>{date}</span>
+
+              {tripType === "roundtrip" ? (
+                <span>
+                  {departure} ~ {returnDate}
+                </span>
+              ) : (
+                <span>{departure}</span>
+              )}
+
+              <span className="mx-2 text-gray-300">|</span>
+              <span>{numOfPassengers}</span>
             </div>
 
             <SearchBar
               className="mt-4"
               defaultFrom={from}
               defaultTo={to}
-              // defaultDateRange={date}
-              defaultPassengers={pax}
+              defaultPassengers={numOfPassengers}
               onSearch={handleSearch}
             />
           </div>
@@ -187,7 +222,11 @@ export default function SearchPage() {
             <h2 className="text-sm font-semibold text-gray-900">Filters</h2>
             <div className="mt-4 border-b pb-4">
               <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={bestValue} onChange={(e) => setBestValue(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={bestValue}
+                  onChange={(e) => setBestValue(e.target.checked)}
+                />
                 Best value
               </label>
             </div>
@@ -203,12 +242,12 @@ export default function SearchPage() {
               <div className="space-y-3">
                 {filtered.length > 0 ? (
                   filtered.map((f) => (
-                    <FlightCard 
-                      key={f.id} 
-                      flight={f} 
+                    <FlightCard
+                      key={f.id}
+                      flight={f}
                       onClick={() => goTicket(f.id, f.search_id)}
-					  isAdded={watchlist.includes(f.id)}
-					  onToggle={() => handleToggleWatchlist(f.id)}
+                      isAdded={watchlist.includes(f.id)}
+                      onToggle={() => handleToggleWatchlist(f.id)}
                     />
                   ))
                 ) : (
@@ -216,37 +255,6 @@ export default function SearchPage() {
                     <p className="text-gray-500">No flights found for this route. Try another date.</p>
                   </div>
                 )}
-                {/* {filtered.length > 0 ? (
-                  filtered.map((f) => (
-                    <button
-                      key={f.id}
-                      type="button"
-                      onClick={() => goTicket(f.id)}
-                      className="w-full text-left"
-                    >
-                      <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-4 shadow-sm hover:border-gray-400 transition">
-                        <div className="flex items-center gap-3">
-                          {airlineBadge(f.airline)}
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-bold text-gray-900">{f.time}</span>
-                              <span className="text-sm text-gray-600">{f.airline}</span>
-                            </div>
-                            <div className="text-xs text-blue-600">{f.tag}</div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-bold text-gray-900">${f.price.toLocaleString()}</div>
-                          <div className="text-xs text-gray-400">{f.stops}</div>
-                        </div>
-                      </div>
-                    </button>
-                  ))
-                ) : (
-                  <div className="text-center py-20 border-2 border-dashed rounded-xl">
-                    <p className="text-gray-500">No flights found for this route. Try another date.</p>
-                  </div>
-                )} */}
               </div>
             )}
           </section>

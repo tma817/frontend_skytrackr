@@ -9,7 +9,7 @@ import { DayPicker } from "react-day-picker";
 import PassengerPicker from "./PassengerPicker";
 import "react-day-picker/dist/style.css";
 
-type TripType = "oneway" | "roundtrip"
+type TripType = "oneway" | "roundtrip";
 
 type SearchPayload = {
   from: string;
@@ -58,10 +58,15 @@ export function SingleDatePicker({ value, onChange, placeholder, minDate }: Date
     <div className="relative w-full" ref={ref}>
       {/* Input box */}
       <div
-        className="border px-3 py-2 rounded-md cursor-pointer bg-white hover:bg-gray-50 w-full"
-        onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
+        className="h-[48px] border px-3 rounded-md cursor-pointer bg-white hover:bg-gray-50 w-full flex items-center"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(!open);
+        }}
       >
-        {value ? format(value, "yyyy-MM-dd") : placeholder}
+        <span className={`text-sm ${value ? "text-gray-900" : "text-gray-500"}`}>
+          {value ? format(value, "yyyy-MM-dd") : placeholder}
+        </span>
       </div>
 
       {/* Calendar popup */}
@@ -70,7 +75,10 @@ export function SingleDatePicker({ value, onChange, placeholder, minDate }: Date
           <DayPicker
             mode="single"
             selected={value}
-            onSelect={(date) => { onChange(date); setOpen(false); }}
+            onSelect={(date) => {
+              onChange(date);
+              setOpen(false);
+            }}
             disabled={minDate ? { before: minDate } : undefined}
           />
         </div>
@@ -96,19 +104,18 @@ export default function SearchBar({
   const [fromCode, setFromCode] = useState(defaultFrom);
   const [toCode, setToCode] = useState(defaultTo);
 
-  const[tripType, setTripType] = useState<TripType>(defaultTripType)
+  const [tripType, setTripType] = useState<TripType>(defaultTripType);
   const [departureDate, setDepartureDate] = useState<Date | undefined>();
   const [returnDate, setReturnDate] = useState<Date | undefined>();
   const [passengers, setPassengers] = useState(parseInt(defaultPassengers) || 1);
-
 
   const initialized = useRef(false);
 
   //Saves user's selection after searching flight on search bar
   useEffect(() => {
-    if (initialized.current) return; 
+    if (initialized.current) return;
     initialized.current = true;
-    
+
     //departure and return
     const dep = searchParams.get("departure");
     const ret = searchParams.get("return");
@@ -128,11 +135,9 @@ export default function SearchBar({
     const to = searchParams.get("to");
     if (from) setFromCode(from);
     if (to) setToCode(to);
-    }, [searchParams]);
-
+  }, [searchParams]);
 
   const handleSearch = () => {
-
     //If user doesn't select departure date
     if (!departureDate) {
       alert("Please select a departure date");
@@ -146,12 +151,12 @@ export default function SearchBar({
     }
 
     const payload: SearchPayload = {
-      from: fromCode, 
+      from: fromCode,
       to: toCode,
       tripType,
       departure: format(departureDate, "yyyy-MM-dd"),
       return: returnDate ? format(returnDate, "yyyy-MM-dd") : undefined,
-      passengers: `${passengers} adult${passengers > 1 ? 's' : ''}`,
+      passengers: `${passengers} adult${passengers > 1 ? "s" : ""}`,
     };
 
     if (onSearch) {
@@ -172,23 +177,36 @@ export default function SearchBar({
   return (
     <div className={`w-full max-w-[960px] ${className}`}>
       <div className="flex w-full items-stretch overflow-visible rounded-md border bg-white shadow-sm">
-
         {/* From */}
         <div className="flex h-[48px] w-[327.5px] items-center gap-2 px-3 border-r border-gray-200">
-          <AirportInput value={fromLabel} onChange={(iata, label) => {setFromCode(iata);setFromLabel(label);}} placeholder="From where?" />
+          <AirportInput
+            value={fromLabel}
+            onChange={(iata, label) => {
+              setFromCode(iata);
+              setFromLabel(label);
+            }}
+            placeholder="From where?"
+          />
         </div>
 
         {/* To */}
         <div className="flex h-[48px] w-[327.5px] items-center gap-2 px-3 border-r border-gray-200">
-          <AirportInput value={toLabel} onChange={(iata, label) => {setToCode(iata);setToLabel(label);}} placeholder="To where?" />
+          <AirportInput
+            value={toLabel}
+            onChange={(iata, label) => {
+              setToCode(iata);
+              setToLabel(label);
+            }}
+            placeholder="To where?"
+          />
         </div>
 
-        
-        <div className="mb-3">
+        {/* Trip type */}
+        <div className="flex h-[48px] w-[175px] items-center px-2 border-r border-gray-200">
           <select
             value={tripType}
             onChange={(e) => setTripType(e.target.value as TripType)}
-            className="border rounded-md px-3 py-2 text-sm bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-black cursor-pointer"
+            className="h-[48px] w-full bg-white text-sm hover:bg-gray-50 focus:outline-none cursor-pointer"
           >
             <option value="roundtrip">Round trip</option>
             <option value="oneway">One way</option>
@@ -196,19 +214,15 @@ export default function SearchBar({
         </div>
 
         {/* Date pickers */}
-        <div className="flex gap-2">
+        <div className="flex h-[48px] items-center gap-2 px-2 border-r border-gray-200">
           {/* Departure */}
-          <div className="flex-1">
-            <SingleDatePicker
-              value={departureDate}
-              onChange={setDepartureDate}
-              placeholder="Departure"
-            />
+          <div className="w-[120px]">
+            <SingleDatePicker value={departureDate} onChange={setDepartureDate} placeholder="Departure" />
           </div>
 
           {/* Return (only show if round-trip) */}
           {tripType === "roundtrip" && (
-            <div className="flex-1">
+            <div className="w-[120px]">
               <SingleDatePicker
                 value={returnDate}
                 onChange={setReturnDate}
@@ -220,7 +234,7 @@ export default function SearchBar({
         </div>
 
         {/* Passengers */}
-        <div className="flex h-[48px] w-[200px] items-center gap-2 px-3 transition-colors hover:bg-gray-50">
+        <div className="flex h-[48px] w-[160px] items-center gap-2 px-3 transition-colors hover:bg-gray-50 border-r border-gray-200">
           <PassengerPicker value={passengers} onChange={setPassengers} />
         </div>
 
