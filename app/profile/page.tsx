@@ -156,31 +156,6 @@ export default function Profile() {
 						type="select"
 						options={["Male", "Female", "Other"]}
 					/>
-					<EditField
-						label="Time Zone"
-						value={
-							isEditing ? (timeZone?.value ?? "") : (timeZone?.option ?? "")
-						}
-						isEditing={isEditing}
-						onChange={(val) =>
-							setTimeZone(timezones.find((t) => t.value === val))
-						}
-						type="select"
-						options={timezones}
-					/>
-
-					<EditField
-						label="Language"
-						value={
-							isEditing ? (language?.value ?? "") : (language?.option ?? "")
-						}
-						isEditing={isEditing}
-						onChange={(val) =>
-							setLanguage(languages.find((l) => l.value === val))
-						}
-						type="select"
-						options={languages}
-					/>
 
 					<EditField
 						label="Email"
