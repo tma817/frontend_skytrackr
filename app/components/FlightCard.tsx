@@ -60,6 +60,7 @@ export default function FlightCard({
 	const starClass = isAdded
 		? `
     bg-yellow-200
+	fill-slate-500
   `
 		: `
     fill-slate-500
@@ -93,6 +94,7 @@ export default function FlightCard({
 					cursor-pointer
 					active:scale-95
 					focus:outline-none focus:ring-2 focus:ring-slate-300/50
+					${isAdded ? "bg-yellow-200" : "bg-white"}
 				`}
 					>
 						<svg
@@ -100,7 +102,9 @@ export default function FlightCard({
 							viewBox="0 -960 960 960"
 							className={`
 					h-[20px] w-[20px]
-					fill-slate-600
+					fill-white
+					stroke-black
+					stroke-30
 					transition-all duration-200
 					group-hover:fill-slate-800
 					group-hover:scale-105

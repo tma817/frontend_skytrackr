@@ -36,11 +36,12 @@ type DatePickerProps = {
   onChange: (date?: Date) => void;
   placeholder: string;
   minDate?: Date;
+  isOpen: boolean;
+  setOpen: (isOpen: boolean) => void;
 };
 
 /* --- Compact date picker that expands only on click --- */
-export function SingleDatePicker({ value, onChange, placeholder, minDate }: DatePickerProps) {
-  const [open, setOpen] = useState(false);
+export function SingleDatePicker({ value, onChange, placeholder, minDate, isOpen, setOpen }: DatePickerProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   // Close calendar when clicking outside
@@ -61,7 +62,7 @@ export function SingleDatePicker({ value, onChange, placeholder, minDate }: Date
         className="h-[48px] px-3 rounded-md cursor-pointer bg-white hover:bg-gray-50 w-full flex items-center"
         onClick={(e) => {
           e.stopPropagation();
-          setOpen(!open);
+          setOpen(!isOpen);
         }}
       >
         <span className={`text-sm ${value ? "text-gray-900" : "text-gray-500"}`}>
@@ -70,7 +71,7 @@ export function SingleDatePicker({ value, onChange, placeholder, minDate }: Date
       </div>
 
       {/* Calendar popup */}
-      {open && (
+      {isOpen && (
         <div className="absolute z-10 mt-1 shadow-lg bg-white rounded-md">
           <DayPicker
             mode="single"
@@ -79,7 +80,7 @@ export function SingleDatePicker({ value, onChange, placeholder, minDate }: Date
               onChange(date);
               setOpen(false);
             }}
-            disabled={minDate ? { before: minDate } : undefined}
+            disabled={{before: minDate ?? new Date()}}
           />
         </div>
       )}
@@ -109,7 +110,11 @@ export default function SearchBar({
   const [returnDate, setReturnDate] = useState<Date | undefined>();
   const [passengers, setPassengers] = useState(parseInt(defaultPassengers) || 1);
 
+  const [departureOpen, setDepartureOpen] = useState(false);
+  const [returnOpen, setReturnOpen] = useState(false);
+  
   const initialized = useRef(false);
+  
 
   //Saves user's selection after searching flight on search bar
   useEffect(() => {
@@ -217,7 +222,16 @@ export default function SearchBar({
         <div className="flex h-[48px] items-center px-2 border-r border-gray-200">
           {/* Departure */}
           <div className="w-[120px]">
-            <SingleDatePicker value={departureDate} onChange={setDepartureDate} placeholder="Departure" />
+            <SingleDatePicker 
+              value={departureDate} 
+              onChange={setDepartureDate} 
+              placeholder="Departure" 
+              isOpen={departureOpen} 
+                setOpen={(open) => {
+              setDepartureOpen(open);
+                if (open) setReturnOpen(false); // close return calendar
+              }}
+            />
           </div>
 
           {/* thin divider between departure and return */}
@@ -231,6 +245,11 @@ export default function SearchBar({
                 onChange={setReturnDate}
                 placeholder="Return"
                 minDate={departureDate} // can’t select before departure
+                isOpen={returnOpen}
+                setOpen={(open) => {
+                setReturnOpen(open);
+                  if (open) setDepartureOpen(false); // close departure calendar
+              }}
               />
             </div>
           )}
