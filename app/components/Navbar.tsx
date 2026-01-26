@@ -3,13 +3,27 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AuthModal from "./AuthModal";
 import { deleteCookie } from "cookies-next";
+import { isLoggedIn } from "../auth/auth";
 
-export default function Navbar({ isLoggedIn }: { isLoggedIn: boolean }) {
+export default function Navbar() {
 	const [AuthModalOpen, setAuthModalOpen] = useState(false);
 	const [mode, setMode] = useState<"login" | "signup" | "verify">("login");
+	const [loggedIn, setLoggedIn] = useState(false);
+
+	useEffect(() => {
+		let mounted = true;
+		const checkAuth = async () => {
+			const status = await isLoggedIn();
+			if (mounted) setLoggedIn(status);
+		};
+		checkAuth();
+		return () => {
+			mounted = false;
+		};
+	}, []);
 
 	function logout() {
 		deleteCookie("accessToken");
@@ -51,7 +65,7 @@ export default function Navbar({ isLoggedIn }: { isLoggedIn: boolean }) {
 							Subscribe
 						</Link>
 
-						{isLoggedIn ? (
+						{loggedIn ? (
 							<>
 								<Link
 									href="/profile"
