@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { FlightResult } from "../search/page";
+import { isLoggedIn } from "../auth/auth";
 
 interface FlightCardProps {
 	flight: FlightResult;
@@ -75,6 +76,9 @@ export default function FlightCard({
 			{/* <div className="relative overflow-hidden rounded-2xl border shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"> */}
 			<div className="flex flex-row gap-20 p-5 md:flex-row md:items-center md:gap-6">
 				<div className="flex-1 flex flex-col gap-4">
+
+					{isLoggedIn() && (
+
 					<button
 						aria-label="Add to watchlist"
 						onClick={(e) => {
@@ -114,6 +118,7 @@ export default function FlightCard({
 							<path d="m233-120 65-281L80-590l288-25 112-265 112 265 288 25-218 189 65 281-247-149-247 149Z"/>
 						</svg>
 					</button>
+				)}
 
 					{/* Airline Information */}
 					<div className="flex min-w-[220px] items-center gap-3">
