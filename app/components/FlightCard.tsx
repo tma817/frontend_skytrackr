@@ -59,9 +59,7 @@ export default function FlightCard({
 
 	const starClass = isAdded
 		? `
-    fill-amber-400
-    drop-shadow-[0_0_6px_rgba(251,191,36,0.65)]
-    scale-110
+    bg-yellow-200
   `
 		: `
     fill-slate-500
@@ -87,11 +85,11 @@ export default function FlightCard({
 					flex h-9 w-9 items-center justify-center
 					rounded-full
 					border border-slate-300/60
-					bg-white
 					transition-all duration-200
+					${starClass}
+
 					hover:bg-slate-100
 					hover:border-slate-400
-					${starClass}
 					cursor-pointer
 					active:scale-95
 					focus:outline-none focus:ring-2 focus:ring-slate-300/50
@@ -101,7 +99,7 @@ export default function FlightCard({
 							xmlns="http://www.w3.org/2000/svg"
 							viewBox="0 -960 960 960"
 							className={`
-					h-[19px] w-[19px]
+					h-[20px] w-[20px]
 					fill-slate-600
 					transition-all duration-200
 					group-hover:fill-slate-800
@@ -109,7 +107,7 @@ export default function FlightCard({
 					
 					`}
 						>
-							<path d="m354-287 126-76 126 77-33-144 111-96-146-13-58-136-58 135-146 13 111 97-33 143ZM233-120l65-281L80-590l288-25 112-265 112 265 288 25-218 189 65 281-247-149-247 149Zm247-350Z" />
+							<path d="m233-120 65-281L80-590l288-25 112-265 112 265 288 25-218 189 65 281-247-149-247 149Z"/>
 						</svg>
 					</button>
 
