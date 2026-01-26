@@ -4,11 +4,11 @@
 import { useState, useEffect } from "react";
 import EditField from "../components/EditField";
 import { countries } from "../data/countries";
-import { languages } from "../data/languages";
-import { timezones } from "../data/timezones";
 import FlightCard from "../components/FlightCard";
 import { getWatchlist, toggleWatchlist } from "@/app/helpers/watchlist";
 import { updateUser, getUser } from "../auth/auth";
+import { FlightResult } from "../types/flight";
+
 interface DropDownEntry {
 	value: string;
 	option: string;
@@ -21,11 +21,9 @@ export default function Profile() {
 	const [lastName, setLastName] = useState("");
 	const [country, setCountry] = useState<DropDownEntry | undefined>();
 	const [gender, setGender] = useState<string>("");
-	const [timeZone, setTimeZone] = useState<DropDownEntry>();
-	const [language, setLanguage] = useState<DropDownEntry>();
 	const [email, setEmail] = useState("");
 
-	const [watchlist, setWatchlist] = useState<string[]>([]);
+	const [watchlist, setWatchlist] = useState<FlightResult[]>([]);
 	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
@@ -41,14 +39,6 @@ export default function Profile() {
 							countries.find((c) => c.value === "CA"),
 					);
 
-					setTimeZone(
-						timezones.find((t) => t.value === user.timezone) ?? timezones[0],
-					);
-
-					setLanguage(
-						languages.find((l) => l.value === user.language) ??
-							languages.find((l) => l.value === "en"),
-					);
 
 					setGender(user.gender || "");
 					setEmail(user.email || "");
@@ -65,15 +55,15 @@ export default function Profile() {
 		loadWatchlist();
 	}, []);
 
-	async function handleToggleWatchlist(flight: any) {
+	async function handleToggleWatchlist(flight: FlightResult) {
 		setLoading(true);
-		const isAdded = watchlist.some((f: any) => (f._id && f._id === flight._id));
+		const isAdded = watchlist.some((f: FlightResult) => (f._id && f._id === flight._id));
 		try {
 			await toggleWatchlist(flight, isAdded);
 
 			setWatchlist((prev) => {
 				if (isAdded) {
-					return prev.filter((f: any) => !(f._id && f._id === flight._id));
+					return prev.filter((f: FlightResult) => !(f._id && f._id === flight._id));
 				}
 				return [...prev, flight];
 			});
@@ -176,9 +166,9 @@ export default function Profile() {
 					</p>
 				) : (
 					<div className="flex flex-col gap-4">
-						{watchlist.map((flight: any, index: number) => {
+						{watchlist.map((flight: FlightResult, index: number) => {
 							const isAdded = watchlist.some(
-								(f: any) =>
+								(f: FlightResult) =>
 									f.id === flight.id && f.search_id === flight.search_id,
 							);
 

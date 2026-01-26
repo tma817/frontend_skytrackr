@@ -25,7 +25,7 @@ export default function EditField({
 
 			<div
 				className={`
-          relative h-[48px] px-4 rounded-lg flex items-center
+          relative h-12 px-4 rounded-lg flex items-center
           transition-colors duration-150
           ${
 						isEditing
@@ -43,7 +43,7 @@ export default function EditField({
 								className="
                   w-full bg-transparent text-sm text-gray-800
                   outline-none appearance-none
-                  leading-[1.25rem]
+                  leading-5
                   cursor-pointer
                 "
 							>
@@ -75,14 +75,14 @@ export default function EditField({
 							className="
     w-full bg-transparent text-sm text-gray-800
     outline-none
-    leading-[1.25rem]
+    leading-5
     cursor-text
   "
 							autoFocus
 						/>
 					)
 				) : (
-					<span className="text-sm text-gray-700 leading-[1.25rem]">
+					<span className="text-sm text-gray-700 leading-5">
 						{value}
 					</span>
 				)}

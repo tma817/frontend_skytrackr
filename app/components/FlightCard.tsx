@@ -1,6 +1,5 @@
-import { format } from "date-fns";
-import { FlightResult } from "../search/page";
 import { isLoggedIn } from "../auth/auth";
+import { FlightResult } from "../types/flight";
 
 interface FlightCardProps {
 	flight: FlightResult;
@@ -105,7 +104,7 @@ export default function FlightCard({
 							xmlns="http://www.w3.org/2000/svg"
 							viewBox="0 -960 960 960"
 							className={`
-					h-[20px] w-[20px]
+					h-5 w-5
 					fill-white
 					stroke-black
 					stroke-30
@@ -121,7 +120,7 @@ export default function FlightCard({
 				)}
 
 					{/* Airline Information */}
-					<div className="flex min-w-[220px] items-center gap-3">
+					<div className="flex min-w-55 items-center gap-3">
 						<div className="flex h-12 w-12 items-center justify-center rounded-full border-slate-200 shadow-sm">
 							{airlineLogo ? (
 								<img
@@ -157,7 +156,7 @@ export default function FlightCard({
 								{depCode}
 							</div>
 						</div>
-						<div className="relative mx-8 flex flex-1 flex-col items-center min-w-[120px]">
+						<div className="relative mx-8 flex flex-1 flex-col items-center min-w-30">
 							<div className="mb-1 text-[11px] font-bold text-slate-400">
 								{flight.duration}
 							</div>
@@ -165,7 +164,7 @@ export default function FlightCard({
 							<div className="flex w-full items-center gap-2">
 								<div className="h-2 w-2 rounded-full bg-slate-300"></div>
 
-								<div className="relative h-[1px] flex-1 border-t-2 border-dashed border-slate-200">
+								<div className="relative h-px flex-1 border-t-2 border-dashed border-slate-200">
 									<div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-1">
 										<svg
 											className="h-4 w-4 text-slate-300 rotate-90"
