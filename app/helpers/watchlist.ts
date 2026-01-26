@@ -51,6 +51,6 @@ export async function toggleWatchlist(
   isCurrentlyAdded: boolean
 ) {
   return isCurrentlyAdded
-    ? removeFromWatchlist(flight.id)
+    ? removeFromWatchlist(flight._id)
     : addToWatchlist(flight);
 }

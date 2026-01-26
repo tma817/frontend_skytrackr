@@ -30,6 +30,7 @@ interface FlightSegment {
 }
 
 export interface FlightResult {
+  _id: string;
   id: string;
   search_id: string;
   airlineName: string;
@@ -102,6 +103,7 @@ export default function SearchPage() {
         }
 
         const data = await response.json();
+		console.log(data);
         setFlights(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Fetch error:", error);

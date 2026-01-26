@@ -55,6 +55,7 @@ export default function Profile() {
 				}
 
 				const data = await getWatchlist();
+				console.log(data);
 				setWatchlist(data || []);
 			} catch (err) {
 				console.error(err);
@@ -64,16 +65,18 @@ export default function Profile() {
 		loadWatchlist();
 	}, []);
 
-	async function handleToggleWatchlist(flightId: string) {
+	async function handleToggleWatchlist(flight: any) {
 		setLoading(true);
-		const isAdded = watchlist.includes(flightId);
-
+		const isAdded = watchlist.some((f: any) => (f._id && f._id === flight._id));
 		try {
-			await toggleWatchlist(flightId, isAdded);
+			await toggleWatchlist(flight, isAdded);
 
-			setWatchlist((prev) =>
-				isAdded ? prev.filter((id) => id !== flightId) : [...prev, flightId],
-			);
+			setWatchlist((prev) => {
+				if (isAdded) {
+					return prev.filter((f: any) => !(f._id && f._id === flight._id));
+				}
+				return [...prev, flight];
+			});
 		} catch (err) {
 			console.error(err);
 		} finally {
@@ -198,17 +201,24 @@ export default function Profile() {
 					</p>
 				) : (
 					<div className="flex flex-col gap-4">
-						{watchlist.map((flight: any, index: number) => (
-							<FlightCard
-								key={flight.id ?? index}
-								flight={flight}
-								onClick={() => {
-									console.log("Clicked flight:", flight);
-								}}
-								isAdded={watchlist.includes(flight.id)}
-								onToggle={() => handleToggleWatchlist(flight.id)}
-							/>
-						))}
+						{watchlist.map((flight: any, index: number) => {
+							const isAdded = watchlist.some(
+								(f: any) =>
+									f.id === flight.id && f.search_id === flight.search_id,
+							);
+
+							return (
+								<FlightCard
+									key={index}
+									flight={flight}
+									onClick={() => {
+										console.log("Clicked flight:", flight);
+									}}
+									isAdded={isAdded}
+									onToggle={() => handleToggleWatchlist(flight)}
+								/>
+							);
+						})}
 					</div>
 				)}
 			</section>
