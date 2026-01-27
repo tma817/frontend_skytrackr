@@ -36,10 +36,7 @@ export default function TicketDetailPage() {
 				if (!res.ok) throw new Error("Failed to fetch flight detail");
 
 				const data = await res.json();
-				console.log(data);
-				const mapped = mapFlightOfferToFlightResult(data);
-				setFlight(mapped);
-				console.log(mapped);
+				setFlight(mapFlightOfferToFlightResult(data));
 			} catch (error) {
 				console.error("Error fetching ticket:", error);
 			} finally {
