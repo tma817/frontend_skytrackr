@@ -7,7 +7,6 @@ import FlightCard from "../components/FlightCard";
 import { getWatchlist, toggleWatchlist } from "@/app/helpers/watchlist";
 import { FlightResult } from "../types/flight";
 
-
 export default function SearchPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -23,12 +22,18 @@ export default function SearchPage() {
   const [flights, setFlights] = useState<FlightResult[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // pagination states
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   const [bestValue, setBestValue] = useState(true);
   const [membersDeals, setMembersDeals] = useState(false);
   const [budget, setBudget] = useState<"any" | "150" | "250" | "350" | "1000">("any");
   const [rating, setRating] = useState<"any" | "1" | "2" | "3" | "4" | "5">("any");
   const [watchlist, setWatchlist] = useState<string[]>([]);
 
+  // add dependency array so it doesn't run forever
   useEffect(() => {
     async function loadWatchlist() {
       try {
@@ -38,49 +43,68 @@ export default function SearchPage() {
         console.error(err);
       }
     }
-  })
-  useEffect(() => {
-    const fetchFlights = async () => {
-      if (!from || !to) return;
-      const dateToSearch = departure;
-      if (!dateToSearch) return;
+    loadWatchlist();
+  }, []);
 
-      setLoading(true);
-      try {
-        const adultCount = (numOfPassengers.split(" ")[0] || "1").trim();
+  const fetchFlightsPage = async (targetPage: number, append: boolean) => {
+    if (!from || !to) return;
+    const dateToSearch = departure;
+    if (!dateToSearch) return;
 
-        const qs = new URLSearchParams({
-          origin: from,
-          destination: to,
-          date: dateToSearch,
-          adults: adultCount,
-        });
+    if (append) setLoadingMore(true);
+    else setLoading(true);
 
-        const response = await fetch(`http://localhost:3000/flights/search?${qs.toString()}`);
+    try {
+      const adultCount = (numOfPassengers.split(" ")[0] || "1").trim();
 
-        if (!response.ok) {
-          const text = await response.text();
-          throw new Error(`Backend error ${response.status}: ${text}`);
-        }
+      const qs = new URLSearchParams({
+        origin: from,
+        destination: to,
+        date: dateToSearch,
+        adults: adultCount,
+        page: String(targetPage),
+        limit: "5", // keep 5 per page
+      });
 
-        const data = await response.json();
-		console.log(data);
-        setFlights(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error("Fetch error:", error);
-        setFlights([]);
-      } finally {
-        setLoading(false);
+      const response = await fetch(`http://localhost:3000/flights/search?${qs.toString()}`);
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Backend error ${response.status}: ${text}`);
       }
-    };
 
-    fetchFlights();
+      const data = await response.json();
+      const items: FlightResult[] = Array.isArray(data?.items) ? data.items : [];
+      const more: boolean = !!data?.hasMore;
+
+      setHasMore(more);
+      setPage(targetPage);
+
+      setFlights((prev) => (append ? [...prev, ...items] : items));
+    } catch (error) {
+      console.error("Fetch error:", error);
+      if (!append) setFlights([]);
+      setHasMore(false);
+    } finally {
+      if (append) setLoadingMore(false);
+      else setLoading(false);
+    }
+  };
+
+  // when search params change, reset to page 1
+  useEffect(() => {
+    // reset state
+    setPage(1);
+    setHasMore(false);
+    setFlights([]);
+
+    fetchFlightsPage(1, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [from, to, departure, numOfPassengers]);
 
   const filtered = flights;
 
   const handleSearch = (payload: any) => {
-
     const pFrom = payload.from ?? "";
     const pTo = payload.to ?? "";
 
@@ -127,26 +151,28 @@ export default function SearchPage() {
     router.push(`/ticket/${flightId}?${qs.toString()}`);
   };
 
+  async function handleToggleWatchlist(f: FlightResult) {
+    setLoading(true);
+    const isAdded = watchlist.includes(f.id);
 
-	async function handleToggleWatchlist(f: FlightResult) {
-		setLoading(true);
-		const isAdded = watchlist.includes(f.id);
+    try {
+      await toggleWatchlist(f, isAdded);
 
-		try {
-			await toggleWatchlist(f, isAdded);
-
-			setWatchlist((prev) =>
-				isAdded ? prev.filter((id) => id !== f.id) : [...prev, f.id],
-			);
-		} catch (err: any) {
-			if (err.message === "UNAUTHORIZED") {
+      setWatchlist((prev) => (isAdded ? prev.filter((id) => id !== f.id) : [...prev, f.id]));
+    } catch (err: any) {
+      if (err.message === "UNAUTHORIZED") {
         alert("Please login to use this feature");
         router.push("/login");
       }
-		} finally {
-			setLoading(false);
-		}
-	}
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleLoadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    await fetchFlightsPage(page + 1, true);
+  };
 
   return (
     <main className="min-h-screen">
@@ -206,15 +232,30 @@ export default function SearchPage() {
             ) : (
               <div className="space-y-3">
                 {filtered.length > 0 ? (
-                  filtered.map((f) => (
-                    <FlightCard
-                      key={f.id}
-                      flight={f}
-                      onClick={() => goTicket(f.id, f.search_id)}
-                      isAdded={watchlist.includes(f.id)}
-                      onToggle={() => handleToggleWatchlist(f)}
-                    />
-                  ))
+                  <>
+                    {filtered.map((f) => (
+                      <FlightCard
+                        key={f.id}
+                        flight={f}
+                        onClick={() => goTicket(f.id, f.search_id)}
+                        isAdded={watchlist.includes(f.id)}
+                        onToggle={() => handleToggleWatchlist(f)}
+                      />
+                    ))}
+
+                    {/* Load more button */}
+                    {hasMore && (
+                      <div className="pt-4 flex justify-center">
+                        <button
+                          onClick={handleLoadMore}
+                          disabled={loadingMore}
+                          className="rounded-lg border px-5 py-2 text-sm font-medium hover:bg-gray-50 disabled:opacity-60"
+                        >
+                          {loadingMore ? "Loading..." : "Load more flights"}
+                        </button>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="text-center py-20 border-2 border-dashed rounded-xl">
                     <p className="text-gray-500">No flights found for this route. Try another date.</p>
