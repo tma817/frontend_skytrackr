@@ -250,7 +250,7 @@ export default function SearchPage() {
 											<FlightCard
 												key={f.id}
 												flight={f}
-												onClick={() => goTicket(f.id, f.search_id)}
+												onClick={() => goTicket(f.id, f.search_id!)}
 												isAdded={watchlist.includes(f.id)}
 												onToggle={() => handleToggleWatchlist(f)}
 											/>
