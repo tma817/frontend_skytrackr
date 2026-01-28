@@ -36,12 +36,13 @@ type DatePickerProps = {
   onChange: (date?: Date) => void;
   placeholder: string;
   minDate?: Date;
+  maxDate?: Date;
   isOpen: boolean;
   setOpen: (isOpen: boolean) => void;
 };
 
 /* --- Compact date picker that expands only on click --- */
-export function SingleDatePicker({ value, onChange, placeholder, minDate, isOpen, setOpen }: DatePickerProps) {
+export function SingleDatePicker({ value, onChange, placeholder, minDate, maxDate, isOpen, setOpen }: DatePickerProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   // Close calendar when clicking outside
@@ -80,7 +81,15 @@ export function SingleDatePicker({ value, onChange, placeholder, minDate, isOpen
               onChange(date);
               setOpen(false);
             }}
-            disabled={{before: minDate ?? new Date()}}
+            disabled={
+              (() => {
+                const today = new Date();
+                const earliest = minDate && minDate > today ? minDate : today;
+
+                if (maxDate) return { before: earliest, after: maxDate };
+                return { before: earliest };
+              })()
+            }
           />
         </div>
       )}
@@ -224,7 +233,14 @@ export default function SearchBar({
           <div className="w-[120px]">
             <SingleDatePicker 
               value={departureDate} 
-              onChange={setDepartureDate} 
+
+              //Resets return date if user selects departure date greater than return date
+              onChange={(date)=> {
+                setDepartureDate(date)
+                if (returnDate && date && date > returnDate) {
+                setReturnDate(undefined);
+                }
+              }}
               placeholder="Departure" 
               isOpen={departureOpen} 
                 setOpen={(open) => {
@@ -245,6 +261,7 @@ export default function SearchBar({
                 onChange={setReturnDate}
                 placeholder="Return"
                 minDate={departureDate} // can’t select before departure
+                maxDate={returnDate}
                 isOpen={returnOpen}
                 setOpen={(open) => {
                 setReturnOpen(open);
