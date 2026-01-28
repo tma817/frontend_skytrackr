@@ -1,5 +1,6 @@
 import { getUserId, authHeaders } from "@/app/auth/auth";
-import { FlightResult } from "../search/page";
+import { FlightResult } from "../types/flight";
+
 
 
 const API_BASE = "http://localhost:3000/watchlist";

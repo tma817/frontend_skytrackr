@@ -1,4 +1,8 @@
-import { formatDuration, getTotalFlightTime, splitAt } from "../helpers/helpers";
+import {
+	formatDuration,
+	getTotalFlightTime,
+	splitAt,
+} from "../helpers/helpers";
 
 interface FlightLocation {
 	time: string;
@@ -67,6 +71,8 @@ export interface ApiTravelerPricing {
 	travelerId: string;
 	travelerType: string;
 	fareOption: string;
+	cabin?: string;
+	amenities?: any[];
 	price: {
 		currency: string;
 		total: string;
@@ -79,19 +85,32 @@ export interface ApiTravelerPricing {
 	}[];
 }
 
+type ApiPrice =
+	| number
+	| {
+			total: string;
+			currency: string;
+	  };
+
 export interface ApiFlightOffer {
 	id: string;
-	itineraries: {
+	search_id?: string;
+	departure?: ApiFlightSegment;
+	arrival?: ApiFlightSegment;
+	segments: ApiFlightSegment[];
+	duration?: string;
+	itineraries?: {
 		duration: string;
 		segments: ApiFlightSegment[];
 	}[];
-	price: {
-		currency: string;
-		total: string;
-	};
+	price: ApiPrice;
+	currency?: string;
 	travelerPricings: ApiTravelerPricing[];
 	airlineName: string;
 	airlineLogo: string;
+	stops?: string;
+	originCode?: string;
+	destinationCode?: string;
 }
 
 function mapApiSegmentsToFlightSegments(
@@ -100,14 +119,14 @@ function mapApiSegmentsToFlightSegments(
 	return segments.map((segment, idx) => {
 		const departure = {
 			iataCode: segment.departure.iataCode,
-			terminal: segment.departure.terminal,
+			...(segment.departure.terminal ? { terminal: segment.departure.terminal } : {}),
 			at: segment.departure.at,
 			...splitAt(segment.departure.at),
 		};
 
 		const arrival = {
 			iataCode: segment.arrival.iataCode,
-			terminal: segment.arrival.terminal,
+			...(segment.arrival.terminal ? { terminal: segment.arrival.terminal } : {}),
 			at: segment.arrival.at,
 			...splitAt(segment.arrival.at),
 		};
@@ -127,7 +146,7 @@ function mapApiSegmentsToFlightSegments(
 			arrival,
 			carrierCode: segment.carrierCode,
 			flightNumber: segment.number,
-			aircraft: segment.aircraft.code,
+			aircraft: segment.aircraft.code ?? segment.aircraft,
 			duration: formatDuration(segment.duration),
 			layover,
 		};
@@ -138,21 +157,31 @@ function mapApiTravelerPricing(pricing: ApiTravelerPricing): TravelerPricing {
 	return {
 		fareOption: pricing.fareOption,
 		travelerType: pricing.travelerType,
-		cabin: pricing.fareDetailsBySegment[0]?.cabin ?? "UNKNOWN",
-		amenities: pricing.fareDetailsBySegment[0]?.amenities,
+		cabin: pricing.fareDetailsBySegment?.[0]?.cabin ?? pricing.cabin,
+		amenities: pricing.fareDetailsBySegment?.[0].amenities ?? pricing.amenities,
 	};
 }
 
 export function mapFlightOfferToFlightResult(f: ApiFlightOffer): FlightResult {
-	const itinerary = f.itineraries[0];
-	const segments = itinerary.segments;
+	const itinerary = f.itineraries?.[0];
+	let segments = f.segments;
+	if (itinerary?.segments) {
+		segments = itinerary.segments;
+	}
 
+	const stops = segments.length > 1 ? `${segments.length} stops` : "1 stop";
 	const first = segments[0];
 	const last = segments[segments.length - 1];
 
+	const currency = typeof f.price === "number" ? f.currency : f.price.currency;
+
+	if (!currency) {
+		throw new Error("Currency missing in API response");
+	}
 
 	return {
 		id: f.id,
+		search_id: f.search_id,
 		airlineName: f.airlineName,
 		airlineLogo: f.airlineLogo,
 		departure: {
@@ -165,10 +194,13 @@ export function mapFlightOfferToFlightResult(f: ApiFlightOffer): FlightResult {
 			terminal: last.arrival.terminal,
 			...splitAt(last.arrival.at),
 		},
-		price: Number(f.price.total),
-		currency: f.price.currency,
+		price: typeof f.price === "number" ? f.price : Number(f.price.total),
+		currency: currency,
 		segments: mapApiSegmentsToFlightSegments(segments),
-		duration: formatDuration(itinerary.duration),
+		duration: itinerary ? formatDuration(itinerary.duration) : f.duration,
 		travelerPricings: f.travelerPricings.map(mapApiTravelerPricing),
+		stops: stops,
+		originCode: f.originCode,
+		destinationCode: f.destinationCode,
 	};
 }

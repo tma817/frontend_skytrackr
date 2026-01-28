@@ -44,7 +44,6 @@ export default function FlightCard({
 		return diffDays > 0 ? `+${diffDays} day${diffDays > 1 ? "s" : ""}` : null;
 	};
 
-	console.log(flight);
 	const dayDiff = getDayDifference(flight.departure.date, flight.arrival.date);
 	const stopsText = (flight?.stops ?? "").toLowerCase().includes("direct")
 		? "Direct"
