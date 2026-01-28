@@ -150,7 +150,6 @@ export function mapFlightOfferToFlightResult(f: ApiFlightOffer): FlightResult {
 	const first = segments[0];
 	const last = segments[segments.length - 1];
 
-	const totalTime = getTotalFlightTime(segments);
 
 	return {
 		id: f.id,
@@ -169,7 +168,7 @@ export function mapFlightOfferToFlightResult(f: ApiFlightOffer): FlightResult {
 		price: Number(f.price.total),
 		currency: f.price.currency,
 		segments: mapApiSegmentsToFlightSegments(segments),
-		duration: totalTime,
+		duration: formatDuration(itinerary.duration),
 		travelerPricings: f.travelerPricings.map(mapApiTravelerPricing),
 	};
 }
