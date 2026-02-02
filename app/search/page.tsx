@@ -51,10 +51,7 @@ export default function SearchPage() {
 	}, []);
 
 	const fetchFlightsPage = async (targetPage: number, append: boolean) => {
-		if (!from || !to) return;
-		const dateToSearch = departure;
-		if (!dateToSearch) return;
-
+		if (!from || !to || !departure) return;
 		if (append) setLoadingMore(true);
 		else setLoading(true);
 
@@ -62,12 +59,13 @@ export default function SearchPage() {
 			const adultCount = (numOfPassengers.split(" ")[0] || "1").trim();
 
 			const qs = new URLSearchParams({
-				origin: from,
-				destination: to,
-				date: dateToSearch,
-				adults: adultCount,
+				origin: from,           
+				destination: to,        
+				departureDate: departure, 
+				returnDate: returnDate,
+				adults: adultCount,     
 				page: String(targetPage),
-				limit: "5", // keep 5 per page
+				limit: "5",
 			});
 
 			const response = await fetch(
@@ -79,7 +77,8 @@ export default function SearchPage() {
 				throw new Error(`Backend error ${response.status}: ${text}`);
 			}
 
-			const data = await response.json();
+			const data = await response.json();			
+			console.log(data);
 			const items: FlightResult[] = Array.isArray(data?.items)
 				? data.items.map(mapFlightOfferToFlightResult)
 				: [];
