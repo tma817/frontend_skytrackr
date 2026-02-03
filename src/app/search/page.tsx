@@ -51,6 +51,7 @@ export default function SearchPage() {
 		(async () => {
 		try {
 			const data = await watchlistService.getWatchlist();
+			console.log(data)
 			if (mounted) setWatchlist(data); 
 		} catch (err) {
 			console.error("Watchlist fetch error:", err);

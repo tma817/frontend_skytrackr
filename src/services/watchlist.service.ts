@@ -92,6 +92,8 @@ export const watchlistService = {
       body: JSON.stringify(payload),
     });
 
+    console.log(res)
+
     if (res.status === 401) throw new Error("UNAUTHORIZED");
     if (!res.ok) throw new Error("Failed to add to watchlist");
     
