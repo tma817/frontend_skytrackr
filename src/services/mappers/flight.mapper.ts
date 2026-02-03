@@ -54,3 +54,29 @@ export function mapFlightOfferToFlightResult(f: any): FlightResult {
     };
 }
 
+
+export function mapWatchlistToFlightResult(dbItem: any): FlightResult {
+    return {
+        id: dbItem.flightId || dbItem._id,
+        search_id: dbItem.searchId,
+        airline: {
+            name: dbItem.airlineName || dbItem.airline?.name || "Unknown Airline",
+            logo: dbItem.airlineLogo || dbItem.airline?.logo || "https://www.gstatic.com/flights/airline_logos/70px/default.png",
+        },
+        price: {
+            amount: dbItem.currentPrice || dbItem.initialPrice || 0,
+            currency: dbItem.currency || "CAD",
+        },
+        itineraries: dbItem.itineraries || [
+            {
+                departure: { iataCode: dbItem.origin, date: dbItem.departureDate },
+                arrival: { iataCode: dbItem.destination },
+                segments: [],
+                stops: 0,
+                duration: ""
+            }
+        ],
+        cabin: dbItem.cabin || "ECONOMY",
+        baggage: { checked: 0 }
+    };
+}

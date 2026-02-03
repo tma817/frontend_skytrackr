@@ -284,9 +284,27 @@ export default function FlightCard({ flight, onClick, isAdded, onToggle }: Fligh
                         </div>
                         {authService.isLoggedIn() && (
                             <button
-                                onClick={(e) => { e.stopPropagation(); onToggle(); }}
-                                className={`h-8 w-8 flex items-center justify-center rounded-full border transition-all ${isAdded ? 'bg-yellow-100 border-yellow-300' : 'bg-white border-slate-200'}`}
-                            >
+            						aria-label="Add to watchlist"
+            						onClick={(e) => {
+            							e.stopPropagation();
+            							onToggle();
+            						}}
+            						className={`
+                                        group
+                                        flex h-9 w-9 items-center justify-center
+                                        rounded-full
+                                        border border-slate-300/60
+                                        transition-all duration-200
+                                        ${starClass}
+
+                                        hover:bg-slate-100
+                                        hover:border-slate-400
+                                        cursor-pointer
+                                        active:scale-95
+                                        focus:outline-none focus:ring-2 focus:ring-slate-300/50
+                                        ${isAdded ? "bg-yellow-200" : "bg-white"}
+                                    `}
+            					>
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" className={`h-4 w-4 ${isAdded ? 'fill-yellow-600' : 'fill-slate-300'}`}>
                                     <path d="m233-120 65-281L80-590l288-25 112-265 112 265 288 25-218 189 65 281-247-149-247 149Z"/>
                                 </svg>

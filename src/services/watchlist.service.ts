@@ -58,6 +58,7 @@
 
 import { authHeaders } from "@/utils/auth-helpers";
 import { FlightResult } from "@/types/flight";
+import { mapWatchlistToFlightResult } from "./mappers/flight.mapper";
 
 
 const API_BASE = "http://localhost:3000/watchlist";
@@ -68,7 +69,8 @@ export const watchlistService = {
       headers: authHeaders(),
     });
     if (!res.ok) throw new Error("Failed to fetch watchlist");
-    return res.json();
+    const data = await res.json()
+    return Array.isArray(data) ? data.map(mapWatchlistToFlightResult) : [];
   },
 
   async addToWatchlist(flight: FlightResult) {
