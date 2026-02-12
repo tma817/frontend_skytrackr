@@ -553,8 +553,8 @@ export default function TicketDetailPage() {
 
 					{/* RIGHT COLUMN: BOOKING SUMMARY */}
 					<div className="col-span-12 lg:col-span-4">
-						<div className="sticky flex flex-col gap-5">
-							<div className="top-8 rounded-2xl border bg-white p-6 shadow-sm">
+						<div className="sticky top-8 flex flex-col gap-5">
+							<div className="rounded-2xl border bg-white p-6 shadow-sm">
 								<h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">
 									Booking Summary
 								</h3>
