@@ -12,13 +12,15 @@
     "@types/lodash": "^4.17.23",
     "cookies-next": "^6.1.1",
     "date-fns": "^4.1.0",
+    "framer-motion": "^12.34.0",
     "jwt-decode": "^4.0.0",
     "lodash": "^4.17.21",
     "lucide-react": "^0.563.0",
     "next": "16.1.1",
     "react": "19.2.3",
     "react-day-picker": "^9.13.0",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "recharts": "^3.7.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
