@@ -49,15 +49,13 @@ export default function PredictionGraph({
 			<motion.div
 				initial={{ opacity: 0, y: 20 }}
 				animate={{ opacity: 1, y: 0 }}
-				className="bg-linear-to-br from-slate-50 to-slate-100 shadow-2xl rounded-2xl p-6"
+				className="bg-linear-to-br rounded-2xl p-6"
 			>
-				{/* Header */}
 				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
 					<h2 className="text-2xl font-bold tracking-tight">
 						Price Prediction
 					</h2>
 
-					{/* Toggle */}
 					<div className="flex bg-slate-200 rounded-xl p-1 w-fit">
 						<button
 							onClick={() => setMode("daily")}
@@ -105,7 +103,7 @@ export default function PredictionGraph({
 							/>
 							<Tooltip
 								contentStyle={{ borderRadius: "12px", border: "none" }}
-								formatter={(value: number) => `$${value}`}
+								formatter={(value?: number) => (value ? `$${value}` : "")}
 							/>
 
 							<Legend />

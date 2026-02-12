@@ -597,7 +597,7 @@ export default function TicketDetailPage() {
 							</div>
 							<div className="rounded-2xl border bg-white shadow-sm">
 								<PredictionGraph  />
-
+								<PriceGrid />
 							</div>
 						</div>
 					</div>
