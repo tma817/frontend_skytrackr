@@ -586,13 +586,15 @@ export default function TicketDetailPage() {
 								<button
 									type="button"
 									className="w-full rounded-xl bg-slate-900 py-4 text-base font-bold text-white shadow-lg transition-all hover:bg-black active:scale-95"
-									onClick={() =>
+									onClick={() => {
+
+
 										router.push(
-											`/checkout?id=${flight.id}&searchId=${flight.search_id}`,
+											`/seating/${flight.id}&searchId=${flight.search_id}`,
 										)
-									}
+									}}
 								>
-									Confirm & Book
+									Seating Selection
 								</button>
 							</div>
 							<div className="rounded-2xl border bg-white shadow-sm">

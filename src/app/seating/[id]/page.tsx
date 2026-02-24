@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getFlightById } from "../../lib/demoFlights";
+// import { getFlightById } from "../../lib/demoFlights";
 
 type Cabin = "Economy" | "Business";
 
@@ -39,7 +39,7 @@ function SeatButton({
   );
 }
 
-export default function TicketDetails2Page() {
+export default function SeatingPage() {
   const router = useRouter();
   const sp = useSearchParams();
 
@@ -85,7 +85,6 @@ export default function TicketDetails2Page() {
     router.push(`/ticket/${flight.id}?${qs.toString()}`);
   };
 
-  // ✅ 이제 customer details로 이동
   const confirmToCustomer = () => {
     const qs = new URLSearchParams({
       id: flight.id,
