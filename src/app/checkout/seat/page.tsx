@@ -3,116 +3,135 @@ import { useState } from "react"
 import { seatMapMockupData } from "@/mockUpDataHERE/seats"
 import SeatMap from "@/components/SeatMap"
 import { useBookingStore } from "@/store/useBookingStore"
-import { PiUserCircleFill } from "react-icons/pi"
+import { PiUserCircleFill, PiAirplaneTiltFill, PiCheckBold } from "react-icons/pi"
+import BookingSummary from "@/components/BookingSummary"
+import money from "@/utils/money"
+import { useSearchParams, useRouter } from "next/navigation"
 
-export default function SeatPage(){
+export default function SeatPage() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const { travelers, selectedSeats, updateSeatSelection } = useBookingStore();
-    const [activeTravelerId, setActiveTravelerId] = useState<string>("1");
-    const currentSeat = selectedSeats[activeTravelerId];
+    const [activeTravelerId, setActiveTravelerId] = useState<string>(travelers[0]?.id || "1");
+    const [activeSegmentIdx, setActiveSegmentIdx] = useState(0);
 
+    const currentSegmentMap = seatMapMockupData[activeSegmentIdx];
+    const currentSegmentId = currentSegmentMap.segmentId;
+    const handleSubmit = () =>{
+        const searchId = searchParams.get("searchId")
+        const flightId = searchParams.get("flightId")
+        const pax = searchParams.get("pax")
+        router.push(`/checkout/payment?searchId=${searchId}&flightId=${flightId}&pax=${pax}`);
+    }
     const handleSeatSelect = (seat: any) => {
-        updateSeatSelection(activeTravelerId, seat);
-        const nextTraveler = travelers.find(t => !selectedSeats[t.id]);
-        if(nextTraveler) setActiveTravelerId(nextTraveler.id);  
+        updateSeatSelection(currentSegmentId, activeTravelerId, seat);
+        const nextTraveler = travelers.find(t => {
+            if (t.id === activeTravelerId) return false;
+            return !selectedSeats[currentSegmentId]?.[t.id];
+        });
+
+        if (nextTraveler) {
+            setActiveTravelerId(nextTraveler.id);
+        } else {
+            if (activeSegmentIdx < seatMapMockupData.length - 1) {
+                // setTimeout(() => setActiveSegmentIdx(prev => prev + 1), 500);
+            }
+        }
     };
 
-    // <div className="max-w-7xl mx-auto px-4 py-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        //   <div className="grid grid-cols-12 gap-8">
-            
-        //     <div className="col-span-12 lg:col-span-8 border rounded-2xl">          
-        //       <PassengerForm 
-        //         adultCount={paxCount}
-        //         onSubmit={handlePassengerSubmit} 
-        //       />
-        //     </div>
-    
-        //     <div className="col-span-12 lg:col-span-4">
-        //       <div className="sticky top-8">
-        //          <BookingSummary /> 
-        //       </div>
-        //     </div>
-    
-        //   </div>
-        // </div>
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
-            <div className="max-w-7xl mx-auto px-4 py-10 animate-in fade-in slide-in-from-bottom-4 duration-500">  
-                <div className="grid grid-cols-12 gap-8">
-                    <div className="col-span-12 lg:col-span-8 border rounded-2xl bg-white">
-                        <SeatMap 
-                            seatData={seatMapMockupData} 
-                            onSelectSeat={handleSeatSelect} 
-                            // selectedSeats={Object.values(selectedSeats).map((s: any) => s.number)}
-                            selectedSeatNumber={currentSeat?.number}
-                        />
+        <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-8">
+            <div className="max-w-7xl mx-auto py-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="grid grid-cols-12 gap-8 items-start">
+                    <div className="col-span-12 lg:col-span-8 border rounded-3xl bg-white shadow-sm overflow-hidden flex flex-col">
+                        <div className="flex border-b bg-slate-50/50">
+                            {seatMapMockupData.map((sm, index) => {
+                                const isActive = activeSegmentIdx === index;
+                                return (
+                                    <button
+                                        key={sm.segmentId}
+                                        onClick={() => {
+                                            setActiveSegmentIdx(index);
+                                            setActiveTravelerId(travelers[0]?.id);
+                                        }}
+                                        className={`flex-1 flex items-center justify-center gap-3 py-5 transition-all border-r last:border-r-0 ${
+                                            isActive 
+                                            ? "bg-black text-white" 
+                                            : "hover:bg-white/50 text-slate-400"
+                                        }`}
+                                    >
+                                        <div className="text-left">
+                                            <p className={`text-sm font-bold ${isActive ? "text-white" : ""}`}>
+                                                {sm.departure.iataCode} → {sm.arrival.iataCode}
+                                            </p>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        <div className="p-4 md:p-10 overflow-y-auto max-h-[750px] bg-slate-50/20">
+                            <div className="max-w-[550px] mx-auto">
+                                <SeatMap 
+                                    seatData={currentSegmentMap} 
+                                    onSelectSeat={handleSeatSelect} 
+                                    allSelectedSeatsForSegment={selectedSeats[currentSegmentId] || {}}
+                                />
+                            </div>
+                        </div>
                     </div>
 
-                     <div className="col-span-12 lg:col-span-4">
-                        <div className="sticky top-8 bg-white p-6 rounded-2xl border bg-white">
-                            <div className="flex gap-4 mb-8 bg-white p-2 rounded-2xl border border-slate-200 w-fit">
-                            {travelers.map((t) => (
-                                <button
-                                    key={t.id}
-                                    onClick={() => setActiveTravelerId(t.id)}
-                                    className={`flex items-center gap-3 px-6 py-3 rounded-xl transition-all ${
-                                        activeTravelerId === t.id 
-                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-200" 
-                                        : "hover:bg-slate-50 text-slate-600"
-                                    }`}
-                                >
-                                    <PiUserCircleFill size={20} />
-                                    <div className="text-left">
-                                        <p className="text-[10px] uppercase font-black leading-none opacity-70">Passenger {t.id}</p>
-                                        <p className="text-sm font-bold">{t.firstName} {t.lastName}</p>
-                                        {selectedSeats[t.id] && (
-                                            <p className="text-[10px] font-black italic">Seat: {selectedSeats[t.id].number}</p>
-                                        )}
-                                    </div>
-                                </button>
-                            ))}
+                    {/* RIGHT COLUMN: PASSENGERS & DETAILS */}
+                    <div className="col-span-12 lg:col-span-4 space-y-6 sticky top-8">
+                        <div className="bg-white p-6 rounded-3xl border shadow-sm">
+                            <p className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest">Select Traveler</p>
+                            <div className="flex flex-col gap-3">
+                                {travelers.map((t) => {
+                                    const hasSeat = selectedSeats[currentSegmentId]?.[t.id];           
+                                    const seatPrice = hasSeat?.travelerPricing?.[0]?.price?.total;
+                                    const currency = hasSeat?.travelerPricing?.[0]?.price?.currency;
+                                    return (
+                                        <button
+                                            key={t.id}
+                                            onClick={() => setActiveTravelerId(t.id)}
+                                            className={`flex items-center justify-between p-4 rounded-2xl transition-all border-2 ${
+                                                activeTravelerId === t.id 
+                                                ? "border-blue-600 bg-blue-50/30" 
+                                                : "border-slate-50 hover:border-slate-200"
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-3 text-left">
+                                                <PiUserCircleFill size={28} className={activeTravelerId === t.id ? "text-blue-600" : "text-slate-300"} />
+                                                <div>
+                                                    <p className="text-sm font-bold text-slate-900">{t.firstName} {t.lastName}</p>
+                                                    <p className="text-[10px] font-black uppercase text-slate-400">
+                                                        {hasSeat ? `Seat: ${hasSeat.number}` : "No seat selected"}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            {hasSeat && (
+                                                <div className="text-right animate-in fade-in zoom-in duration-300">
+                                                    <p className="text-xs font-black text-blue-600">
+                                                        +{money(parseFloat(seatPrice), currency)}
+                                                    </p>
+                                                    <p className="text-[9px] font-bold text-slate-400 uppercase leading-none">
+                                                        {currency}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </button>
+                                    )
+                                })}
+                            </div>
                         </div>
-                            {currentSeat ? (
-                                <div className="space-y-4">
-                                    <p className="text-[10px] font-black text-blue-600 uppercase">
-                                        Selected for {travelers.find(t => t.id === activeTravelerId)?.firstName}
-                                    </p>
-                                    <h2 className="text-5xl font-black">{currentSeat.number}</h2>
-                                    <span className="text-xs font-bold uppercase tracking-tighter text-blue-500 bg-blue-50 px-2 py-1 rounded mt-2 inline-block">
-                                        {currentSeat.cabin} Class
-                                    </span>
-                                    <div>
-                                        <p className="text-[10px] font-black uppercase text-slate-400 mb-3 tracking-widest">Seat Features</p>
-                                        <div className="flex flex-wrap gap-2">
-                                        </div>
-                                    </div>
-                                    <div className="py-4 border-y border-slate-100">
-                                        <p className="flex justify-between font-bold text-sm">
-                                            <span className="text-slate-400">Seat Price:</span>
-                                            <span>
-                                                {currentSeat.travelerPricing.find((tp: any) => tp.travelerId === activeTravelerId)?.price.total} 
-                                                {currentSeat.travelerPricing[0].price.currency}
-                                            </span>
-                                        </p>
-                                    </div>
-                                    <button 
-                                        className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-100"
-                                        onClick={() => {
-                                            const allSelected = travelers.every(t => selectedSeats[t.id]);
-                                            if (allSelected) alert("Go to Checkout!");
-                                            else alert("Please select seats for all passengers");
-                                        }}
-                                    >
-                                        Proceed to Payment
-                                    </button>
-                                </div>
-                            ) : (
-                                <p className="text-slate-400 italic">Please pick a seat to see details</p>
-                            )}
-                        </div>
+
+                        <BookingSummary 
+                            buttonText="Proceed to Payment"
+                            onContinue={handleSubmit}
+                        />
                     </div>
                 </div>
             </div>
         </div>
     );
-
 }

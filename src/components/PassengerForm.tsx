@@ -3,15 +3,17 @@ import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { PiUserCircleFill, PiPhoneFill, PiEnvelopeSimpleFill, PiCalendarBlankFill } from "react-icons/pi";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useEffect } from "react";
 
 interface PassengerFormProps {
   adultCount: number;
   onSubmit: (data: any) => void;
+  initialData?: any;
 }
 
-export default function PassengerForm({ adultCount, onSubmit }: PassengerFormProps) {
-  const { register, control, handleSubmit, formState: { errors } } = useForm({
-    defaultValues: {
+export default function PassengerForm({ adultCount, onSubmit, initialData }: PassengerFormProps) {
+  const { register, control, handleSubmit, reset, formState: { errors } } = useForm({
+    defaultValues: initialData || {
       travelers: Array.from({ length: adultCount }, (_, i) => ({
         id: (i + 1).toString(),
         firstName: "",
@@ -21,11 +23,17 @@ export default function PassengerForm({ adultCount, onSubmit }: PassengerFormPro
       })),
       contact: {
         emailAddress: "",
-        countryCallingCode: "84",
+        countryCallingCode: "+1",
         number: ""
       }
     }
   });
+
+  useEffect(() => {
+    if (initialData) {
+      reset(initialData);
+    }
+  }, [initialData, reset]);
 
   const { fields } = useFieldArray({ control, name: "travelers" });
 

@@ -3,15 +3,14 @@ import { persist } from 'zustand/middleware';
 
 interface BookingStore {
   selectedFlight: any | null;
-
   travelers: any[];
   contact: any;
   
-  selectedSeats: Record<string, any>;
+  selectedSeats: Record<string, Record<string, any>>;
 
   setFlight: (flight: any) => void;
   setTravelersInfo: (travelers: any[], contact: any) => void;
-  updateSeatSelection: (travelerId: string, seat: any) => void;
+  updateSeatSelection: (segmentId: string, travelerId: string, seat: any) => void;
   clearBooking: () => void;
 }
 
@@ -22,6 +21,7 @@ export const useBookingStore = create<BookingStore>()(
         travelers: [],
         contact: null,
         selectedSeats: {},
+
         setFlight: (flight) => set({ 
             selectedFlight: flight,
             travelers: [],
@@ -34,10 +34,13 @@ export const useBookingStore = create<BookingStore>()(
             contact 
         }),
 
-        updateSeatSelection: (travelerId, seat) => set((state) => ({
+        updateSeatSelection: (segmentId, travelerId, seat) => set((state) => ({
             selectedSeats: { 
                 ...state.selectedSeats, 
-                [travelerId]: seat 
+                [segmentId]: {
+                    ...(state.selectedSeats[segmentId] || {}),
+                    [travelerId]: seat 
+                }
             }
         })),
 

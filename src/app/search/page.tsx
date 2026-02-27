@@ -7,10 +7,13 @@ import FlightCard from "@/components/FlightCard";
 import { watchlistService } from "@/services/watchlist.service";
 import type { FlightResult } from "../../types/flight";
 import { useSearchFlights } from "@/hooks/useSearchFlights";
+import { useBookingStore } from "@/store/useBookingStore";
 
 export default function SearchPage() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
+
+	const clearBooking = useBookingStore((state) => state.clearBooking)
 
 	// ===== Read query from URL =====
 	const from = searchParams.get("from") ?? "";
@@ -42,7 +45,9 @@ export default function SearchPage() {
 	// ===== Watchlist =====
 	const [watchlist, setWatchlist] = useState<FlightResult[]>([]);
 	const [watchlistBusy, setWatchlistBusy] = useState(false);
-
+	// useEffect(() => {
+	// 	clearBooking();
+	// }, []);
 	useEffect(() => {
 		let mounted = true;
 		(async () => {

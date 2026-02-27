@@ -13,10 +13,17 @@ export default function BookingPage() {
   console.log(paxCount)
   
   const setTravelersInfo = useBookingStore((state) => state.setTravelersInfo);
-
+  const { travelers, contact } = useBookingStore();
+  const existingData = travelers.length > 0 ? {
+    travelers: travelers,
+    contact: contact
+  } : undefined;
   const handlePassengerSubmit = (data: any) => {
     setTravelersInfo(data.travelers, data.contact);
-    router.push("/checkout/seat"); 
+    const searchId = searchParams.get("searchId")
+    const flightId = searchParams.get("flightId")
+
+    router.push(`/checkout/seat?searchId=${searchId}&pax=${paxCount}&flightId=${flightId}`);
   };
 
   return (
@@ -27,6 +34,7 @@ export default function BookingPage() {
           <PassengerForm 
             adultCount={paxCount}
             onSubmit={handlePassengerSubmit} 
+            initialData={existingData}
           />
         </div>
 

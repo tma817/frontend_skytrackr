@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { FlightResult } from "@/types/flight";
-import { mapFlightOfferToFlightResult } from "@/services/mappers/flight.mapper";
-import { toTitleCase } from "@/utils/string";
 import PredictionGraph from "@/components/PredictionGraph";
 import PriceGrid from "@/components/PriceGrid";
 import { useBookingStore } from "@/store/useBookingStore";
@@ -19,9 +17,8 @@ export default function TicketDetailPage() {
 
 	const handleProceed = () => {
 		if(!flight) return
-
 		setFlightStore(flight)
-		router.push(`/checkout/pax?searchId=${searchId}&pax=${pax}`);
+		router.push(`/checkout/pax?searchId=${searchId}&flightId=${flight.id}&pax=${pax}`);
 
 	}
 
@@ -50,6 +47,7 @@ export default function TicketDetailPage() {
 				const data = await res.json();
 				console.log(data);
 				setFlight(data);
+				setFlightStore(data);
 			} catch (error) {
 				console.error("Error fetching ticket:", error);
 			} finally {

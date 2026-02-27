@@ -10,14 +10,16 @@ import {
 interface SeatMapProps{
     seatData: any;
     onSelectSeat: (seat: any) => void;
-    selectedSeatNumber?: string;
+    allSelectedSeatsForSegment: Record<string, any>;
 }
 
-export default function SeatMap({seatData, onSelectSeat, selectedSeatNumber}: SeatMapProps) {
-    const deck = seatData[0].decks[0];
+export default function SeatMap({seatData, onSelectSeat, allSelectedSeatsForSegment}: SeatMapProps) {
+    const deck = seatData.decks[0];
     const { deckConfiguration, facilities, seats } = deck;
-    const { width, startWingsRow, endWingsRow, exitRowsX } = deckConfiguration;
-
+    const { width, startWingsX, endWingsX, exitRowsX } = deckConfiguration;
+    const selectedNumbers = Object.values(allSelectedSeatsForSegment)
+        .map((s: any) => s?.number)
+        .filter(Boolean);
     return (
         <div className="flex flex-col items-center py-10 min-h-screen font-sans overflow-hidden">
             <div className="relative border-x-[16px] border-gray-200 rounded-t-[140px] rounded-b-3xl px-6 py-16 shadow-2xl">
@@ -30,8 +32,8 @@ export default function SeatMap({seatData, onSelectSeat, selectedSeatNumber}: Se
                     <div 
                         className="absolute -left-[105px] bg-slate-200 border-slate-300 rounded-l-full flex items-center justify-center"
                         style={{
-                            gridRowStart: startWingsRow + 1,
-                            gridRowEnd: endWingsRow + 2,
+                            gridRowStart: startWingsX + 1,
+                            gridRowEnd: endWingsX + 2,
                             gridColumn: 1, 
                             width: '80px',
                             height: '100%',
@@ -44,8 +46,8 @@ export default function SeatMap({seatData, onSelectSeat, selectedSeatNumber}: Se
                     <div 
                         className="absolute -right-[105px] bg-slate-200 border-slate-300 rounded-r-full flex items-center justify-center"
                         style={{
-                            gridRowStart: startWingsRow + 1,
-                            gridRowEnd: endWingsRow + 2,
+                            gridRowStart: startWingsX + 1,
+                            gridRowEnd: endWingsX + 2,
                             gridColumn: width,
                             width: '80px',
                             height: '100%',
@@ -135,21 +137,20 @@ export default function SeatMap({seatData, onSelectSeat, selectedSeatNumber}: Se
                     {seats.map((seat: any) => {
                         const pricing = seat.travelerPricing[0];
                         const isAvailable = pricing.seatAvailabilityStatus === 'AVAILABLE';
-                        const isSelected = selectedSeatNumber === seat.number;
+                        const isSelectedBySomeone = selectedNumbers.includes(seat.number);
                         return (
                             <button
                                 key={seat.number}
                                 disabled={!isAvailable}
                                 onClick={() => {
                                     onSelectSeat(seat)
-                                    selectedSeatNumber = seat.number
                                 }}
                                 className={`
                                     relative h-14 w-11 rounded-t-xl transition-all duration-300 flex flex-col items-center justify-center
                                     border-b-4 text-[11px] font-bold z-10
                                     ${!isAvailable 
                                         ? 'bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed'
-                                        : isSelected
+                                        : isSelectedBySomeone
                                             ? 'bg-blue-600 border-blue-800 text-white scale-110 shadow-xl'
                                                 : 'bg-white border-gray-300 text-gray-700'
                                     }
@@ -165,30 +166,11 @@ export default function SeatMap({seatData, onSelectSeat, selectedSeatNumber}: Se
                     })}
                 </div>
             </div>
-
-
             <div className="mt-8 flex gap-4 text-[10px] font-bold uppercase text-gray-500">
                 <div className="flex items-center gap-1"><div className="w-3 h-3 bg-white border rounded"></div> Empty</div>
                 <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-200 rounded"></div> Booked</div>
                 <div className="flex items-center gap-1"><div className="w-3 h-3 bg-blue-600 rounded"></div> Current Sel ected</div>
             </div>
-
-
-            {/* {selectedSeat && (
-                <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] flex justify-center items-center gap-10 animate-in slide-in-from-bottom-full duration-500 z-50">
-                    <div className="flex flex-col">
-                        <span className="text-gray-400 text-[10px] uppercase font-bold tracking-widest">Selected Seat</span>
-                        <span className="text-3xl font-black text-blue-600 leading-none">{selectedSeat}</span>
-                    </div>
-                    <div className="h-10 w-[1px] bg-gray-200" />
-                    <div className="flex flex-col">
-                        <span className="text-gray-400 text-[10px] uppercase font-bold tracking-widest">Total</span>
-                    </div>
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-12 py-4 rounded-2xl font-black text-sm shadow-lg shadow-blue-200 active:scale-95 transition-all uppercase">
-                        Continue Booking
-                    </button>
-                </div>
-            )} */}
         </div>
     );
 }
