@@ -18,7 +18,7 @@ export default function SearchPage() {
 	const tripType = (searchParams.get("tripType") ?? "oneway").toLowerCase();
 	const departure = searchParams.get("departure") ?? "";
 	const returnDate = searchParams.get("return") ?? "";
-	const numOfPassengers = searchParams.get("numOfPassengers") ?? "1 adult";
+	const numOfPassengers = searchParams.get("numOfPassengers") ?? "1";
 
 	// ===== Flights via Hook =====
 	const {
@@ -38,9 +38,6 @@ export default function SearchPage() {
 
 	// ===== Local UI filters (UI concern only) =====
 	const [bestValue, setBestValue] = useState(true);
-	const [membersDeals, setMembersDeals] = useState(false);
-	const [budget, setBudget] = useState<"any" | "150" | "250" | "350" | "1000">("any");
-	const [rating, setRating] = useState<"any" | "1" | "2" | "3" | "4" | "5">("any");
 
 	// ===== Watchlist =====
 	const [watchlist, setWatchlist] = useState<FlightResult[]>([]);
@@ -101,7 +98,7 @@ export default function SearchPage() {
 			payload.returnDate ??
 			payload.dateRange?.to ??
 			"",
-		numOfPassengers: payload.numOfPassengers ?? payload.passengers ?? "1 adult",
+		numOfPassengers: payload.numOfPassengers ?? payload.passengers ?? "1",
 		});
 
 		router.push(`/search?${qs.toString()}`);

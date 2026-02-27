@@ -3,7 +3,7 @@
 // app/profile/page.tsx
 import { useState, useEffect } from "react";
 import EditField from "@/components/EditField";
-import { countries } from "../../data/countries";
+import { countries } from "../../mockUpDataHERE/countries";
 import FlightCard from "@/components/FlightCard";
 import { authService } from "@/services/auth.service";
 import { watchlistService } from "@/services/watchlist.service";

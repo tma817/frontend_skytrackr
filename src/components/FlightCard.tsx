@@ -247,9 +247,8 @@
 // 		</div>
 // 	);
 // }
-import { authService } from "@/services/auth.service";
-import { FlightResult, FlightItinerary } from "@/types/flight";
-
+import { FlightResult,FlightItinerary } from "@/types/flight";
+import money from "@/utils/money";
 interface FlightCardProps {
     flight: FlightResult;
     onClick: () => void;
@@ -257,14 +256,6 @@ interface FlightCardProps {
     onToggle: () => void;
 }
 
-function money(value?: number, currency = "CAD") {
-    if (typeof value !== "number") return "";
-    return new Intl.NumberFormat("en-CA", {
-        style: "currency",
-        currency,
-        maximumFractionDigits: 0,
-    }).format(value);
-}
 
 export default function FlightCard({ flight, onClick, isAdded, onToggle }: FlightCardProps) {
     const starClass = isAdded ? "bg-yellow-200 fill-slate-500" : "fill-slate-500 group-hover:fill-amber-300";
@@ -282,34 +273,16 @@ export default function FlightCard({ flight, onClick, isAdded, onToggle }: Fligh
                             <img src={flight.airline.logo} alt={flight.airline.name} className="h-8 w-8 object-contain" />
                             <span className="text-sm font-bold text-slate-700">{flight.airline.name}</span>
                         </div>
-                        {authService.isLoggedIn() && (
+                        {/* {isLogg() && (
                             <button
-            						aria-label="Add to watchlist"
-            						onClick={(e) => {
-            							e.stopPropagation();
-            							onToggle();
-            						}}
-            						className={`
-                                        group
-                                        flex h-9 w-9 items-center justify-center
-                                        rounded-full
-                                        border border-slate-300/60
-                                        transition-all duration-200
-                                        ${starClass}
-
-                                        hover:bg-slate-100
-                                        hover:border-slate-400
-                                        cursor-pointer
-                                        active:scale-95
-                                        focus:outline-none focus:ring-2 focus:ring-slate-300/50
-                                        ${isAdded ? "bg-yellow-200" : "bg-white"}
-                                    `}
-            					>
+                                onClick={(e) => { e.stopPropagation(); onToggle(); }}
+                                className={`h-8 w-8 flex items-center justify-center rounded-full border transition-all ${isAdded ? 'bg-yellow-100 border-yellow-300' : 'bg-white border-slate-200'}`}
+                            >
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" className={`h-4 w-4 ${isAdded ? 'fill-yellow-600' : 'fill-slate-300'}`}>
                                     <path d="m233-120 65-281L80-590l288-25 112-265 112 265 288 25-218 189 65 281-247-149-247 149Z"/>
                                 </svg>
                             </button>
-                        )}
+                        )} */}
                     </div>
 
                     {flight.itineraries.map((itinerary, idx) => (
@@ -317,7 +290,6 @@ export default function FlightCard({ flight, onClick, isAdded, onToggle }: Fligh
                     ))}
                 </div>
 
-                {/* Right Side: Price & Action */}
                 <div className="bg-slate-50/50 p-6 flex flex-col justify-center items-center min-w-[200px]">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Total Price</span>
                     <div className="text-3xl font-black text-cyan-700">
@@ -339,16 +311,21 @@ export default function FlightCard({ flight, onClick, isAdded, onToggle }: Fligh
     );
 }
 
+/**
+ * Component con hiển thị một hàng (chiều đi hoặc chiều về)
+ */
 function ItineraryRow({ itinerary }: { itinerary: FlightItinerary }) {
     const isDirect = itinerary.stops === 0;
     
     return (
         <div className="flex items-center gap-6">
+            {/* Time & Code (Departure) */}
             <div className="w-20">
                 <div className="text-lg font-bold text-slate-900">{itinerary.departure.time}</div>
                 <div className="text-xs font-semibold text-slate-500">{itinerary.departure.iataCode}</div>
             </div>
 
+            {/* Timeline UI */}
             <div className="flex-1 flex flex-col items-center">
                 <span className="text-[10px] font-medium text-slate-400 mb-1">{itinerary.duration}</span>
                 <div className="flex w-full items-center gap-2">
@@ -367,6 +344,7 @@ function ItineraryRow({ itinerary }: { itinerary: FlightItinerary }) {
                 </span>
             </div>
 
+            {/* Time & Code (Arrival) */}
             <div className="w-20 text-right">
                 <div className="text-lg font-bold text-slate-900">{itinerary.arrival.time}</div>
                 <div className="text-xs font-semibold text-slate-500">{itinerary.arrival.iataCode}</div>

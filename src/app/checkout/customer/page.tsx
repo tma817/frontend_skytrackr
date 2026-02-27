@@ -28,7 +28,6 @@ export default function CustomerPage() {
   const router = useRouter();
   const sp = useSearchParams();
 
-  // ticket-details2에서 넘어온 query 유지
   const preservedQuery = useMemo(() => {
     const q = new URLSearchParams(sp.toString());
     return q.toString();
@@ -56,7 +55,6 @@ export default function CustomerPage() {
 
   const [checkedBags, setCheckedBags] = useState<number>(1);
 
-  // ✅ Bag info 표시용 이름 (띄어쓰기 포함)
   const passengerFullName = useMemo(() => {
     const fn = passenger.firstName.trim();
     const ln = passenger.lastName.trim();
@@ -64,7 +62,6 @@ export default function CustomerPage() {
     return full.length ? full : "First Last";
   }, [passenger.firstName, passenger.lastName]);
 
-  // Same as Passenger 1 체크 시 자동 채우기
   useEffect(() => {
     if (!emergency.sameAsPassenger) return;
 
@@ -88,7 +85,6 @@ export default function CustomerPage() {
   const labelBase = "text-xs text-[#7A86A7]";
 
   const onContinue = () => {
-    // required 체크 (별표 있는 것만)
     if (
       !passenger.firstName ||
       !passenger.lastName ||
@@ -100,7 +96,6 @@ export default function CustomerPage() {
       return;
     }
 
-    // known traveler number은 UI상 별표지만 실제론 회사마다 다름 → 과제 요구대로 별표니까 체크
     if (!passenger.knownTravelerNumber) {
       alert("Please fill in Known traveller number.");
       return;

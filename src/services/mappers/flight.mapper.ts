@@ -21,7 +21,7 @@ function mapSegment(s: any): FlightSegment {
 
 export function mapFlightOfferToFlightResult(f: any): FlightResult {
     if (!f.itineraries || f.itineraries.length === 0) {
-        throw new Error("Dữ liệu chuyến bay không hợp lệ (Missing itineraries)");
+        throw new Error("Missing itineraries");
     }
 
     return {

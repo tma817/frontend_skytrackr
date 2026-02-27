@@ -170,7 +170,7 @@ export default function SearchBar({
       tripType,
       departure: format(departureDate, "yyyy-MM-dd"),
       return: returnDate ? format(returnDate, "yyyy-MM-dd") : undefined,
-      passengers: `${passengers} adult${passengers > 1 ? "s" : ""}`,
+      passengers: passengers.toString(),
     };
 
     if (onSearch) {
