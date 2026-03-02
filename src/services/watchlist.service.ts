@@ -73,7 +73,7 @@ export const watchlistService = {
     return Array.isArray(data) ? data.map(mapWatchlistToFlightResult) : [];
   },
 
-  async addToWatchlist(flight: FlightResult) {
+  async addToWatchlist(flight: FlightResult, passengers: string, tripType: string) {
     const firstItinerary = flight.itineraries[0];
     const payload = {
       searchId: flight.search_id,
@@ -84,6 +84,8 @@ export const watchlistService = {
       currency: flight.price.currency,
       departureDate: firstItinerary.departure.date,
       airlineName: flight.airline.name,
+      passengers,
+      tripType,
     };
 
     const res = await fetch(API_BASE, {
