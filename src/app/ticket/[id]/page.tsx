@@ -229,9 +229,8 @@ export default function TicketDetailPage() {
 					<div className="col-span-12 lg:col-span-4">
 						<div className="sticky top-8 flex flex-col gap-5">
 							<BookingSummary onContinue={handleProceed}/>
-							<div className="rounded-2xl border bg-white shadow-sm">
+							<div className="rounded-2xl border bg-white shadow-sm z-0">
 								<PredictionGraph  />
-								<PriceGrid />
 							</div>
 						</div>
 					</div>

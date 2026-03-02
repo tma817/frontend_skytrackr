@@ -1,8 +1,7 @@
 import PlanCard from "@/components/PlanCard";
-import icon from "@/public/Vector 4.svg"
-
 
 export default function SubscribePage() {
+	const icon = "/Vector 4.svg";
 	return (
 		<section
 			className="flex flex-col items-center py-24 px-6"

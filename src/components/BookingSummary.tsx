@@ -20,7 +20,7 @@ export default function BookingSummary({ onContinue, buttonText = "Continue" }: 
     const currency = selectedFlight.price.currency;
 
     return (
-        <div className="rounded-3xl border bg-white p-6 shadow-sm sticky top-8 flex flex-col gap-2">
+        <div className="rounded-2xl border bg-white p-6 shadow-sm sticky top-8 flex flex-col gap-2 z-10">
             <h3 className="font-black text-black uppercase">
                 Price Details
             </h3>
