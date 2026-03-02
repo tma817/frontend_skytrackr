@@ -137,7 +137,7 @@ export default function TicketDetailPage() {
 
 									<div className="flex flex-col items-center flex-1 px-10 text-center">
 										<div className="relative w-full border-t-2 border-dashed border-slate-200 flex justify-center">
-											<div className="absolute -top-3 bg-white px-2">
+											<div className="absolute -top-3 px-2">
 												<span className="text-cyan-500 text-xl">✈</span>
 											</div>
 										</div>
