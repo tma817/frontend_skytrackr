@@ -124,6 +124,12 @@ export default function SearchBar({
   
   const initialized = useRef(false);
   
+  
+  //Fix incorrect departure date and return date after search result
+  function parseLocalDate(dateString: string) {
+    const [year, month, day] = dateString.split("-").map(Number);
+    return new Date(year, month - 1, day);
+  }
 
   //Saves user's selection after searching flight on search bar
   useEffect(() => {
@@ -133,8 +139,8 @@ export default function SearchBar({
     //departure and return
     const dep = searchParams.get("departure");
     const ret = searchParams.get("return");
-    if (dep) setDepartureDate(new Date(dep));
-    if (ret) setReturnDate(new Date(ret));
+    if (dep) setDepartureDate(parseLocalDate(dep));
+    if (ret) setReturnDate(parseLocalDate(ret));
 
     // Passengers
     const numOfPassengers = searchParams.get("numOfPassengers");
