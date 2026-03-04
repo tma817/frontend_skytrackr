@@ -1,131 +1,55 @@
 // app/page.tsx
 "use client";
 
-import Image from "next/image";
 import SearchBar from "@/components/SearchBar";
-import { useRouter } from "next/navigation";
 
 export default function HomePage() {
-  const router = useRouter();
-
-  const goSearch = (from: string, to: string) => {
-    const qs = new URLSearchParams({
-      from,
-      to,
-      date: "Depart - Return",
-      pax: "1 adult",
-    });
-    router.push(`/search?${qs.toString()}`);
-  };
-
   return (
     <main className="min-h-screen bg-white">
       {/* HERO */}
       <section
-        className="relative flex h-[612px] w-full items-center justify-center overflow-visible border-b"
+        className="relative flex min-h-screen w-full flex-col items-center justify-center"
         style={{
           backgroundImage: "url(/images/hero-bg.png)",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          overflow: "visible"
         }}
       >
-        <div className="absolute inset-0 bg-white/20" />
+        {/* dark gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
 
-        <div className="relative mx-auto flex w-full max-w-5xl flex-col items-center px-6">
-          <h1
-            className="text-center font-sans text-[64px] font-bold leading-[110%] tracking-[-1.28px] text-black"
-            style={{ fontFamily: "Inter, system-ui, sans-serif" }}
-          >
-            Fly Smart, Fly Cheap
+        {/* content */}
+        <div className="relative z-10 flex w-full flex-col items-center px-6 text-center">
+          {/* eyebrow */}
+          <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white/80 backdrop-blur-sm">
+            ✈&nbsp;&nbsp;Find your next flight
+          </span>
+
+          {/* headline */}
+          <h1 className="max-w-4xl text-5xl font-black leading-[1.08] tracking-tight text-white md:text-7xl">
+            Fly Smart,
+            <br />
+            <span className="text-sky-300">Fly Cheap.</span>
           </h1>
 
-          <p
-            className="mt-3 w-full max-w-[960px] text-center text-[24px] font-medium leading-[140%] tracking-[-0.12px]"
-            style={{
-              fontFamily: "Inter, system-ui, sans-serif",
-              color: "rgba(0, 0, 0, 0.55)",
-            }}
-          >
-            Please search for your flight below:
+          {/* subtitle */}
+          <p className="mt-5 max-w-xl text-base font-medium leading-relaxed text-white/60 md:text-lg">
+            Search hundreds of airlines in seconds and book the best deal for
+            your journey.
           </p>
 
-          <SearchBar />
-        </div>
-      </section>
-
-      {/* Popular Destinations */}
-      <section className="mx-auto w-full max-w-5xl px-6 py-12">
-        <h2 className="text-center text-xl font-semibold text-black">
-          Popular Destinations
-        </h2>
-
-        <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-          {/* Card 1 */}
-          <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
-            <div className="relative h-[150px] w-full">
-              <Image
-                src="/images/dest-hawaii.png"
-                alt="Toronto to Hawaii"
-                fill
-                className="object-cover"
-                priority
-              />
-            </div>
-            <div className="p-4">
-              <div className="font-semibold">Toronto → Hawaii</div>
-              <div className="mt-1 text-xl text-gray-600">$375+</div>
-              <button
-                className="mt-4 text-sm text-black underline"
-                onClick={() => goSearch("YYZ", "HNL")}
-              >
-                Book Now →
-              </button>
-            </div>
+          {/* search bar */}
+          <div className="mt-10 w-full max-w-[980px]">
+            <SearchBar glass />
           </div>
 
-          {/* Card 2 */}
-          <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
-            <div className="relative h-[150px] w-full">
-              <Image
-                src="/images/dest-tokyo.jpg"
-                alt="Toronto to Tokyo"
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div className="p-4">
-              <div className="font-semibold">Toronto → Tokyo</div>
-              <div className="mt-1 text-xl text-gray-600">$365+</div>
-              <button
-                className="mt-4 text-sm text-black underline"
-                onClick={() => goSearch("YYZ", "NRT")}
-              >
-                Book Now →
-              </button>
-            </div>
-          </div>
-
-          {/* Card 3 */}
-          <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
-            <div className="relative h-[150px] w-full">
-              <Image
-                src="/images/dest-machu-picchu.png"
-                alt="Toronto to Machu Picchu"
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div className="p-4">
-              <div className="font-semibold">Toronto → Machu Picchu</div>
-              <div className="mt-1 text-xl text-gray-600">$350+</div>
-              <button
-                className="mt-4 text-sm text-black underline"
-                onClick={() => goSearch("YYZ", "LIM")}
-              >
-                Book Now →
-              </button>
-            </div>
+          {/* trust strip */}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs font-semibold uppercase tracking-widest text-white/40">
+            <span>500+ Airlines</span>
+            <span className="h-1 w-1 rounded-full bg-white/20" />
+            <span>Best Price Guarantee</span>
+            <span className="h-1 w-1 rounded-full bg-white/20" />
+            <span>No Hidden Fees</span>
           </div>
         </div>
       </section>

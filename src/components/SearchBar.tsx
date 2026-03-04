@@ -22,6 +22,7 @@ type SearchPayload = {
 
 type SearchBarProps = {
   className?: string;
+  glass?: boolean;
   defaultFrom?: string;
   defaultTo?: string;
   defaultDepartureDate?: string;
@@ -39,10 +40,11 @@ type DatePickerProps = {
   maxDate?: Date;
   isOpen: boolean;
   setOpen: (isOpen: boolean) => void;
+  glass?: boolean;
 };
 
 /* --- Compact date picker that expands only on click --- */
-export function SingleDatePicker({ value, onChange, placeholder, minDate, maxDate, isOpen, setOpen }: DatePickerProps) {
+export function SingleDatePicker({ value, onChange, placeholder, minDate, maxDate, isOpen, setOpen, glass = false }: DatePickerProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   // Close calendar when clicking outside
@@ -60,13 +62,13 @@ export function SingleDatePicker({ value, onChange, placeholder, minDate, maxDat
     <div className="relative w-full" ref={ref}>
       {/* Input box */}
       <div
-        className="h-[48px] px-3 rounded-md cursor-pointer bg-white hover:bg-gray-50 w-full flex items-center"
+        className="h-[48px] px-3 rounded-md cursor-pointer w-full flex items-center bg-transparent"
         onClick={(e) => {
           e.stopPropagation();
           setOpen(!isOpen);
         }}
       >
-        <span className={`text-sm ${value ? "text-gray-900" : "text-gray-500"}`}>
+        <span className={`text-sm ${value ? (glass ? "text-white" : "text-gray-900") : (glass ? "text-white/50" : "text-gray-500")}`}>
           {value ? format(value, "yyyy-MM-dd") : placeholder}
         </span>
       </div>
@@ -99,6 +101,7 @@ export function SingleDatePicker({ value, onChange, placeholder, minDate, maxDat
 
 export default function SearchBar({
   className = "",
+  glass = false,
   defaultFrom = "",
   defaultTo = "",
   defaultPassengers = "1",
@@ -194,99 +197,94 @@ export default function SearchBar({
     }
   };
 
+  const divider = glass ? "border-white/20" : "border-gray-200";
+
   return (
     <div className={`w-full max-w-[960px] ${className}`}>
-      <div className="flex w-full items-stretch overflow-visible rounded-md border bg-white shadow-sm">
+      <div className={`flex w-full items-stretch overflow-visible ${
+        glass
+          ? "rounded-2xl bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl shadow-black/30"
+          : "rounded-md border bg-white shadow-sm"
+      }`}>
         {/* From */}
-        <div className="flex h-[48px] w-[327.5px] items-center gap-2 px-3 border-r border-gray-200">
+        <div className={`flex h-[52px] flex-1 items-center gap-2 px-4 border-r ${divider}`}>
           <AirportInput
             value={fromLabel}
-            onChange={(iata, label) => {
-              setFromCode(iata);
-              setFromLabel(label);
-            }}
+            onChange={(iata, label) => { setFromCode(iata); setFromLabel(label); }}
             placeholder="From where?"
+            glass={glass}
           />
         </div>
 
         {/* To */}
-        <div className="flex h-[48px] w-[327.5px] items-center gap-2 px-3 border-r border-gray-200">
+        <div className={`flex h-[52px] flex-1 items-center gap-2 px-4 border-r ${divider}`}>
           <AirportInput
             value={toLabel}
-            onChange={(iata, label) => {
-              setToCode(iata);
-              setToLabel(label);
-            }}
+            onChange={(iata, label) => { setToCode(iata); setToLabel(label); }}
             placeholder="To where?"
+            glass={glass}
           />
         </div>
 
         {/* Trip type */}
-        <div className="flex h-[48px] w-[175px] items-center px-2 border-r border-gray-200">
+        <div className={`flex h-[52px] w-[140px] items-center px-3 border-r ${divider}`}>
           <select
             value={tripType}
             onChange={(e) => setTripType(e.target.value as TripType)}
-            className="h-[48px] w-full bg-white text-sm hover:bg-gray-50 focus:outline-none cursor-pointer"
+            className={`h-full w-full bg-transparent text-sm focus:outline-none cursor-pointer ${glass ? "text-white" : "text-gray-900"}`}
           >
-            <option value="roundtrip">Round trip</option>
-            <option value="oneway">One way</option>
+            <option value="roundtrip" className="text-black bg-white">Round trip</option>
+            <option value="oneway" className="text-black bg-white">One way</option>
           </select>
         </div>
 
         {/* Date pickers */}
-        <div className="flex h-[48px] items-center px-2 border-r border-gray-200">
-          {/* Departure */}
-          <div className="w-[120px]">
-            <SingleDatePicker 
-              value={departureDate} 
-
-              //Resets return date if user selects departure date greater than return date
-              onChange={(date)=> {
-                setDepartureDate(date)
-                if (returnDate && date && date > returnDate) {
-                setReturnDate(undefined);
-                }
+        <div className={`flex h-[52px] items-center px-2 border-r ${divider}`}>
+          <div className="w-[110px]">
+            <SingleDatePicker
+              value={departureDate}
+              onChange={(date) => {
+                setDepartureDate(date);
+                if (returnDate && date && date > returnDate) setReturnDate(undefined);
               }}
-              placeholder="Departure" 
-              isOpen={departureOpen} 
-                setOpen={(open) => {
-              setDepartureOpen(open);
-                if (open) setReturnOpen(false); // close return calendar
-              }}
+              placeholder="Departure"
+              isOpen={departureOpen}
+              setOpen={(open) => { setDepartureOpen(open); if (open) setReturnOpen(false); }}
+              glass={glass}
             />
           </div>
 
-          {/* thin divider between departure and return */}
-          {tripType === "roundtrip" && <div className="self-stretch border-l border-gray-200 mx-2" />}
+          {tripType === "roundtrip" && <div className={`self-stretch border-l mx-1 ${divider}`} />}
 
-          {/* Return (only show if round-trip) */}
           {tripType === "roundtrip" && (
-            <div className="w-[120px]">
+            <div className="w-[110px]">
               <SingleDatePicker
                 value={returnDate}
                 onChange={setReturnDate}
                 placeholder="Return"
-                minDate={departureDate} // can’t select before departure
+                minDate={departureDate}
                 maxDate={returnDate}
                 isOpen={returnOpen}
-                setOpen={(open) => {
-                setReturnOpen(open);
-                  if (open) setDepartureOpen(false); // close departure calendar
-              }}
+                setOpen={(open) => { setReturnOpen(open); if (open) setDepartureOpen(false); }}
+                glass={glass}
               />
             </div>
           )}
         </div>
 
         {/* Passengers */}
-        <div className="flex h-[48px] w-[160px] items-center gap-2 px-3 transition-colors hover:bg-gray-50 border-r border-gray-200">
-          <PassengerPicker value={passengers} onChange={setPassengers} />
+        <div className={`flex h-[52px] w-[130px] items-center px-4 border-r ${divider}`}>
+          <PassengerPicker value={passengers} onChange={setPassengers} glass={glass} />
         </div>
 
         {/* Search Button */}
         <button
           onClick={handleSearch}
-          className="h-[48px] bg-black px-6 text-sm font-medium text-white hover:bg-zinc-700 transition-colors cursor-pointer"
+          className={`h-[52px] px-7 text-sm font-bold transition-all cursor-pointer ${
+            glass
+              ? "rounded-r-2xl bg-white text-black hover:bg-white/90 active:scale-95"
+              : "bg-black text-white hover:bg-zinc-700"
+          }`}
         >
           Search
         </button>

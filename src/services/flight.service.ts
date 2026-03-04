@@ -3,14 +3,23 @@ import { mapFlightOfferToFlightResult } from "./mappers/flight.mapper";
 
 
 
+export type FilterParams = {
+  maxPrice?: number;
+  stops?: number;        // 0 = direct, 1 = 1 stop
+  cabin?: string;        // ECONOMY | PREMIUM_ECONOMY | BUSINESS | FIRST
+  timeFrom?: string;     // HH:mm
+  timeTo?: string;       // HH:mm
+};
+
 export type SearchFlightsInput = {
-  from: string;            // origin
-  to: string;              // destination
-  departure: string;       // departureDate
-  returnDate?: string;     // returnDate
-  numOfPassengers: string; // "1 adult"
+  from: string;
+  to: string;
+  departure: string;
+  returnDate?: string;
+  numOfPassengers: string;
   page: number;
   limit?: number;
+  filters?: FilterParams;
 };
 
 export type SearchFlightsOutput = {
@@ -24,8 +33,9 @@ function parseAdultCount(label: string): string {
 
 function buildSearchParams(input: SearchFlightsInput): URLSearchParams {
   const adults = parseAdultCount(input.numOfPassengers);
+  const f = input.filters ?? {};
 
-  return new URLSearchParams({
+  const params = new URLSearchParams({
     origin: input.from,
     destination: input.to,
     departureDate: input.departure,
@@ -34,6 +44,14 @@ function buildSearchParams(input: SearchFlightsInput): URLSearchParams {
     page: String(input.page),
     limit: String(input.limit ?? 5),
   });
+
+  if (f.maxPrice !== undefined) params.set("maxPrice", String(f.maxPrice));
+  if (f.stops !== undefined) params.set("stops", String(f.stops));
+  if (f.cabin) params.set("cabin", f.cabin);
+  if (f.timeFrom) params.set("timeFrom", f.timeFrom);
+  if (f.timeTo) params.set("timeTo", f.timeTo);
+
+  return params;
 }
 
 

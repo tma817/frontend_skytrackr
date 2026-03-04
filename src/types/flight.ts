@@ -48,6 +48,10 @@ export interface FlightResult {
         amount: number;
         currency: string;
     };
+    pricePerPerson?: number;
+    numberOfBookableSeats?: number | null;
+    lastTicketingDate?: string | null;
+    refundable?: boolean;
     itineraries: FlightItinerary[];
     cabin: string;
     baggage: {

@@ -1,8 +1,6 @@
 "use client"
-import { useForm, useFieldArray, Controller } from "react-hook-form";
-import { PiUserCircleFill, PiPhoneFill, PiEnvelopeSimpleFill, PiCalendarBlankFill } from "react-icons/pi";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import { useForm, useFieldArray } from "react-hook-form";
+import { PiUserCircleFill, PiEnvelopeSimpleFill } from "react-icons/pi";
 import { useEffect } from "react";
 
 interface PassengerFormProps {
@@ -82,24 +80,11 @@ export default function PassengerForm({ adultCount, onSubmit, initialData }: Pas
                 {/* Date of Birth */}
                 <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-black uppercase ml-1">Date Of Birth</label>
-                    <div className="relative">
-                      <Controller
-                        control={control}
-                        name={`travelers.${index}.dateOfBirth`}
-                        rules={{ required: true }}
-                        render={({ field }) => (
-                            <DatePicker
-                                selected={field.value ? new Date(field.value) : null}
-                                onChange={(date: Date | null) => field.onChange(date?.toISOString().split('T')[0])}
-                                placeholderText="SELECT DATE"
-                                dateFormat="yyyy-MM-dd"
-                                wrapperClassName="w-full"
-                                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-[11px] font-bold text-slate-600 placeholder:font-normal placeholder:text-slate-400"
-                            />
-                        )}
-                      />
-                      <PiCalendarBlankFill className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" size={16} />
-                    </div>
+                    <input
+                        type="date"
+                        {...register(`travelers.${index}.dateOfBirth` as const, { required: true })}
+                        className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-[11px] font-bold text-slate-600"
+                    />
                 </div>
 
                 {/* Gender */}

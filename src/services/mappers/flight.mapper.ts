@@ -35,16 +35,16 @@ export function mapFlightOfferToFlightResult(f: any): FlightResult {
             amount: f.price?.amount || 0,
             currency: f.price?.currency || "CAD",
         },
+        pricePerPerson: f.pricePerPerson ?? undefined,
+        numberOfBookableSeats: f.numberOfBookableSeats ?? undefined,
+        lastTicketingDate: f.lastTicketingDate ?? undefined,
+        refundable: f.refundable ?? false,
         itineraries: f.itineraries.map((it: any) => ({
             type: it.type,
             duration: it.duration,
             stops: it.stops,
-            departure: {
-                ...it.departure,
-            },
-            arrival: {
-                ...it.arrival,
-            },
+            departure: { ...it.departure },
+            arrival: { ...it.arrival },
             segments: it.segments.map((s: any) => mapSegment(s)),
         })),
         cabin: f.cabin || "ECONOMY",

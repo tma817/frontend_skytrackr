@@ -6,6 +6,7 @@ import { countries } from "../../mockUpDataHERE/countries";
 import FlightCard from "@/components/FlightCard";
 import { authService } from "@/services/auth.service";
 import { watchlistService } from "@/services/watchlist.service";
+import { useRouter } from "next/navigation";
 
 import { FlightResult } from "../../types/flight";
 
@@ -15,6 +16,7 @@ interface DropDownEntry {
 }
 
 export default function Profile() {
+	const router = useRouter();
 	const [isEditing, setIsEditing] = useState(false);
 
 	const [firstName, setFirstName] = useState("");
@@ -24,10 +26,7 @@ export default function Profile() {
 	const [email, setEmail] = useState("");
 
 	const [watchlist, setWatchlist] = useState<FlightResult[]>([]);
-	const [bookedFlights, setBookedFlights] = useState<FlightResult[]>([]);
 	const [loading, setLoading] = useState(false);
-
-	const [showBooked, setShowBooked] = useState(false);
 
 	useEffect(() => {
 		async function loadData() {
@@ -50,8 +49,7 @@ export default function Profile() {
 				setWatchlist(watchlistData || []);
 
 
-				setBookedFlights(bookedData);
-			} catch (err) {
+				} catch (err) {
 				console.error(err);
 			}
 		}
@@ -89,8 +87,6 @@ export default function Profile() {
 			console.error(err);
 		}
 	}
-
-	const flightsToShow = showBooked ? bookedFlights : watchlist;
 
 	return (
 		<div className="flex flex-col gap-10">
@@ -159,35 +155,26 @@ export default function Profile() {
 
 			<div className="mx-auto mb-5 flex w-full max-w-5xl justify-center gap-4">
 				<button
-					onClick={() => setShowBooked(false)}
-					className={`px-4 py-2 rounded-lg font-medium transition ${
-						!showBooked
-							? "bg-blue-500 text-white shadow-md"
-							: "bg-white text-slate-700 border border-gray-300 hover:bg-gray-50"
-					}`}
+					className="px-4 py-2 rounded-lg font-medium transition bg-blue-500 text-white shadow-md"
 				>
 					Watchlist
 				</button>
 				<button
-					onClick={() => setShowBooked(true)}
-					className={`px-4 py-2 rounded-lg font-medium transition ${
-						showBooked
-							? "bg-blue-500 text-white shadow-md"
-							: "bg-white text-slate-700 border border-gray-300 hover:bg-gray-50"
-					}`}
+					onClick={() => router.push("/orders")}
+					className="px-4 py-2 rounded-lg font-medium transition bg-white text-slate-700 border border-gray-300 hover:bg-gray-50"
 				>
-					Booked Flights
+					Booked Flights →
 				</button>
 			</div>
 
 			<section className="mx-auto mb-5 min-h-72 w-full max-w-5xl grow rounded-xl border border-gray-200 bg-white p-6 shadow-md">
-				{flightsToShow.length === 0 ? (
+				{watchlist.length === 0 ? (
 					<p className="text-center text-slate-500">
-						No {showBooked ? "booked flights" : "flights in your watchlist"}
+						No flights in your watchlist
 					</p>
 				) : (
 					<div className="flex flex-col gap-4">
-						{flightsToShow.map((flight: FlightResult, index: number) => {
+						{watchlist.map((flight: FlightResult, index: number) => {
 							const isAdded = watchlist.some(
 								(f: FlightResult) => f.id === flight.id && f.search_id === flight.search_id
 							);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { flightService, type SearchFlightsInput } from "@/services/flight.service";
+import { flightService, type SearchFlightsInput, type FilterParams } from "@/services/flight.service";
 import type { FlightResult } from "@/types/flight";
 
 type State = {
@@ -14,7 +14,7 @@ type State = {
 };
 
 export function useSearchFlights(
-  input: Omit<SearchFlightsInput, "page" | "limit">
+  input: Omit<SearchFlightsInput, "page" | "limit"> & { filters?: FilterParams }
 ) {
   const [state, setState] = useState<State>({
     flights: [],
@@ -36,8 +36,21 @@ export function useSearchFlights(
       departure: input.departure,
       returnDate: input.returnDate,
       numOfPassengers: input.numOfPassengers,
+      filters: input.filters,
     }),
-    [input.from, input.to, input.departure, input.returnDate, input.numOfPassengers],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      input.from,
+      input.to,
+      input.departure,
+      input.returnDate,
+      input.numOfPassengers,
+      input.filters?.maxPrice,
+      input.filters?.stops,
+      input.filters?.cabin,
+      input.filters?.timeFrom,
+      input.filters?.timeTo,
+    ],
   );
 
   const fetchPage = useCallback(
@@ -117,6 +130,11 @@ export function useSearchFlights(
     input.departure,
     input.returnDate,
     input.numOfPassengers,
+    input.filters?.maxPrice,
+    input.filters?.stops,
+    input.filters?.cabin,
+    input.filters?.timeFrom,
+    input.filters?.timeTo,
     fetchPage,
   ]);
 

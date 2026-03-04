@@ -9,21 +9,28 @@ import type { FlightResult } from "../../types/flight";
 import { useSearchFlights } from "@/hooks/useSearchFlights";
 import { useBookingStore } from "@/store/useBookingStore";
 import PriceGrid from "@/components/PriceGrid";
+import type { FilterParams } from "@/services/flight.service";
 
 export default function SearchPage() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 
-	const [priceGridOpen, setpriceGridOpen] = useState(false);
-	const clearBooking = useBookingStore((state) => state.clearBooking);
-
-	// ===== Read query from URL =====
 	const from = searchParams.get("from") ?? "";
 	const to = searchParams.get("to") ?? "";
 	const tripType = (searchParams.get("tripType") ?? "oneway").toLowerCase();
 	const departure = searchParams.get("departure") ?? "";
 	const returnDate = searchParams.get("return") ?? "";
 	const numOfPassengers = searchParams.get("numOfPassengers") ?? "1";
+
+	// ===== Filters =====
+	const [filters, setFilters] = useState<FilterParams>({});
+
+	function setFilter<K extends keyof FilterParams>(key: K, value: FilterParams[K]) {
+		setFilters((prev) => ({ ...prev, [key]: value }));
+	}
+	function clearFilter<K extends keyof FilterParams>(key: K) {
+		setFilters((prev) => { const next = { ...prev }; delete next[key]; return next; });
+	}
 
 	// ===== Flights via Hook =====
 	const { flights, loading, loadingMore, hasMore, loadMore, error } =
@@ -33,17 +40,12 @@ export default function SearchPage() {
 			departure,
 			returnDate,
 			numOfPassengers,
+			filters,
 		});
-
-	// ===== Local UI filters (UI concern only) =====
-	const [bestValue, setBestValue] = useState(true);
 
 	// ===== Watchlist =====
 	const [watchlist, setWatchlist] = useState<FlightResult[]>([]);
 	const [watchlistBusy, setWatchlistBusy] = useState(false);
-	// useEffect(() => {
-	// 	clearBooking();
-	// }, []);
 	useEffect(() => {
 		let mounted = true;
 		(async () => {
@@ -82,7 +84,6 @@ export default function SearchPage() {
 		}
 	};
 
-	// ===== Navigation =====
 	const handleSearch = (payload: any) => {
 		const qs = new URLSearchParams({
 			from: payload.from ?? "",
@@ -114,8 +115,6 @@ export default function SearchPage() {
 
 		router.push(`/ticket/${flightId}?${qs.toString()}`);
 	};
-
-	const filtered = flights;
 
 	return (
 		<>
@@ -151,20 +150,126 @@ export default function SearchPage() {
 				</div>
 
 				{/* ===== Body ===== */}
-				<div className="mx-auto max-w-6xl px-5 py-6 flex gap-8">
-					<div className="grid grid-cols-12 gap-8 flex-1">
-						{/* ===== Filters (UI only) ===== */}
-						<aside className="col-span-3">
-							<h2 className="text-sm font-semibold text-gray-900">Filters</h2>
-							<div className="mt-4 border-b pb-4">
-								<label className="flex items-center gap-2 text-sm">
+				<div className="mx-auto max-w-6xl px-5 py-6">
+
+					{/* ===== Price Strip (full width) ===== */}
+					{from && to && departure && (
+						<div className="mb-5 rounded-2xl border bg-white shadow-sm overflow-hidden">
+							<div className="px-5 pt-4 pb-1 flex items-center justify-between">
+								<p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+									Cheapest dates · {from} → {to}
+								</p>
+								<p className="text-[10px] text-slate-300">Click a date to search</p>
+							</div>
+							<PriceGrid
+								origin={from}
+								destination={to}
+								departureDate={departure}
+								currency="CAD"
+								oneWay={true}
+								numOfPassengers={numOfPassengers}
+							/>
+						</div>
+					)}
+
+				<div className="grid grid-cols-12 gap-8">
+						{/* ===== Filters ===== */}
+						<aside className="col-span-3 space-y-5">
+							<div className="flex items-center justify-between">
+								<h2 className="text-sm font-semibold text-gray-900">Filters</h2>
+								{Object.keys(filters).length > 0 && (
+									<button
+										onClick={() => setFilters({})}
+										className="text-xs text-blue-600 hover:underline"
+									>
+										Clear all
+									</button>
+								)}
+							</div>
+
+							{/* Stops */}
+							<div className="border-b pb-4">
+								<p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Stops</p>
+								{([
+									{ label: "Any", value: undefined },
+									{ label: "Non-stop", value: 0 },
+									{ label: "1 stop", value: 1 },
+								] as { label: string; value: number | undefined }[]).map(({ label, value }) => (
+									<label key={label} className="flex cursor-pointer items-center gap-2 py-1 text-sm">
+										<input
+											type="radio"
+											name="stops"
+											checked={filters.stops === value}
+											onChange={() =>
+												value === undefined ? clearFilter("stops") : setFilter("stops", value)
+											}
+											className="accent-black"
+										/>
+										{label}
+									</label>
+								))}
+							</div>
+
+							{/* Max price */}
+							<div className="border-b pb-4">
+								<p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Max Price (CAD)</p>
+								<input
+									type="number"
+									min={0}
+									step={50}
+									placeholder="e.g. 1000"
+									value={filters.maxPrice ?? ""}
+									onChange={(e) => {
+										const v = e.target.value;
+										v === "" ? clearFilter("maxPrice") : setFilter("maxPrice", Number(v));
+									}}
+									className="w-full rounded-md border px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-black"
+								/>
+							</div>
+
+							{/* Departure time */}
+							<div className="border-b pb-4">
+								<p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Departure Time</p>
+								<div className="flex items-center gap-2">
 									<input
-										type="checkbox"
-										checked={bestValue}
-										onChange={(e) => setBestValue(e.target.checked)}
+										type="time"
+										value={filters.timeFrom ?? ""}
+										onChange={(e) => {
+											const v = e.target.value;
+											v === "" ? clearFilter("timeFrom") : setFilter("timeFrom", v);
+										}}
+										className="flex-1 rounded-md border px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-black"
 									/>
-									Best value
-								</label>
+									<span className="text-xs text-gray-400">to</span>
+									<input
+										type="time"
+										value={filters.timeTo ?? ""}
+										onChange={(e) => {
+											const v = e.target.value;
+											v === "" ? clearFilter("timeTo") : setFilter("timeTo", v);
+										}}
+										className="flex-1 rounded-md border px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-black"
+									/>
+								</div>
+							</div>
+
+							{/* Cabin */}
+							<div>
+								<p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Cabin Class</p>
+								<select
+									value={filters.cabin ?? ""}
+									onChange={(e) => {
+										const v = e.target.value;
+										v === "" ? clearFilter("cabin") : setFilter("cabin", v);
+									}}
+									className="w-full rounded-md border px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-black"
+								>
+									<option value="">Any</option>
+									<option value="ECONOMY">Economy</option>
+									<option value="PREMIUM_ECONOMY">Premium Economy</option>
+									<option value="BUSINESS">Business</option>
+									<option value="FIRST">First</option>
+								</select>
 							</div>
 						</aside>
 
@@ -178,10 +283,10 @@ export default function SearchPage() {
 									</p>
 								</div>
 							) : error ? (
-								<div className="text-center py-20 text-red-600 ">{error}</div>
-							) : filtered.length > 0 ? (
+								<div className="text-center py-20 text-red-600">{error}</div>
+							) : flights.length > 0 ? (
 								<div className="flex flex-col gap-2.5">
-									{filtered.map((f) => (
+									{flights.map((f) => (
 										<FlightCard
 											key={f.id}
 											flight={f}
@@ -212,56 +317,8 @@ export default function SearchPage() {
 							)}
 						</section>
 					</div>
-					<div className="">
-						<button
-							onClick={() => setpriceGridOpen(true)}
-							className="
-							col-start-5 col-span-2
-							flex items-center justify-center
-							rounded-xl
-							bg-white
-							border border-slate-300
-							px-4 py-2
-							text-sm font-semibold
-							text-slate-700
-							shadow-sm
-							transition
-							hover:bg-slate-50
-							hover:shadow-md
-							active:scale-95
-							"
-						>
-							Price Grid
-						</button>
-					</div>
 				</div>
 			</main>
-
-			{priceGridOpen && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center">
-					<div
-						className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-						onClick={() => setpriceGridOpen(false)}
-					/>
-
-					<div className="relative z-10 min-w-fit max-w-4xl rounded-2xl bg-white p-6 shadow-2xl">
-						<div className="flex justify-between items-center">
-							<h2 className="text-2xl font-bold tracking-tight">
-								Price Grid
-							</h2>
-
-							<button
-								onClick={() => setpriceGridOpen(false)}
-								className="text-slate-500 hover:text-black text-lg self-start"
-							>
-								✕
-							</button>
-						</div>
-
-						<PriceGrid />
-					</div>
-				</div>
-			)}
 		</>
 	);
 }

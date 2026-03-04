@@ -5,25 +5,33 @@ export default function CheckoutLayout({ children }: { children: React.ReactNode
   const pathname = usePathname();
   const isPax = pathname.includes("/pax");
   const isSeats = pathname.includes("/seat");
+  const isPayment = pathname.includes("/payment");
 
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4">
       <div className="max-w-6xl mx-auto">
-        
+
         <div className="flex justify-center mb-10">
           <div className="flex items-center gap-4">
-            <StepIndicator 
-              number={1} 
-              label="Information" 
-              active={isPax} 
-              completed={isSeats} 
+            <StepIndicator
+              number={1}
+              label="Information"
+              active={isPax}
+              completed={isSeats || isPayment}
             />
-            <div className={`w-16 h-1 transition-all duration-500 ${isSeats ? 'bg-blue-600' : 'bg-slate-200'}`} />
-            <StepIndicator 
-              number={2} 
-              label="Seats" 
-              active={isSeats} 
-              completed={false} 
+            <div className={`w-16 h-1 transition-all duration-500 ${isSeats || isPayment ? 'bg-blue-600' : 'bg-slate-200'}`} />
+            <StepIndicator
+              number={2}
+              label="Seats"
+              active={isSeats}
+              completed={isPayment}
+            />
+            <div className={`w-16 h-1 transition-all duration-500 ${isPayment ? 'bg-blue-600' : 'bg-slate-200'}`} />
+            <StepIndicator
+              number={3}
+              label="Payment"
+              active={isPayment}
+              completed={false}
             />
           </div>
         </div>

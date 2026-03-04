@@ -15,10 +15,12 @@ export default function AirportInput({
   value,
   onChange,
   placeholder,
+  glass = false,
 }: {
   value: string;
   onChange: (iata: string, displayLabel: string) => void;
   placeholder: string;
+  glass?: boolean;
 }) {
   const [suggestions, setSuggestions] = useState<Airport[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -53,7 +55,7 @@ export default function AirportInput({
   return (
     <div className="relative w-full">
       <input
-        className="w-full bg-transparent text-sm outline-none"
+        className={`w-full bg-transparent text-sm outline-none ${glass ? "text-white placeholder:text-white/50" : "text-gray-900 placeholder:text-gray-400"}`}
         value={value}
         onChange={handleChange}
         onFocus={() => setIsOpen(true)}

@@ -5,9 +5,11 @@ import { useState, useRef, useEffect } from "react";
 export default function PassengerPicker({
   value,
   onChange,
+  glass = false,
 }: {
   value: number;
   onChange: (val: number) => void;
+  glass?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -25,7 +27,7 @@ export default function PassengerPicker({
   return (
     <div className="relative w-full" ref={containerRef}>
       <div
-        className="flex w-full cursor-pointer items-center text-sm text-black outline-none"
+        className={`flex w-full cursor-pointer items-center text-sm outline-none ${glass ? "text-white" : "text-black"}`}
         onClick={() => setIsOpen(!isOpen)}
       >
         {value} {value > 1 ? "adults" : "adult"}

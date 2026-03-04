@@ -1,160 +1,373 @@
-import { useState } from "react";
+"use client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-// helper to format dates
-function formatDate(date: Date) {
-	return date.toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-	});
+interface PricePoint {
+  date: string;
+  price: number;
 }
 
-// generate 7-day window centered on a date
-function generateDateWindow(center: Date) {
-	const dates: Date[] = [];
-	for (let i = -3; i <= 3; i++) {
-		const d = new Date(center);
-		d.setDate(center.getDate() + i);
-		dates.push(d);
-	}
-	return dates;
+interface PriceGridProps {
+  origin: string;
+  destination: string;
+  departureDate: string;
+  returnDate?: string;
+  currency?: string;
+  oneWay?: boolean;
+  numOfPassengers?: string;
 }
 
-// fake price generator for demo
-function generatePrice(row: number, col: number) {
-	const base = 650;
-	const variation = (row - 3) * 25 + (col - 3) * 18;
-	return base + variation;
+const API = "http://localhost:3000";
+
+async function fetchPriceGrid(
+  origin: string,
+  destination: string,
+  departureDate: string,
+  currency: string,
+  oneWay: boolean
+): Promise<PricePoint[]> {
+  const qs = new URLSearchParams({
+    origin,
+    destination,
+    departureDate,
+    currency,
+    oneWay: String(oneWay),
+  });
+  const res = await fetch(`${API}/flights/price-grid?${qs}`);
+  if (!res.ok) throw new Error("Failed to load price grid");
+  const json = await res.json();
+  return json.data as PricePoint[];
 }
 
-export default function PredictionGrid() {
-	const [hovered, setHovered] = useState<{ row: number; col: number } | null>(null);
-	const [selected, setSelected] = useState<{ row: number; col: number } | null>(null);
+/** Pick N dates centred on `center` that exist in the price map */
+function centeredDates(center: string, allDates: string[], n = 7): string[] {
+  const idx = allDates.indexOf(center);
+  if (idx === -1) {
+    // center date has no price — take first n
+    return allDates.slice(0, n);
+  }
+  const half = Math.floor(n / 2);
+  let start = Math.max(0, idx - half);
+  let end = start + n;
+  if (end > allDates.length) {
+    end = allDates.length;
+    start = Math.max(0, end - n);
+  }
+  return allDates.slice(start, end);
+}
 
-	// center / searched dates
-	const selectedDeparture = new Date(2026, 1, 10); // Feb 10
-	const selectedReturn = new Date(2026, 1, 17); // Feb 17
+function fmtDate(d: string) {
+  return new Date(d + "T00:00:00").toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+}
 
-	const departureDates = generateDateWindow(selectedDeparture);
-	const returnDates = generateDateWindow(selectedReturn);
+function fmtPrice(price: number, currency: string) {
+  return new Intl.NumberFormat("en-CA", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(price);
+}
 
-	// precompute prices once
-	const [prices] = useState(() =>
-		returnDates.map((_, rowIdx) =>
-			departureDates.map((_, colIdx) => generatePrice(rowIdx, colIdx))
-		)
-	);
+// ─── One-way: table strip ─────────────────────────────────────────────────────
 
-	return (
-		<div className="overflow-x-auto p-4">
-			<div className="inline-grid grid-cols-[max-content_1fr] gap-2">
-				{/* vertical label */}
-				<div className="flex items-center justify-center px-1">
-					<span
-						className="font-bold text-slate-700 text-sm whitespace-nowrap"
-						style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
-					>
-						Return Date
-					</span>
-				</div>
+function OnewayStrip({
+  data,
+  selectedDate,
+  currency,
+  onSelect,
+}: {
+  data: PricePoint[];
+  selectedDate: string;
+  currency: string;
+  onSelect: (date: string) => void;
+}) {
+  if (!data.length)
+    return (
+      <p className="text-sm text-slate-400 py-4 text-center">
+        No price data available.
+      </p>
+    );
 
-				{/* main grid */}
-				<div className="flex flex-col gap-2">
-					<div className="text-center font-bold text-slate-700 text-sm">
-						Departure Date
-					</div>
+  const map = Object.fromEntries(data.map((d) => [d.date, d.price]));
+  const allDates = data.map((d) => d.date);
+  const dates = centeredDates(selectedDate, allDates, 7);
+  const prices = dates.map((d) => map[d]).filter((p) => p != null) as number[];
+  const minPrice = prices.length ? Math.min(...prices) : -1;
 
-					<div
-						className="grid border border-slate-300 rounded-lg overflow-hidden shadow-sm"
-						style={{ gridTemplateColumns: `80px repeat(7, 1fr)` }}
-					>
-						{/* top-left empty cell */}
-						<div className="bg-slate-200 border border-slate-300" />
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse table-fixed text-center text-sm">
+        <thead>
+          <tr>
+            {dates.map((date) => {
+              const isSelected = date === selectedDate;
+              const d = new Date(date + "T00:00:00");
+              const dow = d.toLocaleDateString("en-US", { weekday: "short" });
+              const dayMonth = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+              return (
+                <th
+                  key={date}
+                  className={`border px-2 py-2 font-semibold
+                    ${isSelected
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-slate-100 text-slate-500 border-slate-200"
+                    }`}
+                >
+                  <div className="text-[10px] uppercase tracking-wide">{dow}</div>
+                  <div className="text-xs font-bold mt-0.5">{dayMonth}</div>
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            {dates.map((date) => {
+              const price = map[date];
+              const isSelected = date === selectedDate;
+              const isCheapest = price != null && price === minPrice && !isSelected;
+              return (
+                <td
+                  key={date}
+                  onClick={() => price != null && onSelect(date)}
+                  className={`border px-2 py-3 font-black transition-colors
+                    ${price == null ? "text-slate-300 bg-white border-slate-100 cursor-default" :
+                      isSelected ? "bg-blue-50 text-blue-700 border-blue-200 cursor-pointer" :
+                      isCheapest ? "bg-emerald-50 text-emerald-700 border-emerald-200 cursor-pointer hover:bg-emerald-100" :
+                      "bg-white text-slate-800 border-slate-100 cursor-pointer hover:bg-slate-50"
+                    }`}
+                >
+                  {price != null ? (
+                    <>
+                      <div className="text-sm">{fmtPrice(price, currency)}</div>
+                      {isCheapest && (
+                        <div className="text-[9px] font-black uppercase text-emerald-600 mt-0.5 tracking-wide">
+                          Cheapest
+                        </div>
+                      )}
+                      {isSelected && (
+                        <div className="text-[9px] font-black uppercase text-blue-500 mt-0.5 tracking-wide">
+                          Selected
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-slate-300">–</span>
+                  )}
+                </td>
+              );
+            })}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
-						{/* departure headers */}
-						{departureDates.map((dep, colIdx) => (
-							<div
-								key={colIdx}
-								className={`border border-slate-300 p-3 text-sm font-medium text-center ${
-									colIdx === 3
-										? "bg-blue-200 text-blue-800 font-semibold"
-										: "bg-slate-200 text-slate-700"
-								}`}
-							>
-								{formatDate(dep)}
-							</div>
-						))}
+// ─── Round-trip: 2-D grid ─────────────────────────────────────────────────────
 
-						{/* return rows */}
-						{returnDates.map((ret, rowIdx) => (
-							<div key={rowIdx} className="contents">
-								{/* return header */}
-								<div
-									className={`border border-slate-300 p-3 text-sm font-medium text-center ${
-										rowIdx === 3
-											? "bg-blue-200 text-blue-800 font-semibold"
-											: "bg-slate-200 text-slate-700"
-									}`}
-								>
-									{formatDate(ret)}
-								</div>
+function RoundtripGrid({
+  depData,
+  retData,
+  selectedDep,
+  selectedRet,
+  currency,
+  onSelect,
+}: {
+  depData: PricePoint[];
+  retData: PricePoint[];
+  selectedDep: string;
+  selectedRet: string;
+  currency: string;
+  onSelect: (dep: string, ret: string) => void;
+}) {
+  const depMap = Object.fromEntries(depData.map((d) => [d.date, d.price]));
+  const retMap = Object.fromEntries(retData.map((d) => [d.date, d.price]));
 
-								{/* price cells */}
-								{departureDates.map((_, colIdx) => {
-									const price = prices[rowIdx][colIdx];
+  const depDates = centeredDates(selectedDep, depData.map((d) => d.date), 7);
+  const retDates = centeredDates(selectedRet, retData.map((d) => d.date), 7);
 
-									const isCenter = rowIdx === 3 && colIdx === 3;
-									const isHovered = hovered?.row === rowIdx && hovered?.col === colIdx;
+  if (!depDates.length || !retDates.length) {
+    return <p className="text-sm text-slate-400 py-8 text-center">No price data available.</p>;
+  }
 
-									// Hover highlight only affects cells <= hovered row/col
-									const isRowHovered =
-										hovered && rowIdx <= hovered.row && colIdx === hovered.col;
-									const isColHovered =
-										hovered && colIdx <= hovered.col && rowIdx === hovered.row;
+  // find global min to highlight cheapest cell
+  const allSums = depDates.flatMap((dep) =>
+    retDates
+      .filter((ret) => ret > dep)
+      .map((ret) => (depMap[dep] ?? 0) + (retMap[ret] ?? 0))
+  );
+  const minSum = Math.min(...allSums);
 
-									let bg = "bg-white";
-									let textColor = "text-slate-900";
-									let fontWeight = "font-normal";
+  return (
+    <div className="overflow-x-auto">
+      <table className="border-collapse text-xs">
+        <thead>
+          <tr>
+            <th className="border border-slate-200 bg-slate-100 p-2 text-slate-500 min-w-[72px]">
+              <span className="text-[10px]">Return ↓ / Dep →</span>
+            </th>
+            {depDates.map((d) => (
+              <th
+                key={d}
+                className={`border border-slate-200 p-2 font-bold text-center min-w-[80px] ${
+                  d === selectedDep ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-600"
+                }`}
+              >
+                {fmtDate(d)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {retDates.map((ret) => (
+            <tr key={ret}>
+              <td
+                className={`border border-slate-200 p-2 font-bold text-center ${
+                  ret === selectedRet ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-600"
+                }`}
+              >
+                {fmtDate(ret)}
+              </td>
+              {depDates.map((dep) => {
+                const invalid = ret <= dep;
+                const sum = invalid ? null : (depMap[dep] ?? 0) + (retMap[ret] ?? 0);
+                const isSelected = dep === selectedDep && ret === selectedRet;
+                const isCheapest = !invalid && sum === minSum && !isSelected;
 
-									// selected cell
-									if (selected?.row === rowIdx && selected?.col === colIdx) {
-										bg = "bg-green-400";
-										textColor = "text-white";
-										fontWeight = "font-semibold";
-									}
-									// center cell
-									else if (isCenter) {
-										bg = "bg-blue-400";
-										textColor = "text-white";
-										fontWeight = "font-semibold";
-									}
-									// hover states
-									else if (isHovered) {
-										bg = "bg-gray-200";
-									} else if (isRowHovered || isColHovered) {
-										bg = "bg-gray-100";
-									}
+                return (
+                  <td
+                    key={dep}
+                    onClick={() => !invalid && onSelect(dep, ret)}
+                    className={`border border-slate-200 p-2 text-center transition-colors
+                      ${invalid
+                        ? "bg-slate-50 text-slate-200 cursor-default"
+                        : isSelected
+                        ? "bg-blue-500 text-white font-black cursor-pointer"
+                        : isCheapest
+                        ? "bg-emerald-100 text-emerald-700 font-black cursor-pointer"
+                        : "bg-white text-slate-700 hover:bg-slate-50 cursor-pointer"
+                      }`}
+                  >
+                    {invalid ? "–" : sum != null ? fmtPrice(sum, currency) : "–"}
+                    {isCheapest && (
+                      <div className="text-[9px] font-black text-emerald-600 leading-none mt-0.5">Best</div>
+                    )}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="text-[10px] text-slate-400 mt-2">
+        * Round-trip price shown as cheapest outbound + cheapest return for each date combination.
+      </p>
+    </div>
+  );
+}
 
-									return (
-										<div
-											key={`${rowIdx}-${colIdx}`}
-											onMouseEnter={() =>
-												setHovered({ row: rowIdx, col: colIdx })
-											}
-											onMouseLeave={() => setHovered(null)}
-											onClick={() =>
-												setSelected({ row: rowIdx, col: colIdx })
-											}
-											className={`border border-slate-300 p-3 text-center text-sm cursor-pointer transition-colors ${bg} ${textColor} ${fontWeight}`}
-										>
-											${price}
-										</div>
-									);
-								})}
-							</div>
-						))}
-					</div>
-				</div>
-			</div>
-		</div>
-	);
+// ─── Main component ───────────────────────────────────────────────────────────
+
+export default function PriceGrid({
+  origin,
+  destination,
+  departureDate,
+  returnDate,
+  currency = "CAD",
+  oneWay = true,
+  numOfPassengers = "1",
+}: PriceGridProps) {
+  const router = useRouter();
+  const [depData, setDepData] = useState<PricePoint[]>([]);
+  const [retData, setRetData] = useState<PricePoint[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!origin || !destination || !departureDate) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+
+    const fetches: Promise<void>[] = [
+      fetchPriceGrid(origin, destination, departureDate, currency, true)
+        .then(setDepData)
+        .catch(() => setDepData([])),
+    ];
+
+    if (!oneWay && returnDate) {
+      fetches.push(
+        fetchPriceGrid(destination, origin, returnDate, currency, true)
+          .then(setRetData)
+          .catch(() => setRetData([]))
+      );
+    }
+
+    Promise.all(fetches)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [origin, destination, departureDate, returnDate, currency, oneWay]);
+
+  const navigate = (dep: string, ret?: string) => {
+    const qs = new URLSearchParams({
+      from: origin,
+      to: destination,
+      tripType: oneWay ? "oneway" : "roundtrip",
+      departure: dep,
+      numOfPassengers,
+    });
+    if (ret) qs.set("return", ret);
+    router.push(`/search?${qs.toString()}`);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12 gap-3">
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-black" />
+        <span className="text-sm text-slate-500">Loading prices…</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <p className="text-center text-sm text-red-500 py-8">{error}</p>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+          {origin} → {destination}
+          {!oneWay && returnDate && ` · ${destination} → ${origin}`}
+        </p>
+        <span className="text-[10px] text-slate-300">Click a date to search</span>
+      </div>
+
+      {oneWay ? (
+        <OnewayStrip
+          data={depData}
+          selectedDate={departureDate}
+          currency={currency}
+          onSelect={(date) => navigate(date)}
+        />
+      ) : (
+        <RoundtripGrid
+          depData={depData}
+          retData={retData}
+          selectedDep={departureDate}
+          selectedRet={returnDate ?? ""}
+          currency={currency}
+          onSelect={(dep, ret) => navigate(dep, ret)}
+        />
+      )}
+    </div>
+  );
 }

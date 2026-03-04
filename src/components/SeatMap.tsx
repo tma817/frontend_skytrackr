@@ -135,8 +135,8 @@ export default function SeatMap({seatData, onSelectSeat, allSelectedSeatsForSegm
                     })}
 
                     {seats.map((seat: any) => {
-                        const pricing = seat.travelerPricing[0];
-                        const isAvailable = pricing.seatAvailabilityStatus === 'AVAILABLE';
+                        const pricing = seat.travelerPricing?.[0];
+                        const isAvailable = pricing?.seatAvailabilityStatus !== 'OCCUPIED';
                         const isSelectedBySomeone = selectedNumbers.includes(seat.number);
                         return (
                             <button
