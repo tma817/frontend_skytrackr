@@ -1,19 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SearchBar from "@/components/SearchBar";
 import FlightCard from "@/components/FlightCard";
-import { watchlistService } from "@/services/watchlist.service";
-import type { FlightResult } from "../../types/flight";
 import { useSearchFlights } from "@/hooks/useSearchFlights";
-import { useBookingStore } from "@/store/useBookingStore";
 import PriceGrid from "@/components/PriceGrid";
 import type { FilterParams } from "@/services/flight.service";
+import { watchlistService } from "@/services/watchlist.service";
 
 export default function SearchPage() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
+
+	const [priceGridOpen, setPriceGridOpen] = useState(false);
 
 	const from = searchParams.get("from") ?? "";
 	const to = searchParams.get("to") ?? "";
@@ -44,45 +44,51 @@ export default function SearchPage() {
 		});
 
 	// ===== Watchlist =====
-	const [watchlist, setWatchlist] = useState<FlightResult[]>([]);
-	const [watchlistBusy, setWatchlistBusy] = useState(false);
+	// flightId → watchlist _id (for removal)
+	const watchlistMap = useRef<Map<string, string>>(new Map());
+	const [watchedIds, setWatchedIds] = useState<Set<string>>(new Set());
+	const [watchBusy, setWatchBusy] = useState(false);
+
 	useEffect(() => {
-		let mounted = true;
-		(async () => {
-			try {
-				const data = await watchlistService.getWatchlist();
-				console.log(data);
-				if (mounted) setWatchlist(data);
-			} catch (err) {
-				console.error("Watchlist fetch error:", err);
-			}
-		})();
-		return () => {
-			mounted = false;
-		};
+		watchlistService.getWatchlist().then((items) => {
+			const byFlight = new Map<string, string>();
+			items.forEach((i) => {
+				if (i.flightId) byFlight.set(i.flightId, i._id);
+			});
+			watchlistMap.current = byFlight;
+			setWatchedIds(new Set(byFlight.keys()));
+		}).catch(() => { /* not logged in — silent */ });
 	}, []);
 
-	const handleToggleWatchlist = async (f: FlightResult) => {
-		if (watchlistBusy) return;
-		setWatchlistBusy(true);
-
-		const isAdded = watchlist.some((item) => item.id === f.id);
-
+	async function handleToggleWatch(f: { id: string; [k: string]: any }) {
+		if (watchBusy) return;
+		setWatchBusy(true);
+		const isAdded = watchedIds.has(f.id);
 		try {
-			await watchlistService.toggleWatchlist(f, isAdded);
-
-			setWatchlist((prev) =>
-				isAdded ? prev.filter((item) => item.id !== f.id) : [...prev, f],
-			);
+			if (isAdded) {
+				const wId = watchlistMap.current.get(f.id);
+				if (wId) {
+					await watchlistService.removeFromWatchlist(wId);
+					watchlistMap.current.delete(f.id);
+					setWatchedIds((prev) => { const s = new Set(prev); s.delete(f.id); return s; });
+				}
+			} else {
+				const item = await watchlistService.addToWatchlist(
+					f as any,
+					numOfPassengers,
+					tripType === "roundtrip" ? "round-trip" : "one-way",
+				);
+				watchlistMap.current.set(f.id, String(item._id));
+				setWatchedIds((prev) => new Set([...prev, f.id]));
+			}
 		} catch (err: any) {
 			if (err?.message === "UNAUTHORIZED") {
-				alert("Please login to use this feature");
 				router.push("/login");
 			}
 		} finally {
-			setWatchlistBusy(false);
+			setWatchBusy(false);
 		}
-	};
+	}
 
 	const handleSearch = (payload: any) => {
 		const qs = new URLSearchParams({
@@ -150,29 +156,8 @@ export default function SearchPage() {
 				</div>
 
 				{/* ===== Body ===== */}
-				<div className="mx-auto max-w-6xl px-5 py-6">
-
-					{/* ===== Price Strip (full width) ===== */}
-					{from && to && departure && (
-						<div className="mb-5 rounded-2xl border bg-white shadow-sm overflow-hidden">
-							<div className="px-5 pt-4 pb-1 flex items-center justify-between">
-								<p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-									Cheapest dates · {from} → {to}
-								</p>
-								<p className="text-[10px] text-slate-300">Click a date to search</p>
-							</div>
-							<PriceGrid
-								origin={from}
-								destination={to}
-								departureDate={departure}
-								currency="CAD"
-								oneWay={true}
-								numOfPassengers={numOfPassengers}
-							/>
-						</div>
-					)}
-
-				<div className="grid grid-cols-12 gap-8">
+				<div className="mx-auto max-w-6xl px-5 py-6 flex gap-8">
+					<div className="grid grid-cols-12 gap-8 flex-1">
 						{/* ===== Filters ===== */}
 						<aside className="col-span-3 space-y-5">
 							<div className="flex items-center justify-between">
@@ -291,8 +276,8 @@ export default function SearchPage() {
 											key={f.id}
 											flight={f}
 											onClick={() => goTicket(f.id, f.search_id!)}
-											isAdded={watchlist.some((item) => item.id === f.id)}
-											onToggle={() => handleToggleWatchlist(f)}
+											isAdded={watchedIds.has(f.id)}
+											onToggle={() => handleToggleWatch(f)}
 										/>
 									))}
 
@@ -300,7 +285,7 @@ export default function SearchPage() {
 										<div className="pt-4 flex justify-center">
 											<button
 												onClick={loadMore}
-												disabled={loadingMore || watchlistBusy}
+												disabled={loadingMore}
 												className="rounded-lg border px-5 py-2 text-sm font-medium hover:bg-gray-50 disabled:opacity-60"
 											>
 												{loadingMore ? "Loading..." : "Load more flights"}
@@ -317,8 +302,54 @@ export default function SearchPage() {
 							)}
 						</section>
 					</div>
+
+					{/* ===== Price Grid button ===== */}
+					<div>
+						<button
+							onClick={() => setPriceGridOpen(true)}
+							className="flex items-center justify-center rounded-xl bg-white border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:shadow-md active:scale-95"
+						>
+							Price Grid
+						</button>
+					</div>
 				</div>
 			</main>
+
+			{/* ===== Price Grid Modal ===== */}
+			{priceGridOpen && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center">
+					<div
+						className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+						onClick={() => setPriceGridOpen(false)}
+					/>
+					<div className="relative z-10 w-full max-w-3xl mx-4 rounded-2xl bg-white p-6 shadow-2xl">
+						<div className="flex justify-between items-start mb-4">
+							<div>
+								<h2 className="text-xl font-bold tracking-tight">Price Grid</h2>
+								<p className="text-xs text-slate-400 mt-0.5">
+									{tripType === "roundtrip" ? "Round-trip cheapest combos" : "One-way cheapest dates"} · {from} → {to}
+								</p>
+							</div>
+							<button
+								onClick={() => setPriceGridOpen(false)}
+								className="text-slate-400 hover:text-black text-xl leading-none"
+							>
+								✕
+							</button>
+						</div>
+
+						<PriceGrid
+							origin={from}
+							destination={to}
+							departureDate={departure}
+							returnDate={returnDate || undefined}
+							currency="CAD"
+							oneWay={tripType !== "roundtrip"}
+							numOfPassengers={numOfPassengers}
+						/>
+					</div>
+				</div>
+			)}
 		</>
 	);
 }

@@ -4,8 +4,8 @@ import money from "@/utils/money";
 interface FlightCardProps {
     flight: FlightResult;
     onClick: () => void;
-    isAdded: boolean;
-    onToggle: () => void;
+    isAdded?: boolean;
+    onToggle?: () => void;
 }
 
 export default function FlightCard({ flight, onClick, isAdded, onToggle }: FlightCardProps) {
@@ -104,6 +104,23 @@ export default function FlightCard({ flight, onClick, isAdded, onToggle }: Fligh
                             <path d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                         </svg>
                     </button>
+
+                    {onToggle && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onToggle(); }}
+                            title={isAdded ? "Remove from watchlist" : "Add to watchlist"}
+                            className={`mt-2 w-full flex items-center justify-center gap-1.5 rounded-xl border px-6 py-2 text-xs font-bold transition-all active:scale-95 ${
+                                isAdded
+                                    ? "border-cyan-300 bg-cyan-50 text-cyan-700 hover:bg-cyan-100"
+                                    : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50"
+                            }`}
+                        >
+                            <svg className="h-3.5 w-3.5" fill={isAdded ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                            </svg>
+                            {isAdded ? "Watching" : "Watch"}
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

@@ -39,11 +39,12 @@ function buildSearchParams(input: SearchFlightsInput): URLSearchParams {
     origin: input.from,
     destination: input.to,
     departureDate: input.departure,
-    returnDate: input.returnDate ?? "",
     adults,
     page: String(input.page),
     limit: String(input.limit ?? 5),
   });
+
+  if (input.returnDate) params.set("returnDate", input.returnDate);
 
   if (f.maxPrice !== undefined) params.set("maxPrice", String(f.maxPrice));
   if (f.stops !== undefined) params.set("stops", String(f.stops));
