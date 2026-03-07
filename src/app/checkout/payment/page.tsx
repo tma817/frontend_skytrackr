@@ -206,7 +206,7 @@ export default function PaymentPage() {
               </div>
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Phone</p>
-                <p className="text-sm font-bold text-slate-900">+{contact?.countryCallingCode} {contact?.number}</p>
+                <p className="text-sm font-bold text-slate-900">{contact?.countryCallingCode} {contact?.number}</p>
               </div>
             </div>
           </section>

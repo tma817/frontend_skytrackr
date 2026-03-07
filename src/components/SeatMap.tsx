@@ -20,7 +20,6 @@ export default function SeatMap({seatData, onSelectSeat, allSelectedSeatsForSegm
     const selectedNumbers = Object.values(allSelectedSeatsForSegment)
         .map((s: any) => s?.number)
         .filter(Boolean);
-	console.log(deck);
     return (
         <div className="flex flex-col items-center py-10 min-h-screen font-sans overflow-hidden">
             <div className="relative border-x-[16px] border-gray-200 rounded-t-[140px] rounded-b-3xl px-6 py-16 shadow-2xl">
