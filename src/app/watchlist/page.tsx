@@ -53,6 +53,11 @@ export default function WatchlistPage() {
       departure: item.departureDate,
       numOfPassengers: String(item.passengers),
     });
+
+    if (item.returnDate) {
+      qs.set("returnDate", item.returnDate);
+    }
+
     router.push(`/search?${qs.toString()}`);
   }
 
@@ -153,8 +158,9 @@ export default function WatchlistPage() {
 
                   {/* Price */}
                   <div className="text-right shrink-0">
-                    <div className="text-2xl font-black text-cyan-700">
-                      {item.currency} {item.currentPrice.toFixed(0)}
+                    <div className="text-2xl font-black text-cyan-700"> 
+                      {/* Added dollar sign*/}
+                      {item.currency} ${item.currentPrice.toFixed(0)}
                     </div>
                     {item.priceDiff !== 0 && (
                       <p className={`text-xs font-bold mt-0.5 ${dropped ? "text-emerald-600" : "text-red-500"}`}>

@@ -9,6 +9,7 @@ export type WatchlistItem = {
   origin: string;
   destination: string;
   departureDate: string;
+  returnDate?: string;
   airlineName: string;
   airlineLogo: string;
   initialPrice: number;
@@ -35,21 +36,38 @@ export const watchlistService = {
     numOfPassengers: string,
     tripType: string,
   ): Promise<WatchlistItem> {
-    const firstItinerary = flight.itineraries[0];
+    const firstItinerary = flight.itineraries.find(i => i.type === "outbound");
+    const returnItinerary = flight.itineraries.find(i => i.type === "inbound");
     const passengers = parseInt(numOfPassengers.split(" ")[0] || "1", 10);
+
+    const stableId = [
+        flight.airline.name,
+        firstItinerary?.departure.iataCode,
+        firstItinerary?.arrival.iataCode,
+        firstItinerary?.departure.date,
+        firstItinerary?.departure.time,
+        firstItinerary?.arrival.time,
+        returnItinerary?.departure.time,
+        returnItinerary?.arrival.time,
+        Math.round(flight.price.amount),
+    ].join("-");
+
     const payload = {
       searchId: flight.search_id,
-      flightId: flight.id,
-      origin: firstItinerary.departure.iataCode,
-      destination: firstItinerary.arrival.iataCode,
+      flightId: stableId, // using stableId instead of flight.id
+      origin: firstItinerary?.departure.iataCode,
+      destination: firstItinerary?.arrival.iataCode,
       initialPrice: flight.price.amount,
       currency: flight.price.currency,
-      departureDate: firstItinerary.departure.date,
+      departureDate: firstItinerary?.departure.date,
+      returnDate: returnItinerary?.departure.date,
       airlineName: flight.airline.name,
       airlineLogo: flight.airline.logo,
       passengers,
       tripType,
     };
+
+    console.log(flight.itineraries);
 
     const res = await fetch(API_BASE, {
       method: "POST",

@@ -105,6 +105,7 @@ export default function FlightCard({ flight, onClick, isAdded, onToggle }: Fligh
                         </svg>
                     </button>
 
+                    {/* Watchlist button */}
                     {onToggle && (
                         <button
                             onClick={(e) => { e.stopPropagation(); onToggle(); }}

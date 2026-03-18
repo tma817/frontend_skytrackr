@@ -56,6 +56,33 @@ export function mapFlightOfferToFlightResult(f: any): FlightResult {
 
 
 export function mapWatchlistToFlightResult(dbItem: any): FlightResult {
+
+    const itineraries = dbItem.itineraries || [];
+
+    if (!itineraries.length) {
+        // Always add outbound
+        itineraries.push({
+        departure: { iataCode: dbItem.origin, date: dbItem.departureDate },
+        arrival: { iataCode: dbItem.destination },
+        segments: [],
+        stops: 0,
+        duration: "",
+        type: "outbound",
+        });
+
+        // Add inbound if returnDate exists
+        if (dbItem.returnDate) {
+        itineraries.push({
+            departure: { iataCode: dbItem.destination, date: dbItem.returnDate },
+            arrival: { iataCode: dbItem.origin },
+            segments: [],
+            stops: 0,
+            duration: "",
+            type: "inbound",
+        });
+        }
+    }
+
     return {
         id: dbItem.flightId || dbItem._id,
         search_id: dbItem.searchId,
@@ -67,15 +94,7 @@ export function mapWatchlistToFlightResult(dbItem: any): FlightResult {
             amount: dbItem.currentPrice || dbItem.initialPrice || 0,
             currency: dbItem.currency || "CAD",
         },
-        itineraries: dbItem.itineraries || [
-            {
-                departure: { iataCode: dbItem.origin, date: dbItem.departureDate },
-                arrival: { iataCode: dbItem.destination },
-                segments: [],
-                stops: 0,
-                duration: ""
-            }
-        ],
+        itineraries,
         cabin: dbItem.cabin || "ECONOMY",
         baggage: { checked: 0 }
     };

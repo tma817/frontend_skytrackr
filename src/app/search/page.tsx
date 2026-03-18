@@ -8,6 +8,25 @@ import { useSearchFlights } from "@/hooks/useSearchFlights";
 import PriceGrid from "@/components/PriceGrid";
 import type { FilterParams } from "@/services/flight.service";
 import { watchlistService } from "@/services/watchlist.service";
+import type { FlightResult } from "@/types/flight";
+
+// Modified the return to make it unique so that whenever any id with same departure or detail, 
+// it doesn't bookmark that flight as well
+function getStableId(f: FlightResult) {
+    const outbound = f.itineraries.find(i => i.type === "outbound");
+	const inbound = f.itineraries.find(i => i.type === "inbound");
+    return [
+        f.airline.name,
+        outbound?.departure.iataCode,
+        outbound?.arrival.iataCode,
+        outbound?.departure.date,
+        outbound?.departure.time,
+		outbound?.arrival.time,
+		inbound?.departure.time,
+		inbound?.arrival.time,
+		Math.round(f.price.amount)
+    ].join("-");
+}
 
 export default function SearchPage() {
 	const router = useRouter();
@@ -47,9 +66,14 @@ export default function SearchPage() {
 	// flightId → watchlist _id (for removal)
 	const watchlistMap = useRef<Map<string, string>>(new Map());
 	const [watchedIds, setWatchedIds] = useState<Set<string>>(new Set());
-	const [watchBusy, setWatchBusy] = useState(false);
+	const watchBusy = useRef(false);
 
 	useEffect(() => {
+
+		// New changes
+		setWatchedIds(new Set());
+		watchlistMap.current = new Map();
+
 		watchlistService.getWatchlist().then((items) => {
 			const byFlight = new Map<string, string>();
 			items.forEach((i) => {
@@ -57,36 +81,54 @@ export default function SearchPage() {
 			});
 			watchlistMap.current = byFlight;
 			setWatchedIds(new Set(byFlight.keys()));
+
+			console.log("Watchlist flightIds:", [...byFlight.keys()]);
+        	console.log("Current flight ids:", flights.map(f => f.id));
+
 		}).catch(() => { /* not logged in — silent */ });
-	}, []);
+	}, [from, to, departure, returnDate]);
 
 	async function handleToggleWatch(f: { id: string; [k: string]: any }) {
-		if (watchBusy) return;
-		setWatchBusy(true);
-		const isAdded = watchedIds.has(f.id);
+		console.log("handleToggleWatch called", {
+        stableId: getStableId(f),
+        isAdded: watchedIds.has(getStableId(f)),
+        busy: watchBusy.current,
+    	});
+		
+		const stableId = getStableId(f);
+    	const isAdded = watchedIds.has(stableId);
+		
+		if (watchBusy.current) return;
+		watchBusy.current = true;
 		try {
 			if (isAdded) {
-				const wId = watchlistMap.current.get(f.id);
+				const wId = watchlistMap.current.get(stableId); // use stableId instead of f.id
 				if (wId) {
 					await watchlistService.removeFromWatchlist(wId);
-					watchlistMap.current.delete(f.id);
-					setWatchedIds((prev) => { const s = new Set(prev); s.delete(f.id); return s; });
+					watchlistMap.current.delete(stableId); // change from f.id to stableId
+					setWatchedIds((prev) => { const s = new Set(prev); s.delete(stableId); return s; }); // change from f.id to stableId
 				}
 			} else {
+				console.log("calling addToWatchlist...");
 				const item = await watchlistService.addToWatchlist(
 					f as any,
 					numOfPassengers,
 					tripType === "roundtrip" ? "round-trip" : "one-way",
 				);
-				watchlistMap.current.set(f.id, String(item._id));
-				setWatchedIds((prev) => new Set([...prev, f.id]));
+
+				const itemId = String((item as any)._id ?? item._id); // add id
+
+				console.log("addToWatchlist response:", item);
+				watchlistMap.current.set(stableId, String(itemId)); // changed from item._id to itemId, f.id to stableId
+				setWatchedIds((prev) => new Set([...prev, stableId])); // changed from f.id to stableId
 			}
 		} catch (err: any) {
+			console.error("handleToggleWatch error:", err);
 			if (err?.message === "UNAUTHORIZED") {
 				router.push("/login");
 			}
 		} finally {
-			setWatchBusy(false);
+			watchBusy.current = false;
 		}
 	}
 
@@ -223,7 +265,7 @@ export default function SearchPage() {
 											const v = e.target.value;
 											v === "" ? clearFilter("timeFrom") : setFilter("timeFrom", v);
 										}}
-										className="flex-1 rounded-md border px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-black"
+										className="flex-1 rounded-md border px-0.3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-black"
 									/>
 									<span className="text-xs text-gray-400">to</span>
 									<input
@@ -233,7 +275,7 @@ export default function SearchPage() {
 											const v = e.target.value;
 											v === "" ? clearFilter("timeTo") : setFilter("timeTo", v);
 										}}
-										className="flex-1 rounded-md border px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-black"
+										className="flex-1 rounded-md border px-0.3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-black"
 									/>
 								</div>
 							</div>
@@ -271,15 +313,20 @@ export default function SearchPage() {
 								<div className="text-center py-20 text-red-600">{error}</div>
 							) : flights.length > 0 ? (
 								<div className="flex flex-col gap-2.5">
-									{flights.map((f) => (
+									{flights.map((f) => {
+									console.log("watchedIds:", [...watchedIds]);
+									const stableId = getStableId(f);
+									console.log(stableId, watchedIds.has(stableId));
+									return(
 										<FlightCard
 											key={f.id}
 											flight={f}
-											onClick={() => goTicket(f.id, f.search_id!)}
-											isAdded={watchedIds.has(f.id)}
+											onClick={() => goTicket(f.id, f.search_id!)} 
+											isAdded={watchedIds.has(getStableId(f))} //use getStableId instead of f.id
 											onToggle={() => handleToggleWatch(f)}
 										/>
-									))}
+										);
+									})}
 
 									{hasMore && (
 										<div className="pt-4 flex justify-center">
