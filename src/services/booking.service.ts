@@ -28,10 +28,12 @@ export type CreateOrderResponse = {
   pnr?: string;
 };
 
+import { API_BASE } from "@/utils/api";
+
 export const bookingService = {
   async createOrder(payload: CreateOrderPayload): Promise<CreateOrderResponse> {
     console.log(payload)
-    const response = await fetch("http://localhost:3000/bookings", {
+    const response = await fetch(`${API_BASE}/bookings`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

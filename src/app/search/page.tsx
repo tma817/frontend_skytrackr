@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SearchBar from "@/components/SearchBar";
 import FlightCard from "@/components/FlightCard";
@@ -44,43 +44,17 @@ export default function SearchPage() {
 		});
 
 	// ===== Watchlist =====
-	// flightId → watchlist _id (for removal)
-	const watchlistMap = useRef<Map<string, string>>(new Map());
-	const [watchedIds, setWatchedIds] = useState<Set<string>>(new Set());
 	const [watchBusy, setWatchBusy] = useState(false);
-
-	useEffect(() => {
-		watchlistService.getWatchlist().then((items) => {
-			const byFlight = new Map<string, string>();
-			items.forEach((i) => {
-				if (i.flightId) byFlight.set(i.flightId, i._id);
-			});
-			watchlistMap.current = byFlight;
-			setWatchedIds(new Set(byFlight.keys()));
-		}).catch(() => { /* not logged in — silent */ });
-	}, []);
 
 	async function handleToggleWatch(f: { id: string; [k: string]: any }) {
 		if (watchBusy) return;
 		setWatchBusy(true);
-		const isAdded = watchedIds.has(f.id);
 		try {
-			if (isAdded) {
-				const wId = watchlistMap.current.get(f.id);
-				if (wId) {
-					await watchlistService.removeFromWatchlist(wId);
-					watchlistMap.current.delete(f.id);
-					setWatchedIds((prev) => { const s = new Set(prev); s.delete(f.id); return s; });
-				}
-			} else {
-				const item = await watchlistService.addToWatchlist(
-					f as any,
-					numOfPassengers,
-					tripType === "roundtrip" ? "round-trip" : "one-way",
-				);
-				watchlistMap.current.set(f.id, String(item._id));
-				setWatchedIds((prev) => new Set([...prev, f.id]));
-			}
+			await watchlistService.addToWatchlist(
+				f as any,
+				numOfPassengers,
+				tripType === "roundtrip" ? "round-trip" : "one-way",
+			);
 		} catch (err: any) {
 			if (err?.message === "UNAUTHORIZED") {
 				router.push("/login");
@@ -276,7 +250,7 @@ export default function SearchPage() {
 											key={f.id}
 											flight={f}
 											onClick={() => goTicket(f.id, f.search_id!)}
-											isAdded={watchedIds.has(f.id)}
+											isAdded={false}
 											onToggle={() => handleToggleWatch(f)}
 										/>
 									))}

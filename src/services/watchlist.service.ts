@@ -1,10 +1,12 @@
 import { authHeaders } from "@/utils/auth-helpers";
 import { FlightResult } from "@/types/flight";
+import { API_BASE as BASE } from "@/utils/api";
 
-const API_BASE = "http://localhost:3000/watchlist";
+const API_BASE = `${BASE}/watchlist`;
 
 export type WatchlistItem = {
   _id: string;
+  searchId: string;
   flightId: string;
   origin: string;
   destination: string;

@@ -137,10 +137,10 @@ export default function Navbar() {
 						</button>
 
 						<Link
-							href="/subscribe"
+							href="/airlines"
 							className="hover:underline text-center flex justify-center items-center rounded-lg min-h-10 min-w-23 transition-colors duration-150 hover:bg-gray-100"
 						>
-							Subscribe
+							Airlines
 						</Link>
 
 						<TrackBookingDropdown />
@@ -201,11 +201,11 @@ export default function Navbar() {
 						</button>
 
 						<Link
-							href="/subscribe"
+							href="/airlines"
 							onClick={() => setMenuOpen(false)}
 							className="flex items-center min-h-10 px-3 rounded-lg text-sm transition-colors duration-150 hover:bg-gray-100"
 						>
-							Subscribe
+							Airlines
 						</Link>
 
 						<TrackBookingDropdown onClose={() => setMenuOpen(false)} />
