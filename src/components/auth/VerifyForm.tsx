@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_BASE } from "@/utils/api";
 
 
 export default function VerifyForm({ email, setMode, onVerifySuccess }: any) {
@@ -12,7 +13,7 @@ export default function VerifyForm({ email, setMode, onVerifySuccess }: any) {
         setIsLoading(true);
         setErrorMessage("");
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify`, {
+            const response = await fetch(`${API_BASE}/auth/verify`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, otpCode: code }),
@@ -35,7 +36,7 @@ export default function VerifyForm({ email, setMode, onVerifySuccess }: any) {
         if (countdown > 0) return;
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/resend-otp`, {
+            const response = await fetch(`${API_BASE}/auth/resend-otp`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email }),

@@ -1,9 +1,10 @@
 // app/components/LoginForm.tsx
 import { useState } from "react";
 import { setCookie } from "cookies-next";
+import { API_BASE } from "@/utils/api";
 
 type Props = {
-	setMode: (m: "login" | "signup" | "verify") => void;
+	setMode: (m: "login" | "signup" | "verify" | "forgot") => void;
 	onLoginSuccess: (email: string) => void;
 };
 
@@ -18,10 +19,8 @@ export default function LoginForm({ setMode, onLoginSuccess }: Props) {
 		e.preventDefault();
 		setIsLoading(true);
 		setError("");
-		const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-		// console.log(email,password,baseUrl)
 		try {
-			const response = await fetch(`${baseUrl}/auth/login`, {
+			const response = await fetch(`${API_BASE}/auth/login`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email, password }),
@@ -80,7 +79,12 @@ export default function LoginForm({ setMode, onLoginSuccess }: Props) {
 				</div>
 
 				<div>
-					<label className="mb-1 block text-sm font-medium">Password</label>
+					<div className="flex items-center justify-between mb-1">
+					<label className="text-sm font-medium">Password</label>
+					<button type="button" onClick={() => setMode("forgot")} className="text-xs text-blue-600 hover:underline">
+						Forgot password?
+					</button>
+				</div>
 					<div className="relative">
 						<input
 							type={showPassword ? "text" : "password"}
@@ -123,15 +127,11 @@ export default function LoginForm({ setMode, onLoginSuccess }: Props) {
 					</div>
 				</div>
 
-				<div className="flex justify-between text-sm">
+				<div className="flex text-sm">
 					<label className="flex items-center gap-2">
 						<input type="checkbox" className="rounded border-gray-400" />
 						<span>Remember me</span>
 					</label>
-
-					<a href="#" className="text-blue-600 hover:underline">
-						Forgot password?
-					</a>
 				</div>
 
 				{error && (

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { API_BASE } from "@/utils/api";
 
 type TrackResult = {
   bookingId: string;
@@ -64,7 +65,7 @@ export default function TrackBookingPage() {
       return;
     }
     fetch(
-      `http://localhost:3000/bookings/track?pnr=${encodeURIComponent(pnr)}&lastName=${encodeURIComponent(lastName)}`
+      `${API_BASE}/bookings/track?pnr=${encodeURIComponent(pnr)}&lastName=${encodeURIComponent(lastName)}`
     )
       .then(async (res) => {
         if (!res.ok) {

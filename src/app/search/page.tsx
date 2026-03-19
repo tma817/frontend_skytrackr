@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SearchBar from "@/components/SearchBar";
 import FlightCard from "@/components/FlightCard";
@@ -63,66 +63,17 @@ export default function SearchPage() {
 		});
 
 	// ===== Watchlist =====
-	// flightId → watchlist _id (for removal)
-	const watchlistMap = useRef<Map<string, string>>(new Map());
-	const [watchedIds, setWatchedIds] = useState<Set<string>>(new Set());
-	const watchBusy = useRef(false);
-
-	useEffect(() => {
-
-		// New changes
-		setWatchedIds(new Set());
-		watchlistMap.current = new Map();
-
-		watchlistService.getWatchlist().then((items) => {
-			const byFlight = new Map<string, string>();
-			items.forEach((i) => {
-				if (i.flightId) byFlight.set(i.flightId, i._id);
-			});
-			watchlistMap.current = byFlight;
-			setWatchedIds(new Set(byFlight.keys()));
-
-			//console.log("Watchlist flightIds:", [...byFlight.keys()]);
-        	//console.log("Current flight ids:", flights.map(f => f.id));
-
-		}).catch(() => { /* not logged in — silent */ });
-	}, [from, to, departure, returnDate]);
+	const [watchBusy, setWatchBusy] = useState(false);
 
 	async function handleToggleWatch(f: { id: string; [k: string]: any }) {
-		/*console.log("handleToggleWatch called", {
-        stableId: getStableId(f),
-        isAdded: watchedIds.has(getStableId(f)),
-        busy: watchBusy.current,
-    	});
-		*/
-		
-		const stableId = getStableId(f);
-    	const isAdded = watchedIds.has(stableId);
-		
-		if (watchBusy.current) return;
-		watchBusy.current = true;
+		if (watchBusy) return;
+		setWatchBusy(true);
 		try {
-			if (isAdded) {
-				const wId = watchlistMap.current.get(stableId); // use stableId instead of f.id
-				if (wId) {
-					await watchlistService.removeFromWatchlist(wId);
-					watchlistMap.current.delete(stableId); // change from f.id to stableId
-					setWatchedIds((prev) => { const s = new Set(prev); s.delete(stableId); return s; }); // change from f.id to stableId
-				}
-			} else {
-				console.log("calling addToWatchlist...");
-				const item = await watchlistService.addToWatchlist(
-					f as any,
-					numOfPassengers,
-					tripType === "roundtrip" ? "round-trip" : "one-way",
-				);
-
-				const itemId = String((item as any)._id ?? item._id); // add id
-
-				//console.log("addToWatchlist response:", item);
-				watchlistMap.current.set(stableId, String(itemId)); // changed from item._id to itemId, f.id to stableId
-				setWatchedIds((prev) => new Set([...prev, stableId])); // changed from f.id to stableId
-			}
+			await watchlistService.addToWatchlist(
+				f as any,
+				numOfPassengers,
+				tripType === "roundtrip" ? "round-trip" : "one-way",
+			);
 		} catch (err: any) {
 			console.error("handleToggleWatch error:", err);
 			if (err?.message === "UNAUTHORIZED") {
@@ -315,28 +266,15 @@ export default function SearchPage() {
 							) : flights.length > 0 ? (
 								// Prevents duplicate flight results
 								<div className="flex flex-col gap-2.5">
-									{(() => {
-										const seen = new Set<string>();
-										const uniqueFlights = flights.filter((f) => {
-											const id = getStableId(f);
-											if (seen.has(id)) return false;
-											seen.add(id);
-											return true;
-										});
-
-										return uniqueFlights.map((f) => {
-											const stableId = getStableId(f);
-											return (
-												<FlightCard
-													key={f.id}
-													flight={f}
-													onClick={() => goTicket(f.id, f.search_id!)}
-													isAdded={watchedIds.has(stableId)}
-													onToggle={() => handleToggleWatch(f)}
-												/>
-											);
-										});
-									})()}
+									{flights.map((f) => (
+										<FlightCard
+											key={f.id}
+											flight={f}
+											onClick={() => goTicket(f.id, f.search_id!)}
+											isAdded={false}
+											onToggle={() => handleToggleWatch(f)}
+										/>
+									))}
 
 									{hasMore && (
 										<div className="pt-4 flex justify-center">

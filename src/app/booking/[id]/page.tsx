@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { API_BASE } from "@/utils/api";
 import Link from "next/link";
 import money from "@/utils/money";
 import {
@@ -20,7 +21,7 @@ export default function BookingConfirmationPage() {
 
   useEffect(() => {
     if (!id) return;
-    fetch(`http://localhost:3000/bookings/${id}`)
+    fetch(`${API_BASE}/bookings/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Booking not found");
         return res.json();

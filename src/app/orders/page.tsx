@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { API_BASE } from "@/utils/api";
 import Link from "next/link";
 import money from "@/utils/money";
 import { PiAirplaneTiltFill, PiCheckCircleFill, PiClockFill, PiReceiptFill } from "react-icons/pi";
@@ -18,7 +19,7 @@ type BookingSummary = {
 
 async function fetchBooking(id: string): Promise<BookingSummary | null> {
   try {
-    const res = await fetch(`http://localhost:3000/bookings/${id}`);
+    const res = await fetch(`${API_BASE}/bookings/${id}`);
     if (!res.ok) return null;
     return res.json();
   } catch {

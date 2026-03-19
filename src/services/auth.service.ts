@@ -1,6 +1,7 @@
 import { authHeaders, getDecodedToken } from "@/utils/auth-helpers";
+import { API_BASE as BASE } from "@/utils/api";
 
-const API_BASE = "http://localhost:3000/users";
+const API_BASE = `${BASE}/users`;
 
 export const authService = {
     isLoggedIn(): boolean {

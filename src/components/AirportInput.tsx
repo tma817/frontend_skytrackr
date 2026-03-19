@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import debounce from "lodash/debounce";
+import { API_BASE } from "@/utils/api";
 
 interface Airport {
   name: string;
@@ -31,7 +32,7 @@ export default function AirportInput({
       return;
     }
     try {
-      const res = await fetch(`http://localhost:3000/airports/search?term=${term}`);
+      const res = await fetch(`${API_BASE}/airports/search?term=${term}`);
       const data = await res.json();
       setSuggestions(data);
     } catch (err) {
@@ -63,7 +64,7 @@ export default function AirportInput({
       />
       
       {isOpen && suggestions.length > 0 && (
-        <ul className="absolute left-0 top-full z-50 mt-2 w-full max-h-60 overflow-auto rounded-md border bg-white shadow-lg">
+        <ul className="absolute left-0 top-full z-50 mt-2 w-full max-h-60 overflow-auto rounded-md bg-white shadow-lg">
           {suggestions.map((airport) => (
             <li
               key={airport.iata}

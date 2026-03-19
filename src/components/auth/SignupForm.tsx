@@ -4,6 +4,7 @@ type Props = {
 	onSignupSuccess: (email: string) => void;
 };
 import { useState } from "react";
+import { API_BASE } from "@/utils/api";
 
 export default function SignupForm({ setMode, onSignupSuccess }: Props) {
 	const [showPassword, setShowPassword] = useState(false);
@@ -29,10 +30,8 @@ export default function SignupForm({ setMode, onSignupSuccess }: Props) {
 
 		setIsLoading(true);
 		setError("");
-		const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-
 		try {
-			const response = await fetch(`${baseUrl}/auth/register`, {
+			const response = await fetch(`${API_BASE}/auth/register`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({

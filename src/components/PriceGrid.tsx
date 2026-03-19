@@ -17,7 +17,7 @@ interface PriceGridProps {
   numOfPassengers?: string;
 }
 
-const API = "http://localhost:3000";
+import { API_BASE as API } from "@/utils/api";
 
 async function fetchPriceGrid(
   origin: string,

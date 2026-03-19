@@ -1,5 +1,6 @@
 import { FlightResult } from "@/types/flight";
 import { mapFlightOfferToFlightResult } from "./mappers/flight.mapper";
+import { API_BASE } from "@/utils/api";
 
 
 
@@ -28,7 +29,8 @@ export type SearchFlightsOutput = {
 };
 
 function parseAdultCount(label: string): string {
-  return (label.split(" ")[0] || "1").trim();
+  const n = parseInt(label?.split(" ")[0] ?? "1", 10);
+  return (n > 0 ? n : 1).toString();
 }
 
 function buildSearchParams(input: SearchFlightsInput): URLSearchParams {
@@ -65,7 +67,7 @@ export const flightService = {
     const params = buildSearchParams(input);
 
     const response = await fetch(
-      `http://localhost:3000/flights/search?${params.toString()}`
+      `${API_BASE}/flights/search?${params.toString()}`
     );
 
     if (!response.ok) {

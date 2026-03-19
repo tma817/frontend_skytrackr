@@ -6,11 +6,12 @@ import { PiUserCircleFill, PiAirplaneTiltFill } from "react-icons/pi"
 import BookingSummary from "@/components/BookingSummary"
 import money from "@/utils/money"
 import { useSearchParams, useRouter } from "next/navigation"
+import { API_BASE } from "@/utils/api"
 
 export default function SeatPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { travelers, selectedSeats, updateSeatSelection } = useBookingStore();
+    const { travelers, selectedSeats, updateSeatSelection, clearSeats } = useBookingStore();
     const [activeTravelerId, setActiveTravelerId] = useState<string>(travelers[0]?.id || "1");
     const [activeSegmentIdx, setActiveSegmentIdx] = useState(0);
 
@@ -27,7 +28,7 @@ export default function SeatPage() {
             setLoading(false);
             return;
         }
-        fetch(`http://localhost:3000/flights/seat-map?searchId=${searchId}&flightId=${flightId}`)
+        fetch(`${API_BASE}/flights/seat-map?searchId=${searchId}&flightId=${flightId}`)
             .then(res => {
                 if (!res.ok) throw new Error(`Seat map unavailable (${res.status})`);
                 return res.json();
@@ -37,7 +38,8 @@ export default function SeatPage() {
             .finally(() => setLoading(false));
     }, [searchId, flightId]);
 
-    const handleSubmit = () => {
+    const handleSubmit = (skip = false) => {
+        if (skip) clearSeats();
         const pax = searchParams.get("pax");
         router.push(`/checkout/payment?searchId=${searchId}&flightId=${flightId}&pax=${pax}`);
     };
@@ -56,7 +58,7 @@ export default function SeatPage() {
             <div className="flex min-h-screen flex-col items-center justify-center gap-4">
                 <p className="text-slate-500">{error || "No seat map available for this flight."}</p>
                 <button
-                    onClick={handleSubmit}
+                    onClick={() => handleSubmit(true)}
                     className="rounded-xl bg-black px-6 py-3 text-sm font-bold text-white"
                 >
                     Skip seat selection
@@ -69,6 +71,11 @@ export default function SeatPage() {
     const currentSegmentId = currentSegmentMap.segmentId;
 
     const handleSeatSelect = (seat: any) => {
+        const currentSeat = selectedSeats[currentSegmentId]?.[activeTravelerId];
+        if (currentSeat?.number === seat.number) {
+            updateSeatSelection(currentSegmentId, activeTravelerId, null);
+            return;
+        }
         updateSeatSelection(currentSegmentId, activeTravelerId, seat);
         const nextTraveler = travelers.find(t => {
             if (t.id === activeTravelerId) return false;
@@ -172,7 +179,7 @@ export default function SeatPage() {
                         />
 
                         <button
-                            onClick={handleSubmit}
+                            onClick={() => handleSubmit(true)}
                             className="w-full text-xs font-bold text-slate-400 hover:text-slate-600 py-2 transition-colors"
                         >
                             Skip seat selection →

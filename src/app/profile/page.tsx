@@ -4,273 +4,271 @@ import { useState, useEffect } from "react";
 import { authService } from "@/services/auth.service";
 import { watchlistService, WatchlistItem } from "@/services/watchlist.service";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { API_BASE } from "@/utils/api";
+import money from "@/utils/money";
+
+type BookingSummary = {
+  _id: string;
+  status: string;
+  totalPrice: string;
+  currency: string;
+  flightOffer: any;
+  createdAt: string;
+};
+
+async function fetchBooking(id: string): Promise<BookingSummary | null> {
+  try {
+    const res = await fetch(`${API_BASE}/bookings/${id}`);
+    if (!res.ok) return null;
+    return res.json();
+  } catch { return null; }
+}
 
 export default function ProfilePage() {
   const router = useRouter();
-
-  // User state
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
-  // Edit state
   const [isEditing, setIsEditing] = useState(false);
   const [fname, setFname] = useState("");
   const [lname, setLname] = useState("");
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-
-  // Watchlist preview
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>([]);
-  const [watchlistLoading, setWatchlistLoading] = useState(true);
+  const [bookings, setBookings] = useState<BookingSummary[]>([]);
 
   useEffect(() => {
     async function load() {
       try {
         const u = await authService.getUser();
-        if (u) {
-          setUser(u);
-          setFname(u.fname || "");
-          setLname(u.lname || "");
-          setPhone(u.phoneNumber || "");
-        }
-      } finally {
-        setLoading(false);
-      }
-
-      try {
-        const wl = await watchlistService.getWatchlist();
-        setWatchlist(wl || []);
-      } catch {
-        // silently ignore — user may not be logged in yet
-      } finally {
-        setWatchlistLoading(false);
+        if (u) { setUser(u); setFname(u.fname || ""); setLname(u.lname || ""); setPhone(u.phoneNumber || ""); }
+      } finally { setLoading(false); }
+      try { const wl = await watchlistService.getWatchlist(); setWatchlist(wl || []); } catch {}
+      const ids: string[] = JSON.parse(localStorage.getItem("skytrackr_orders") || "[]");
+      if (ids.length > 0) {
+        const results = await Promise.all(ids.slice(0, 3).map(fetchBooking));
+        setBookings(results.filter(Boolean) as BookingSummary[]);
       }
     }
     load();
   }, []);
 
   async function handleSave() {
-    setSaving(true);
-    setSaveError(null);
-    try {
-      const updated = await authService.updateUser({ fname, lname, phoneNumber: phone });
-      setUser(updated);
-      setIsEditing(false);
-    } catch {
-      setSaveError("Failed to save. Please try again.");
-    } finally {
-      setSaving(false);
-    }
+    setSaving(true); setSaveError(null);
+    try { const updated = await authService.updateUser({ fname, lname, phoneNumber: phone }); setUser(updated); setIsEditing(false); }
+    catch { setSaveError("Failed to save."); }
+    finally { setSaving(false); }
   }
 
-  function handleCancel() {
-    setFname(user?.fname || "");
-    setLname(user?.lname || "");
-    setPhone(user?.phoneNumber || "");
-    setSaveError(null);
-    setIsEditing(false);
-  }
+  function handleCancel() { setFname(user?.fname || ""); setLname(user?.lname || ""); setPhone(user?.phoneNumber || ""); setSaveError(null); setIsEditing(false); }
 
   const initials = `${user?.fname?.[0] ?? ""}${user?.lname?.[0] ?? ""}`.toUpperCase() || "?";
-  const fullName = user ? `${user.fname} ${user.lname}` : "–";
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-black" />
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-black" />
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-slate-50/40 py-10 px-4">
-      <div className="mx-auto max-w-3xl space-y-6">
+    <div className="min-h-screen bg-[#F7F8FA] py-10 px-4">
+      <div className="mx-auto max-w-5xl">
 
-        {/* ── Profile card ── */}
-        <div className="rounded-2xl border bg-white shadow-sm overflow-hidden">
+        <div className="grid grid-cols-12 gap-6 items-start">
 
-          {/* Header band */}
-          <div className="bg-gradient-to-r from-slate-900 to-slate-700 px-8 py-8 flex items-center gap-6">
-            <div className="h-16 w-16 rounded-full bg-white/20 flex items-center justify-center text-white text-xl font-black shrink-0">
-              {initials}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-white font-black text-xl truncate">{fullName}</p>
-              <p className="text-slate-300 text-sm mt-0.5 truncate">{user?.email}</p>
-            </div>
-            <span className={`shrink-0 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
-              user?.isVerified
-                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-                : "bg-amber-500/20 text-amber-300 border-amber-500/30"
-            }`}>
-              {user?.isVerified ? "Verified" : "Unverified"}
-            </span>
-          </div>
+          {/* ── LEFT COLUMN ── */}
+          <div className="col-span-12 lg:col-span-7 space-y-6">
 
-          {/* Fields */}
-          <div className="px-8 py-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <Field label="First Name">
-                {isEditing
-                  ? <input value={fname} onChange={e => setFname(e.target.value)} className={inputCls} />
-                  : <span className={viewCls}>{user?.fname || "–"}</span>}
-              </Field>
-
-              <Field label="Last Name">
-                {isEditing
-                  ? <input value={lname} onChange={e => setLname(e.target.value)} className={inputCls} />
-                  : <span className={viewCls}>{user?.lname || "–"}</span>}
-              </Field>
-
-              <Field label="Email">
-                <span className={`${viewCls} text-slate-400`}>{user?.email}</span>
-              </Field>
-
-              <Field label="Phone Number">
-                {isEditing
-                  ? <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 555 000 0000" className={inputCls} />
-                  : <span className={viewCls}>{user?.phoneNumber || <span className="text-slate-300">Not set</span>}</span>}
-              </Field>
-
-              <Field label="Member Since">
-                <span className={viewCls}>
-                  {user?.createdAt
-                    ? new Date(user.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
-                    : "–"}
-                </span>
-              </Field>
-            </div>
-
-            {saveError && (
-              <p className="text-xs text-red-500 font-medium">{saveError}</p>
-            )}
-
-            {/* Actions */}
-            <div className="flex gap-3 pt-2">
-              {isEditing ? (
-                <>
-                  <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="rounded-xl bg-black px-6 py-2.5 text-sm font-bold text-white hover:opacity-80 disabled:opacity-50 transition-opacity"
-                  >
-                    {saving ? "Saving…" : "Save Changes"}
-                  </button>
-                  <button
-                    onClick={handleCancel}
-                    className="rounded-xl border border-slate-200 px-6 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="rounded-xl border border-slate-200 px-6 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors"
-                >
-                  Edit Profile
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* ── Watchlist summary ── */}
-        <div className="rounded-2xl border bg-white shadow-sm">
-          <div className="px-6 pt-5 pb-3 flex items-center justify-between border-b">
-            <h2 className="text-sm font-black uppercase tracking-widest text-slate-700">Watchlist</h2>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => router.push("/orders")}
-                className="text-xs font-bold text-slate-400 hover:text-slate-700 transition-colors"
-              >
-                View booked flights →
-              </button>
-            </div>
-          </div>
-
-          <div className="p-6">
-            {watchlistLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-black" />
+            {/* Orders */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm font-black text-slate-900">Recent Orders</p>
+                <Link href="/orders" className="text-xs font-bold text-slate-400 hover:text-slate-700 transition-colors">View all</Link>
               </div>
-            ) : watchlist.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-sm text-slate-400">No flights in your watchlist yet.</p>
-                <button
-                  onClick={() => router.push("/")}
-                  className="mt-3 text-xs font-bold text-slate-600 hover:underline"
-                >
-                  Search flights →
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="space-y-2 mb-4">
-                  {watchlist.slice(0, 3).map((item) => (
-                    <WatchlistRow key={item._id} item={item} />
-                  ))}
+
+              {bookings.length === 0 ? (
+                <div className="py-8 text-center">
+                  <p className="text-sm text-slate-400">No bookings yet.</p>
+                  <Link href="/" className="mt-2 inline-block text-xs font-bold text-slate-600 hover:underline">Search flights</Link>
                 </div>
-                <button
-                  onClick={() => router.push("/watchlist")}
-                  className="w-full rounded-xl border border-slate-200 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
-                >
-                  {watchlist.length > 3
-                    ? `Manage all ${watchlist.length} flights →`
-                    : "Manage watchlist →"}
-                </button>
-              </>
-            )}
+              ) : (
+                <div className="divide-y divide-slate-100 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                  {bookings.map((booking) => {
+                    const itineraries = booking.flightOffer?.itineraries ?? [];
+                    const firstSeg = itineraries[0]?.segments?.[0];
+                    const lastItin = itineraries[itineraries.length - 1];
+                    const lastSeg = lastItin?.segments?.[lastItin.segments.length - 1];
+                    const depCode = firstSeg?.departure?.iataCode ?? "—";
+                    const arrCode = lastSeg?.arrival?.iataCode ?? "—";
+                    const depDate = firstSeg?.departure?.at
+                      ? new Date(firstSeg.departure.at).toLocaleDateString("en-CA", { month: "short", day: "numeric", year: "numeric" })
+                      : "—";
+
+                    return (
+                      <Link key={booking._id} href={`/booking/${booking._id}`} className="flex items-center justify-between px-5 py-4 hover:bg-slate-50 transition-colors">
+                        <div>
+                          <p className="text-sm font-black text-slate-900">
+                            {depCode} <span className="text-slate-300 font-normal mx-1">·</span> {arrCode}
+                          </p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">{depDate}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-slate-900">{money(parseFloat(booking.totalPrice || "0"), booking.currency)}</p>
+                          <span className="text-[10px] font-black text-emerald-600 uppercase">{booking.status}</span>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            {/* Watchlist */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-baseline gap-2">
+                  <p className="text-sm font-black text-slate-900">Watchlist</p>
+                  {watchlist.length > 0 && <span className="text-xs text-slate-400">{watchlist.length} tracked</span>}
+                </div>
+                {watchlist.length > 0 && (
+                  <Link href="/watchlist" className="text-xs font-bold text-slate-400 hover:text-slate-700 transition-colors">Manage</Link>
+                )}
+              </div>
+
+              {watchlist.length === 0 ? (
+                <div className="py-8 text-center">
+                  <p className="text-sm text-slate-400">No flights watched.</p>
+                  <Link href="/" className="mt-2 inline-block text-xs font-bold text-slate-600 hover:underline">Search flights</Link>
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-100">
+                  {watchlist.slice(0, 4).map((item) => {
+                    const dropped = item.priceDiff < 0;
+                    const increased = item.priceDiff > 0;
+                    const statusColor = item.status === "price_dropped" ? "bg-emerald-500" : item.status === "price_increased" ? "bg-red-500" : "bg-slate-300";
+
+                    return (
+                      <div key={item._id} className="px-5 py-4 flex items-center gap-4">
+                        {/* Logo */}
+                        {item.airlineLogo ? (
+                          <img src={item.airlineLogo} alt={item.airlineName} className="h-8 w-8 object-contain shrink-0" />
+                        ) : (
+                          <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center text-[9px] font-black text-slate-400 shrink-0">
+                            {item.airlineName?.slice(0, 2).toUpperCase() ?? "–"}
+                          </div>
+                        )}
+
+                        {/* Route + meta */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline gap-1.5">
+                            <span className="text-base font-black text-slate-900">{item.origin}</span>
+                            <span className="text-slate-300 text-sm">·</span>
+                            <span className="text-base font-black text-slate-900">{item.destination}</span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[10px] text-slate-400">{item.airlineName}</span>
+                            <span className="text-slate-200">·</span>
+                            <span className="text-[10px] text-slate-400">{item.departureDate}</span>
+                          </div>
+                        </div>
+
+                        {/* Price + status */}
+                        <div className="text-right shrink-0">
+                          <p className="text-base font-black text-slate-900">{item.currency} {item.currentPrice.toFixed(0)}</p>
+                          {dropped && <p className="text-[10px] font-bold text-emerald-600">▼ {Math.abs(item.priceDiff).toFixed(0)}</p>}
+                          {increased && <p className="text-[10px] font-bold text-red-500">▲ {item.priceDiff.toFixed(0)}</p>}
+                          {!dropped && !increased && (
+                            <div className="flex items-center justify-end gap-1 mt-0.5">
+                              <div className={`h-1.5 w-1.5 rounded-full ${statusColor}`} />
+                              <span className="text-[10px] text-slate-400">No change</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
           </div>
+
+          {/* ── RIGHT COLUMN ── */}
+          <div className="col-span-12 lg:col-span-5 sticky top-8">
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+
+              {/* Avatar header */}
+              <div style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)" }} className="px-6 py-6 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center text-white text-lg font-black shrink-0">
+                  {initials}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-white font-black text-base truncate">{user?.fname} {user?.lname}</p>
+                  <p className="text-white/50 text-xs truncate mt-0.5">{user?.email}</p>
+                </div>
+                <span className={`ml-auto shrink-0 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${
+                  user?.isVerified ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-300"
+                }`}>
+                  {user?.isVerified ? "Verified" : "Unverified"}
+                </span>
+              </div>
+
+              {/* Fields */}
+              <div className="px-6 py-5 space-y-4">
+                <ProfileRow label="First Name">
+                  {isEditing ? <input value={fname} onChange={e => setFname(e.target.value)} className={inputCls} /> : <span className={valueCls}>{user?.fname || "–"}</span>}
+                </ProfileRow>
+                <ProfileRow label="Last Name">
+                  {isEditing ? <input value={lname} onChange={e => setLname(e.target.value)} className={inputCls} /> : <span className={valueCls}>{user?.lname || "–"}</span>}
+                </ProfileRow>
+                <ProfileRow label="Phone">
+                  {isEditing ? <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 555 000 0000" className={inputCls} /> : <span className={valueCls}>{user?.phoneNumber || <span className="text-slate-300">Not set</span>}</span>}
+                </ProfileRow>
+                <ProfileRow label="Member Since">
+                  <span className={valueCls}>
+                    {user?.createdAt ? new Date(user.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "–"}
+                  </span>
+                </ProfileRow>
+              </div>
+
+              {saveError && <p className="px-6 pb-2 text-xs text-red-500">{saveError}</p>}
+
+              {/* Actions */}
+              <div className="px-6 pb-5">
+                {isEditing ? (
+                  <div className="flex gap-2">
+                    <button onClick={handleSave} disabled={saving} className="flex-1 rounded-xl bg-slate-900 py-2.5 text-xs font-bold text-white hover:opacity-80 disabled:opacity-50 transition-opacity">
+                      {saving ? "Saving…" : "Save"}
+                    </button>
+                    <button onClick={handleCancel} className="flex-1 rounded-xl border border-slate-200 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors">
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={() => setIsEditing(true)} className="w-full rounded-xl border border-slate-200 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors">
+                    Edit Profile
+                  </button>
+                )}
+              </div>
+
+            </div>
+          </div>
+
         </div>
-
       </div>
     </div>
   );
 }
 
-function WatchlistRow({ item }: { item: WatchlistItem }) {
-  const dropped = item.priceDiff < 0;
-  const increased = item.priceDiff > 0;
-
+function ProfileRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/50 px-4 py-3">
-      {item.airlineLogo ? (
-        <img src={item.airlineLogo} alt={item.airlineName} className="h-7 w-7 object-contain shrink-0" />
-      ) : (
-        <div className="h-7 w-7 rounded-full bg-slate-200 flex items-center justify-center text-[9px] font-black text-slate-500 shrink-0">
-          {item.airlineName?.slice(0, 2).toUpperCase() ?? "–"}
-        </div>
-      )}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-slate-800">
-          {item.origin} → {item.destination}
-        </p>
-        <p className="text-[10px] text-slate-400">{item.departureDate} · {item.tripType}</p>
-      </div>
-      <div className="text-right shrink-0">
-        <p className="text-sm font-black text-cyan-700">
-          {item.currency} {item.currentPrice.toFixed(0)}
-        </p>
-        {item.priceDiff !== 0 && (
-          <p className={`text-[10px] font-bold ${dropped ? "text-emerald-600" : "text-red-500"}`}>
-            {dropped ? "▼" : "▲"} {Math.abs(item.priceDiff).toFixed(0)}
-          </p>
-        )}
-      </div>
+    <div className="flex items-center justify-between gap-4">
+      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 shrink-0">{label}</span>
+      <div className="text-right">{children}</div>
     </div>
   );
 }
 
-const inputCls = "w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-800 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100 transition";
-const viewCls = "text-sm font-medium text-slate-800";
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1.5">
-      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
-      {children}
-    </div>
-  );
-}
+const inputCls = "w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-800 outline-none focus:border-slate-400 transition text-right";
+const valueCls = "text-sm font-semibold text-slate-800";

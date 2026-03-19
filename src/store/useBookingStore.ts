@@ -34,6 +34,7 @@ interface BookingStore {
   setConfirmedPrice: (price: ConfirmedPrice | null) => void;
   setTravelersInfo: (travelers: any[], contact: any) => void;
   updateSeatSelection: (segmentId: string, travelerId: string, seat: any) => void;
+  clearSeats: () => void;
   clearBooking: () => void;
 }
 
@@ -67,6 +68,8 @@ export const useBookingStore = create<BookingStore>()(
           },
         },
       })),
+
+      clearSeats: () => set({ selectedSeats: {} }),
 
       clearBooking: () => set({
         selectedFlight: null,
