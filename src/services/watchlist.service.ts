@@ -67,7 +67,7 @@ export const watchlistService = {
       tripType,
     };
 
-    console.log(flight.itineraries);
+    //console.log(flight.itineraries);
 
     const res = await fetch(API_BASE, {
       method: "POST",

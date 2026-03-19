@@ -82,18 +82,19 @@ export default function SearchPage() {
 			watchlistMap.current = byFlight;
 			setWatchedIds(new Set(byFlight.keys()));
 
-			console.log("Watchlist flightIds:", [...byFlight.keys()]);
-        	console.log("Current flight ids:", flights.map(f => f.id));
+			//console.log("Watchlist flightIds:", [...byFlight.keys()]);
+        	//console.log("Current flight ids:", flights.map(f => f.id));
 
 		}).catch(() => { /* not logged in — silent */ });
 	}, [from, to, departure, returnDate]);
 
 	async function handleToggleWatch(f: { id: string; [k: string]: any }) {
-		console.log("handleToggleWatch called", {
+		/*console.log("handleToggleWatch called", {
         stableId: getStableId(f),
         isAdded: watchedIds.has(getStableId(f)),
         busy: watchBusy.current,
     	});
+		*/
 		
 		const stableId = getStableId(f);
     	const isAdded = watchedIds.has(stableId);
@@ -118,7 +119,7 @@ export default function SearchPage() {
 
 				const itemId = String((item as any)._id ?? item._id); // add id
 
-				console.log("addToWatchlist response:", item);
+				//console.log("addToWatchlist response:", item);
 				watchlistMap.current.set(stableId, String(itemId)); // changed from item._id to itemId, f.id to stableId
 				setWatchedIds((prev) => new Set([...prev, stableId])); // changed from f.id to stableId
 			}
@@ -312,21 +313,30 @@ export default function SearchPage() {
 							) : error ? (
 								<div className="text-center py-20 text-red-600">{error}</div>
 							) : flights.length > 0 ? (
+								// Prevents duplicate flight results
 								<div className="flex flex-col gap-2.5">
-									{flights.map((f) => {
-									console.log("watchedIds:", [...watchedIds]);
-									const stableId = getStableId(f);
-									console.log(stableId, watchedIds.has(stableId));
-									return(
-										<FlightCard
-											key={f.id}
-											flight={f}
-											onClick={() => goTicket(f.id, f.search_id!)} 
-											isAdded={watchedIds.has(getStableId(f))} //use getStableId instead of f.id
-											onToggle={() => handleToggleWatch(f)}
-										/>
-										);
-									})}
+									{(() => {
+										const seen = new Set<string>();
+										const uniqueFlights = flights.filter((f) => {
+											const id = getStableId(f);
+											if (seen.has(id)) return false;
+											seen.add(id);
+											return true;
+										});
+
+										return uniqueFlights.map((f) => {
+											const stableId = getStableId(f);
+											return (
+												<FlightCard
+													key={f.id}
+													flight={f}
+													onClick={() => goTicket(f.id, f.search_id!)}
+													isAdded={watchedIds.has(stableId)}
+													onToggle={() => handleToggleWatch(f)}
+												/>
+											);
+										});
+									})()}
 
 									{hasMore && (
 										<div className="pt-4 flex justify-center">

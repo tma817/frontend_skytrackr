@@ -37,7 +37,6 @@ type DatePickerProps = {
   onChange: (date?: Date) => void;
   placeholder: string;
   minDate?: Date;
-  maxDate?: Date;
   isOpen: boolean;
   setOpen: (isOpen: boolean) => void;
   glass?: boolean;
@@ -244,8 +243,8 @@ export default function SearchBar({
             <SingleDatePicker
               value={departureDate}
               onChange={(date) => {
-                setDepartureDate(date);
-                if (returnDate && date && date > returnDate) setReturnDate(undefined);
+              setDepartureDate(date);
+              if (returnDate && date && date > returnDate) setReturnDate(undefined);
               }}
               placeholder="Departure"
               isOpen={departureOpen}
@@ -260,10 +259,15 @@ export default function SearchBar({
             <div className="w-[110px]">
               <SingleDatePicker
                 value={returnDate}
-                onChange={setReturnDate}
+                onChange={(date) => {
+                  if (date && departureDate && date < departureDate) {
+                    setReturnDate(undefined);
+                    setDepartureDate(date)
+                  } else {
+                      setReturnDate(date);
+                  }
+                }}
                 placeholder="Return"
-                minDate={departureDate}
-                maxDate={returnDate}
                 isOpen={returnOpen}
                 setOpen={(open) => { setReturnOpen(open); if (open) setDepartureOpen(false); }}
                 glass={glass}

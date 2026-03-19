@@ -50,14 +50,10 @@ export default function WatchlistPage() {
       from: item.origin,
       to: item.destination,
       tripType: item.tripType === "round-trip" ? "roundtrip" : "oneway",
-      departure: item.departureDate,
+      departure: item.departureDate ?? "",
       numOfPassengers: String(item.passengers),
+      return: item.returnDate ?? "",
     });
-
-    if (item.returnDate) {
-      qs.set("returnDate", item.returnDate);
-    }
-
     router.push(`/search?${qs.toString()}`);
   }
 
