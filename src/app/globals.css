@@ -36,3 +36,81 @@ button {
 input[type="password"]::-ms-reveal {
   display: none;
 }
+
+/* ── DayPicker overrides ───────────────────────────────────────── */
+.rdp-root {
+  --rdp-accent-color: #000;
+  --rdp-accent-background-color: #000;
+  font-family: inherit;
+  padding: 12px;
+}
+
+/* Navigation arrows — kill the blue */
+.rdp-nav svg {
+  color: #6b7280;
+}
+.rdp-button_previous,
+.rdp-button_next {
+  color: #6b7280 !important;
+  border-radius: 9999px !important;
+  transition: background 0.15s;
+}
+.rdp-button_previous:hover,
+.rdp-button_next:hover {
+  background-color: #f3f4f6 !important;
+  color: #111827 !important;
+}
+
+/* Month caption */
+.rdp-month_caption {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Weekday headers */
+.rdp-weekday {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Day buttons */
+.rdp-day_button {
+  border-radius: 9999px !important;
+  font-size: 0.8rem;
+  color: #374151;
+  transition: background 0.15s, color 0.15s;
+  width: 36px !important;
+  height: 36px !important;
+}
+.rdp-day_button:hover:not([disabled]) {
+  background-color: #f3f4f6 !important;
+  color: #111827 !important;
+}
+
+/* Selected day */
+.rdp-selected .rdp-day_button {
+  background-color: #000 !important;
+  color: #fff !important;
+  font-weight: 600;
+}
+
+/* Today */
+.rdp-today:not(.rdp-selected) .rdp-day_button {
+  color: #0ea5e9 !important;
+  font-weight: 700;
+}
+
+/* Disabled days */
+.rdp-disabled .rdp-day_button {
+  color: #d1d5db !important;
+  cursor: not-allowed;
+}
+
+/* Outside month days */
+.rdp-outside .rdp-day_button {
+  color: #d1d5db !important;
+}

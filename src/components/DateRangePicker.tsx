@@ -30,7 +30,7 @@ export default function DateRangePicker({
       </div>
 
       {isOpen && (
-        <div className="absolute left-0 top-[calc(100%+12px)] z-50 rounded-lg border bg-white p-4 shadow-2xl">
+        <div className="absolute left-0 top-[calc(100%+12px)] z-50 rounded-lg border bg-white p-10 shadow-2xl">
           <DayPicker
             mode="range"
             selected={selected}

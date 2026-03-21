@@ -124,19 +124,9 @@ export function useSearchFlights(
     }));
 
     fetchPage(1, false);
-  }, [
-    input.from,
-    input.to,
-    input.departure,
-    input.returnDate,
-    input.numOfPassengers,
-    input.filters?.maxPrice,
-    input.filters?.stops,
-    input.filters?.cabin,
-    input.filters?.timeFrom,
-    input.filters?.timeTo,
-    fetchPage,
-  ]);
+  // fetchPage already captures all input/filter changes via useMemo + useCallback
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchPage]);
 
   const loadMore = useCallback(() => {
     if (state.loadingMore || !state.hasMore) return;

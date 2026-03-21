@@ -75,17 +75,16 @@ export default function TicketDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F7F8FA] pb-16">
+    <main className="min-h-screen bg-[#F7F8FA] pb-16 font-sans">
       <div className="mx-auto max-w-7xl px-6 py-10">
         <div className="grid grid-cols-12 gap-8 items-start">
-
           {/* ── LEFT: Flight Journey ── */}
           <div className="col-span-12 lg:col-span-8 space-y-5">
             {flight.itineraries.map((itinerary, itIdx) => (
-              <div key={itIdx} className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100">
-
+              <div key={itIdx} className="bg-white rounded-3xl overflow-hidden shadow-sm border">
+                
                 {/* ── Top bar: airline + trip label + duration ── */}
-                <div className="flex items-center justify-between px-8 py-5 border-b border-slate-100">
+                <div className="flex items-center justify-between px-8 py-5 border-b">
                   <div className="flex items-center gap-3">
                     {flight.airline.logo ? (
                       <img src={flight.airline.logo} alt={flight.airline.name} className="h-8 w-8 object-contain" />
@@ -125,6 +124,12 @@ export default function TicketDetailPage() {
                         {itinerary.departure.time}
                       </p>
                       <p className="text-base font-black text-slate-700 mt-2">{itinerary.departure.iataCode}</p>
+                      {itinerary.departure.cityName && (
+                        <p className="text-xs font-semibold text-slate-500 mt-0.5">{itinerary.departure.cityName}</p>
+                      )}
+                      {itinerary.departure.airportName && (
+                        <p className="text-[10px] text-slate-400 mt-0.5 leading-snug">{itinerary.departure.airportName}</p>
+                      )}
                       {itinerary.departure.terminal && (
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-0.5">
                           Terminal {itinerary.departure.terminal}
@@ -161,6 +166,12 @@ export default function TicketDetailPage() {
                         {itinerary.arrival.time}
                       </p>
                       <p className="text-base font-black text-slate-700 mt-2">{itinerary.arrival.iataCode}</p>
+                      {itinerary.arrival.cityName && (
+                        <p className="text-xs font-semibold text-slate-500 mt-0.5">{itinerary.arrival.cityName}</p>
+                      )}
+                      {itinerary.arrival.airportName && (
+                        <p className="text-[10px] text-slate-400 mt-0.5 leading-snug">{itinerary.arrival.airportName}</p>
+                      )}
                       {itinerary.arrival.terminal && (
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-0.5">
                           Terminal {itinerary.arrival.terminal}
@@ -174,7 +185,7 @@ export default function TicketDetailPage() {
                 {/* ── Segments timeline ── */}
                 {itinerary.segments.length > 0 && (
                   <div className="border-t border-slate-100 px-8 py-6">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-5">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-5">
                       Flight Segments
                     </p>
 
@@ -196,6 +207,9 @@ export default function TicketDetailPage() {
                                 <div className="shrink-0 w-[88px]">
                                   <p className="text-xl font-black text-slate-900 tabular-nums leading-none">{segment.departure.time}</p>
                                   <p className="text-sm font-black text-slate-700 mt-1">{segment.departure.iataCode}</p>
+                                  {segment.departure.cityName && (
+                                    <p className="text-[10px] font-semibold text-slate-500 mt-0.5">{segment.departure.cityName}</p>
+                                  )}
                                   <p className="text-[10px] text-slate-400 mt-0.5">
                                     {segment.departure.terminal ? `T${segment.departure.terminal} · ` : ""}{segment.departure.date}
                                   </p>
@@ -211,20 +225,18 @@ export default function TicketDetailPage() {
                                     <div className="flex-1 h-px bg-slate-300" />
                                   </div>
                                   <div className="flex items-center gap-1.5">
-                                    <span className="bg-white border border-slate-200 text-slate-700 text-[10px] font-black px-2 py-0.5 rounded-lg">
+                                    <span className="bg-white border text-slate-700 text-[10px] font-black px-2 py-0.5 rounded-lg">
                                       {segment.carrierCode}{segment.flightNumber}
                                     </span>
-                                    {segment.aircraft && (
-                                      <span className="bg-white border border-slate-200 text-slate-400 text-[10px] font-semibold px-2 py-0.5 rounded-lg">
-                                        {segment.aircraft}
-                                      </span>
-                                    )}
                                   </div>
                                 </div>
                                 {/* Arrival */}
                                 <div className="shrink-0 w-[88px] text-right">
                                   <p className="text-xl font-black text-slate-900 tabular-nums leading-none">{segment.arrival.time}</p>
                                   <p className="text-sm font-black text-slate-700 mt-1">{segment.arrival.iataCode}</p>
+                                  {segment.arrival.cityName && (
+                                    <p className="text-[10px] font-semibold text-slate-500 mt-0.5">{segment.arrival.cityName}</p>
+                                  )}
                                   <p className="text-[10px] text-slate-400 mt-0.5">
                                     {segment.arrival.terminal ? `T${segment.arrival.terminal} · ` : ""}{segment.arrival.date}
                                   </p>
@@ -249,7 +261,7 @@ export default function TicketDetailPage() {
                               <div className="flex-1 flex items-center gap-2 py-2 mb-3">
                                 <div>
                                   <p className="text-xs font-black text-orange-500 uppercase tracking-wide leading-none">{segment.layover} layover</p>
-                                  <p className="text-[10px] text-slate-400 font-medium mt-0.5">Connecting in {segment.arrival.iataCode}</p>
+                                  <p className="text-[10px] text-slate-400 font-medium mt-0.5">Connecting in {segment.arrival.cityName ?? segment.arrival.iataCode}</p>
                                 </div>
                               </div>
                             </div>
@@ -307,10 +319,18 @@ export default function TicketDetailPage() {
           <div className="col-span-12 lg:col-span-4">
             <div className="sticky top-8 flex flex-col gap-4">
               <BookingSummary onContinue={handleProceed} />
-              <div className="rounded-3xl border border-slate-100 bg-white shadow-sm overflow-hidden">
-                <PredictionGraph />
+              <div className="rounded-3xl border bg-white shadow-sm overflow-hidden">
+                <PredictionGraph
+                  origin={flight.itineraries[0].departure.iataCode}
+                  destination={flight.itineraries[0].arrival.iataCode}
+                  departureDate={flight.itineraries[0].departure.date}
+                  currentPrice={flight.price.amount}
+                  currency={flight.price.currency}
+                  oneWay={flight.itineraries.length === 1}
+                />
               </div>
             </div>
+            
           </div>
 
         </div>

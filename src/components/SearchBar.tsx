@@ -41,13 +41,13 @@ type DatePickerProps = {
   isOpen: boolean;
   setOpen: (isOpen: boolean) => void;
   glass?: boolean;
+  align?: "left" | "right";
 };
 
 /* --- Compact date picker that expands only on click --- */
-export function SingleDatePicker({ value, onChange, placeholder, minDate, maxDate, isOpen, setOpen, glass = false }: DatePickerProps) {
+export function SingleDatePicker({ value, onChange, placeholder, minDate, maxDate, isOpen, setOpen, glass = false, align = "left" }: DatePickerProps) {
   const ref = useRef<HTMLDivElement>(null);
 
-  // Close calendar when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -60,22 +60,25 @@ export function SingleDatePicker({ value, onChange, placeholder, minDate, maxDat
 
   return (
     <div className="relative w-full" ref={ref}>
-      {/* Input box */}
       <div
-        className="h-[48px] px-3 rounded-md cursor-pointer w-full flex items-center bg-transparent"
+        className="h-[48px] px-3 rounded-md cursor-pointer w-full flex flex-col justify-center bg-transparent"
         onClick={(e) => {
           e.stopPropagation();
           setOpen(!isOpen);
         }}
       >
-        <span className={`text-sm ${value ? (glass ? "text-white" : "text-gray-900") : (glass ? "text-white/50" : "text-gray-500")}`}>
-          {value ? format(value, "yyyy-MM-dd") : placeholder}
+        {value && (
+          <span className={`text-[10px] font-semibold uppercase tracking-widest leading-none mb-0.5 ${glass ? "text-black/40" : "text-gray-400"}`}>
+            {placeholder}
+          </span>
+        )}
+        <span className={`text-sm leading-none ${value ? (glass ? "text-black" : "text-gray-900") : (glass ? "text-black/50" : "text-gray-500")}`}>
+          {value ? format(value, "MMM d, yyyy") : placeholder}
         </span>
       </div>
 
-      {/* Calendar popup */}
       {isOpen && (
-        <div className="absolute z-10 mt-1 shadow-lg bg-white rounded-md">
+        <div className={`absolute z-50 bg-white  rounded-lg shadow-2xl border border-gray-100 ${align === "right" ? "right-0" : "left-0"}`}>
           <DayPicker
             mode="single"
             selected={value}
@@ -87,7 +90,6 @@ export function SingleDatePicker({ value, onChange, placeholder, minDate, maxDat
               (() => {
                 const today = new Date();
                 const earliest = minDate && minDate > today ? minDate : today;
-
                 if (maxDate) return { before: earliest, after: maxDate };
                 return { before: earliest };
               })()
@@ -124,36 +126,41 @@ export default function SearchBar({
 
   const [departureOpen, setDepartureOpen] = useState(false);
   const [returnOpen, setReturnOpen] = useState(false);
-  
+  const [tripTypeOpen, setTripTypeOpen] = useState(false);
+  const tripTypeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (tripTypeRef.current && !tripTypeRef.current.contains(e.target as Node)) {
+        setTripTypeOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const initialized = useRef(false);
-  
-  
-  //Fix incorrect departure date and return date after search result
+
   function parseLocalDate(dateString: string) {
     const [year, month, day] = dateString.split("-").map(Number);
     return new Date(year, month - 1, day);
   }
 
-  //Saves user's selection after searching flight on search bar
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
 
-    //departure and return
     const dep = searchParams.get("departure");
     const ret = searchParams.get("return");
     if (dep) setDepartureDate(parseLocalDate(dep));
     if (ret) setReturnDate(parseLocalDate(ret));
 
-    // Passengers
     const numOfPassengers = searchParams.get("numOfPassengers");
     if (numOfPassengers) setPassengers(parseInt(numOfPassengers) || 1);
 
-    // Trip type
     const type = searchParams.get("tripType");
     if (type === "oneway" || type === "roundtrip") setTripType(type);
 
-    // From / To codes (optional, if you want them to persist)
     const from = searchParams.get("from");
     const to = searchParams.get("to");
     if (from) setFromCode(from);
@@ -161,13 +168,10 @@ export default function SearchBar({
   }, [searchParams]);
 
   const handleSearch = () => {
-    //If user doesn't select departure date
     if (!departureDate) {
       alert("Please select a departure date");
       return;
     }
-
-    //If user selects round-trip but no return date
     if (tripType === "roundtrip" && !returnDate) {
       alert("Please select a return date");
       return;
@@ -197,17 +201,24 @@ export default function SearchBar({
     }
   };
 
-  const divider = glass ? "border-white/20" : "border-gray-200";
+  const divider = glass ? "border-black/20" : "border-gray-200";
 
   return (
-    <div className={`w-full max-w-[960px] ${className}`}>
-      <div className={`flex w-full items-stretch overflow-visible ${
-        glass
-          ? "rounded-2xl bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl shadow-black/30"
-          : "rounded-md border bg-white shadow-sm"
-      }`}>
+    <div className={`w-full ${className}`}>
+      <div
+        className={`flex flex-col z-200 md:flex-row md:items-stretch overflow-visible ${
+          glass
+            ? "rounded-2xl bg-white/10 backdrop-blur-2xl border border-white/20"
+            : "rounded-2xl bg-white shadow-sm"
+        }`}
+      >
         {/* From */}
-        <div className={`flex h-[52px] flex-1 items-center gap-2 px-4 border-r ${divider}`}>
+        <div className={`flex h-[52px] flex-1 flex-col justify-center px-4 border-b md:border-b-0 md:border-r ${divider}`}>
+          {fromLabel && (
+            <span className={`text-[10px] font-semibold uppercase tracking-widest leading-none mb-0.5 ${glass ? "text-black/40" : "text-gray-400"}`}>
+              Leaving from
+            </span>
+          )}
           <AirportInput
             value={fromLabel}
             onChange={(iata, label) => { setFromCode(iata); setFromLabel(label); }}
@@ -217,7 +228,12 @@ export default function SearchBar({
         </div>
 
         {/* To */}
-        <div className={`flex h-[52px] flex-1 items-center gap-2 px-4 border-r ${divider}`}>
+        <div className={`flex h-[52px] flex-1 flex-col justify-center px-4 border-b md:border-b-0 md:border-r ${divider}`}>
+          {toLabel && (
+            <span className={`text-[10px] font-semibold uppercase tracking-widest leading-none mb-0.5 ${glass ? "text-black/40" : "text-gray-400"}`}>
+              Going to
+            </span>
+          )}
           <AirportInput
             value={toLabel}
             onChange={(iata, label) => { setToCode(iata); setToLabel(label); }}
@@ -226,21 +242,44 @@ export default function SearchBar({
           />
         </div>
 
-        {/* Trip type */}
-        <div className={`flex h-[52px] w-[140px] items-center px-3 border-r ${divider}`}>
-          <select
-            value={tripType}
-            onChange={(e) => setTripType(e.target.value as TripType)}
-            className={`h-full w-full bg-transparent text-sm focus:outline-none cursor-pointer ${glass ? "text-white" : "text-gray-900"}`}
-          >
-            <option value="roundtrip" className="text-black bg-white">Round trip</option>
-            <option value="oneway" className="text-black bg-white">One way</option>
-          </select>
+        {/* Trip type + Passengers: side-by-side on mobile, unwrapped on desktop */}
+        <div className={`flex border-b md:border-b-0 md:contents ${divider}`}>
+          {/* Trip type */}
+          <div className={`relative flex h-[52px] flex-1 md:w-[130px] md:flex-none items-center px-3 border-r ${divider}`} ref={tripTypeRef}>
+            <div
+              className={`flex w-full cursor-pointer items-center justify-between text-sm ${glass ? "text-black" : "text-gray-900"}`}
+              onClick={() => setTripTypeOpen(!tripTypeOpen)}
+            >
+              <span>{tripType === "roundtrip" ? "Round trip" : "One way"}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-150 ${tripTypeOpen ? "rotate-180" : ""}`}>
+                <path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+              </svg>
+            </div>
+            {tripTypeOpen && (
+              <div className="absolute left-0 top-[calc(100%)] z-[100] w-40 overflow-hidden rounded-lg bg-white shadow-2xl">
+                {(["roundtrip", "oneway"] as TripType[]).map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => { setTripType(option); setTripTypeOpen(false); }}
+                    className={`flex w-full items-center justify-between px-4 py-2.5 text-sm transition-colors hover:bg-gray-50 ${tripType === option ? "font-semibold text-black" : "text-gray-600"}`}
+                  >
+                    {option === "roundtrip" ? "Round trip" : "One way"}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Passengers */}
+          <div className={`flex h-[52px] flex-1 md:w-[130px] md:flex-none items-center px-4 md:border-r ${divider}`}>
+            <PassengerPicker value={passengers} onChange={setPassengers} glass={glass} />
+          </div>
         </div>
 
         {/* Date pickers */}
-        <div className={`flex h-[52px] items-center px-2 border-r ${divider}`}>
-          <div className="w-[110px]">
+        <div className={`flex h-[52px] items-center px-2 border-b md:border-b-0 md:border-r md:flex-none md:w-[240px] ${divider}`}>
+          <div className="flex-1 min-w-0">
             <SingleDatePicker
               value={departureDate}
               onChange={(date) => {
@@ -251,13 +290,14 @@ export default function SearchBar({
               isOpen={departureOpen}
               setOpen={(open) => { setDepartureOpen(open); if (open) setReturnOpen(false); }}
               glass={glass}
+              align="left"
             />
           </div>
 
           {tripType === "roundtrip" && <div className={`self-stretch border-l mx-1 ${divider}`} />}
 
           {tripType === "roundtrip" && (
-            <div className="w-[110px]">
+            <div className="flex-1 min-w-0">
               <SingleDatePicker
                 value={returnDate}
                 onChange={setReturnDate}
@@ -267,23 +307,19 @@ export default function SearchBar({
                 isOpen={returnOpen}
                 setOpen={(open) => { setReturnOpen(open); if (open) setDepartureOpen(false); }}
                 glass={glass}
+                align="right"
               />
             </div>
           )}
         </div>
 
-        {/* Passengers */}
-        <div className={`flex h-[52px] w-[130px] items-center px-4 border-r ${divider}`}>
-          <PassengerPicker value={passengers} onChange={setPassengers} glass={glass} />
-        </div>
-
         {/* Search Button */}
         <button
           onClick={handleSearch}
-          className={`h-[52px] px-7 text-sm font-bold transition-all cursor-pointer ${
+          className={`h-[52px] w-full md:w-auto px-7 text-sm font-bold transition-all cursor-pointer ${
             glass
-              ? "rounded-r-2xl bg-white text-black hover:bg-white/90 active:scale-95"
-              : "bg-black text-white hover:bg-zinc-700"
+              ? "rounded-r-2xl bg-white text-black "
+              : "rounded-r-2xl bg-white text-black active:scale-95"
           }`}
         >
           Search

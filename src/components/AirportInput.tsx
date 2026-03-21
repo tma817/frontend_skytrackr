@@ -40,7 +40,6 @@ export default function AirportInput({
     }
   };
 
-  // Debounce 300ms
   const debouncedFetch = useCallback(
     debounce((term: string) => fetchAirports(term), 300),
     []
@@ -56,7 +55,7 @@ export default function AirportInput({
   return (
     <div className="relative w-full">
       <input
-        className={`w-full bg-transparent text-sm outline-none ${glass ? "text-white placeholder:text-white/50" : "text-gray-900 placeholder:text-gray-400"}`}
+        className={`w-full bg-transparent text-sm outline-none ${glass ? "text-black placeholder:text-black/50" : "text-gray-900 placeholder:text-gray-400"}`}
         value={value}
         onChange={handleChange}
         onFocus={() => setIsOpen(true)}
@@ -68,14 +67,14 @@ export default function AirportInput({
           {suggestions.map((airport) => (
             <li
               key={airport.iata}
-              className="flex cursor-pointer flex-col px-4 py-2 hover:bg-gray-100"
+              className="flex cursor-pointer flex-col px-4 py-2 hover:bg-gray-100 items-start"
               onClick={() => {
                 const displayValue = `${airport.city} (${airport.iata})`;
                 onChange(airport.iata,displayValue); 
                 setIsOpen(false);
               }}
             >
-              <div className="flex justify-between">
+              <div className="flex w-full flex-row justify-between items-center">
                 <span className="font-bold text-black">{airport.city} ({airport.iata})</span>
                 <span className="text-xs text-gray-400">{airport.country}</span>
               </div>
