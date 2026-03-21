@@ -5,46 +5,42 @@ import SearchBar from "@/components/SearchBar";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-white">
+    <main className="bg-white font-sans">
       {/* HERO */}
       <section
-        className="relative flex min-h-screen w-full flex-col items-center justify-center"
+        className="relative flex min-h-[calc(100vh-64px)] w-full flex-col items-center justify-center text-black"
         style={{
-          backgroundImage: "url(/images/hero-bg.png)",
+          backgroundImage: "url('/images/hero-bg.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       >
-        {/* dark gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
-
         {/* content */}
-        <div className="relative z-10 flex w-full flex-col items-center px-6 text-center">
+        <div className="relative z-10 flex w-full flex-col items-center px-6 text-center text-black font-sans">
           {/* eyebrow */}
-          <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white/80 backdrop-blur-sm">
+          <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-black/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest backdrop-blur-sm">
             ✈&nbsp;&nbsp;Find your next flight
           </span>
 
           {/* headline */}
-          <h1 className="max-w-4xl text-5xl font-black leading-[1.08] tracking-tight text-white md:text-7xl">
+          <h1 className="max-w-4xl text-5xl font-black leading-[1.08] tracking-tight text-black md:text-7xl">
             Fly Smart,
             <br />
-            <span className="text-sky-300">Fly Cheap.</span>
+            <span className="text-sky-400 ">Fly Cheap.</span>
           </h1>
 
-          {/* subtitle */}
-          <p className="mt-5 max-w-xl text-base font-medium leading-relaxed text-white/60 md:text-lg">
+          {/* search bar */}
+          <div className="mt-10 w-full max-w-11/12 rounded-2xl border">
+            <SearchBar />
+          </div>
+{/*           
+          <p className="mt-5 text-base font-medium leading-relaxed text-black/60 md:text-lg">
             Search hundreds of airlines in seconds and book the best deal for
             your journey.
-          </p>
-
-          {/* search bar */}
-          <div className="mt-10 w-full max-w-[980px]">
-            <SearchBar glass />
-          </div>
+          </p> */}
 
           {/* trust strip */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs font-semibold uppercase tracking-widest text-white/40">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs font-semibold uppercase tracking-widest text-black/40">
             <span>500+ Airlines</span>
             <span className="h-1 w-1 rounded-full bg-white/20" />
             <span>Best Price Guarantee</span>

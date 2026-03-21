@@ -16,7 +16,8 @@ interface SeatMapProps{
 export default function SeatMap({seatData, onSelectSeat, allSelectedSeatsForSegment}: SeatMapProps) {
     const deck = seatData.decks[0];
     const { deckConfiguration, facilities, seats } = deck;
-    const { width, startWingsX, endWingsX, exitRowsX } = deckConfiguration;
+    const { width, startWingsX, endWingsX, exitRowsX = [] } = deckConfiguration;
+    const hasWings = Number.isFinite(startWingsX) && Number.isFinite(endWingsX);
     const selectedNumbers = Object.values(allSelectedSeatsForSegment)
         .map((s: any) => s?.number)
         .filter(Boolean);
@@ -29,21 +30,24 @@ export default function SeatMap({seatData, onSelectSeat, allSelectedSeatsForSegm
                         gridTemplateColumns: `repeat(${width}, minmax(45px, 1fr))` 
                     }}
                 >
-                    <div 
+                    {hasWings && (
+                    <div
                         className="absolute -left-[105px] bg-slate-200 border-slate-300 rounded-l-full flex items-center justify-center"
                         style={{
                             gridRowStart: startWingsX + 1,
                             gridRowEnd: endWingsX + 2,
-                            gridColumn: 1, 
+                            gridColumn: 1,
                             width: '80px',
                             height: '100%',
-                            zIndex: 0 
+                            zIndex: 0
                         }}
                     >
                         <span className="rotate-90 text-[9px] font-black text-slate-400 uppercase">Wing</span>
                     </div>
+                    )}
 
-                    <div 
+                    {hasWings && (
+                    <div
                         className="absolute -right-[105px] bg-slate-200 border-slate-300 rounded-r-full flex items-center justify-center"
                         style={{
                             gridRowStart: startWingsX + 1,
@@ -56,6 +60,7 @@ export default function SeatMap({seatData, onSelectSeat, allSelectedSeatsForSegm
                     >
                         <span className="-rotate-90 text-[9px] font-black text-slate-400 uppercase">Wing</span>
                     </div>
+                    )}
 
                     {exitRowsX.map((rowX: number) => (
                         <div 
@@ -109,13 +114,16 @@ export default function SeatMap({seatData, onSelectSeat, allSelectedSeatsForSegm
                         };
 
                         const { Icon, label, color } = getFacDetail(fac.code);
+                        const facRow = fac.coordinates?.x;
+                        const facCol = fac.coordinates?.y;
+                        if (!Number.isFinite(facRow) || !Number.isFinite(facCol)) return null;
                         return (
                             <div
                                 key={`fac-${i}`}
                                 className="flex items-center justify-center z-10 p-[2px]"
                                 style={{
-                                    gridRow: fac.coordinates.x + 1,
-                                    gridColumn: fac.coordinates.y + 1,
+                                    gridRow: facRow + 1,
+                                    gridColumn: facCol + 1,
                                     width: '100%',
                                     height: '100%',
                                 }}

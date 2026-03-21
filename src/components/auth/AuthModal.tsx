@@ -32,7 +32,7 @@ export default function AuthModal({ open, mode, setMode, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 font-sans"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) {
           mouseDownOnBackdrop.current = true;
@@ -46,16 +46,18 @@ export default function AuthModal({ open, mode, setMode, onClose }: Props) {
       }}
     >
       <div
-        className="w-full max-w-lg rounded-2xl bg-white p-10 shadow-lg flex flex-col gap-5"
+        className="w-full max-w-md rounded-2xl bg-white shadow-2xl flex flex-col gap-5 overflow-hidden p-5"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close */}
-        <button
-          onClick={onClose}
-          className="self-end cursor-pointer text-gray-500 hover:text-black"
-        >
-          ✕
-        </button>
+
+        <div className="flex flex-col gap-5">
+          {/* Close */}
+          <button
+            onClick={onClose}
+            className="self-end cursor-pointer w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all text-sm"
+          >
+            ✕
+          </button>
 
         {mode === "login" && (
           <LoginForm
@@ -85,6 +87,7 @@ export default function AuthModal({ open, mode, setMode, onClose }: Props) {
         {mode === "forgot" && (
           <ForgotPasswordForm setMode={setMode} />
         )}
+        </div>
       </div>
     </div>
   );

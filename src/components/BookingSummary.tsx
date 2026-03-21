@@ -24,10 +24,10 @@ export default function BookingSummary({
   const finalTotal = baseFlightTotal + seatsTotal;
 
   const cp = confirmedPrice;
-  
+
 
   return (
-    <div className="rounded-2xl border bg-white p-6 shadow-sm sticky top-8 flex flex-col gap-3 z-10">
+    <div className="rounded-2xl border bg-white p-6 shadow-sm flex flex-col gap-3 z-10">
       <div className="flex items-center justify-between">
         <h3 className="font-black text-black uppercase text-sm">Price Details</h3>
         {cp && (

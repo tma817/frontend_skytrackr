@@ -328,7 +328,7 @@ export default function PriceGrid({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12 gap-3">
+      <div className="flex items-center justify-center py-12 gap-3 font-sans">
         <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-black" />
         <span className="text-sm text-slate-500">Loading prices…</span>
       </div>
@@ -337,14 +337,14 @@ export default function PriceGrid({
 
   if (error) {
     return (
-      <p className="text-center text-sm text-red-500 py-8">{error}</p>
+      <p className="text-center text-sm text-red-500 py-8 font-sans">{error}</p>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 font-sans">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+        <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest">
           {origin} → {destination}
           {!oneWay && returnDate && ` · ${destination} → ${origin}`}
         </p>
