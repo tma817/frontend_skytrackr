@@ -20,19 +20,19 @@ export const metadata: Metadata = {
 	description: "Flight search and price tracking",
 };
 
-export default async  function RootLayout({
+export default async function RootLayout({
 	children,
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
-	
+
 	return (
 		<html lang="en">
-			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}
-			>
+			<body className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans min-h-screen flex flex-col`}>
 				<Navbar />
-				<AuthWrapper>{children}</AuthWrapper>
+				<div className="flex-1">
+					<AuthWrapper>{children}</AuthWrapper>
+				</div>
 				<Footer />
 			</body>
 		</html>

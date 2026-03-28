@@ -40,13 +40,13 @@ export default function HomePage() {
           </p> */}
 
           {/* trust strip */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs font-semibold uppercase tracking-widest text-black/40">
-            <span>500+ Airlines</span>
-            <span className="h-1 w-1 rounded-full bg-white/20" />
-            <span>Best Price Guarantee</span>
-            <span className="h-1 w-1 rounded-full bg-white/20" />
-            <span>No Hidden Fees</span>
-          </div>
+			<div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs font-semibold uppercase tracking-widest text-black/40">
+				<span>500+ Airlines</span>
+				<span className="hidden sm:inline-block h-1 w-1 rounded-full bg-white/20" />
+				<span>Best Price Guarantee</span>
+				<span className="hidden sm:inline-block h-1 w-1 rounded-full bg-white/20" />
+				<span>No Hidden Fees</span>
+			</div>
         </div>
       </section>
     </main>
