@@ -10,6 +10,11 @@ export function WatchlistCard({ item, onClick }: WatchlistCardProps) {
   const increased = item.priceDiff > 0;
   const statusColor = item.status === "price_dropped" ? "bg-emerald-500" : item.status === "price_increased" ? "bg-red-500" : "bg-slate-300";
 
+  const totalSegments = item.segments?.length ?? 0;
+  const inboundStartIndex = item.segments?.findIndex(s => s.arrival.iataCode === item.origin) ?? -1;
+  const outboundCount = inboundStartIndex === -1 ? totalSegments : inboundStartIndex + 1;
+  const outboundStops = outboundCount > 1 ? `${outboundCount - 1} ${outboundCount - 1 === 1 ? "stop" : "stops"}` : "Direct";
+
   return (
     <div onClick={onClick} className="px-5 py-4 flex items-center gap-4 cursor-pointer hover:bg-gray-100 transition-colors duration-150 rounded-lg">
       {item.airlineLogo ? (
@@ -26,11 +31,19 @@ export function WatchlistCard({ item, onClick }: WatchlistCardProps) {
           <span className="text-base font-black text-slate-900">{item.origin}</span>
           <span className="text-slate-300 text-sm">→</span>
           <span className="text-base font-black text-slate-900">{item.destination}</span>
-		  <span className="text-[9px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full ml-1">{item.tripType === "round-trip" ? "Round Trip" : "One Way"}</span>
+          <span className="text-[9px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full ml-1">{item.tripType === "round-trip" ? "Round Trip" : "One Way"}</span>
         </div>
 
-        {/* Airline */}
-        <span className="text-[10px] text-slate-400">{item.airlineName}</span>
+        {/* Airline + stops */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] text-slate-400">{item.airlineName}</span>
+          {totalSegments > 0 && (
+            <>
+              <span className="text-slate-200">·</span>
+              <span className="text-[10px] text-slate-400">{outboundStops}</span>
+            </>
+          )}
+        </div>
 
         {/* Departure */}
         <div className="flex items-center gap-1.5 mt-1">
