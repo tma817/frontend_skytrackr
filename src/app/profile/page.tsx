@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { API_BASE } from "@/utils/api";
 import money from "@/utils/money";
+import { WatchlistCard } from "@/components/watchlist/WatchlistCard";
 
 type BookingSummary = {
   _id: string;
@@ -157,49 +158,9 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-100">
-                  {watchlist.slice(0, 4).map((item) => {
-                    const dropped = item.priceDiff < 0;
-                    const increased = item.priceDiff > 0;
-                    const statusColor = item.status === "price_dropped" ? "bg-emerald-500" : item.status === "price_increased" ? "bg-red-500" : "bg-slate-300";
-
-                    return (
-					<div onClick={() => handleClicked(item)} key={item._id} className="px-5 py-4 flex items-center gap-4 cursor-pointer hover:bg-gray-100 transition-colors duration-150 rounded-lg">                        {item.airlineLogo ? (
-                          <img src={item.airlineLogo} alt={item.airlineName} className="h-8 w-8 object-contain shrink-0" />
-                        ) : (
-                          <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center text-[9px] font-black text-slate-400 shrink-0">
-                            {item.airlineName?.slice(0, 2).toUpperCase() ?? "–"}
-                          </div>
-                        )}
-
-                        {/* Route + meta */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-baseline gap-1.5">
-                            <span className="text-base font-black text-slate-900">{item.origin}</span>
-                            <span className="text-slate-300 text-sm">·</span>
-                            <span className="text-base font-black text-slate-900">{item.destination}</span>
-                          </div>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[10px] text-slate-400">{item.airlineName}</span>
-                            <span className="text-slate-200">·</span>
-                            <span className="text-[10px] text-slate-400">{item.departureDate}</span>
-                          </div>
-                        </div>
-
-                        {/* Price + status */}
-                        <div className="text-right shrink-0">
-                          <p className="text-base font-black text-slate-900">{item.currency} {item.currentPrice.toFixed(0)}</p>
-                          {dropped && <p className="text-[10px] font-bold text-emerald-600">▼ {Math.abs(item.priceDiff).toFixed(0)}</p>}
-                          {increased && <p className="text-[10px] font-bold text-red-500">▲ {item.priceDiff.toFixed(0)}</p>}
-                          {!dropped && !increased && (
-                            <div className="flex items-center justify-end gap-1 mt-0.5">
-                              <div className={`h-1.5 w-1.5 rounded-full ${statusColor}`} />
-                              <span className="text-[10px] text-slate-400">No change</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
+                 {watchlist.slice(0, 4).map((item) => (
+					<WatchlistCard key={item._id} item={item} onClick={() => handleClicked(item)} />
+				))}
                 </div>
               )}
             </section>
