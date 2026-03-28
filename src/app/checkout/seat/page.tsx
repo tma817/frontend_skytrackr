@@ -86,6 +86,12 @@ export default function SeatPage() {
   const currentSegmentId = currentSegmentMap.segmentId;
 
   const handleSeatSelect = (seat: any) => {
+    // Prevent stealing a seat already picked by another traveler
+    const takenByOther = Object.entries(selectedSeats[currentSegmentId] || {}).some(
+      ([travelerId, s]: [string, any]) => travelerId !== activeTravelerId && s?.number === seat.number
+    );
+    if (takenByOther) return;
+
     const currentSeat = selectedSeats[currentSegmentId]?.[activeTravelerId];
     if (currentSeat?.number === seat.number) {
       updateSeatSelection(currentSegmentId, activeTravelerId, null);
@@ -109,7 +115,7 @@ export default function SeatPage() {
         <p className="text-sm text-slate-400 mt-1">Select a seat for each passenger</p>
       </div>
 
-      <div className="grid grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-12 gap-6 lg:gap-8 items-start">
 
         {/* Seat map panel */}
         <div className="col-span-12 lg:col-span-8 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
@@ -148,19 +154,20 @@ export default function SeatPage() {
             </div>
           )}
 
-          <div className="p-6 overflow-y-auto max-h-[680px]">
+          <div className="overflow-y-auto max-h-[680px]">
             <div className="max-w-[520px] mx-auto">
               <SeatMap
                 seatData={currentSegmentMap}
                 onSelectSeat={handleSeatSelect}
                 allSelectedSeatsForSegment={selectedSeats[currentSegmentId] || {}}
+                activeTravelerId={activeTravelerId}
               />
             </div>
           </div>
         </div>
 
         {/* Right column */}
-        <div className="col-span-12 lg:col-span-4 space-y-5 sticky top-8">
+        <div className="col-span-12 lg:col-span-4 space-y-5 lg:sticky lg:top-8">
 
           {/* Traveler selector */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
@@ -204,7 +211,7 @@ export default function SeatPage() {
           </div>
 
           <BookingSummary
-            buttonText="Proceed to Payment →"
+            buttonText="Proceed to Payment"
             onContinue={() => handleSubmit(false)}
           />
 

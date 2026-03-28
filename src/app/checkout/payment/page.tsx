@@ -30,8 +30,8 @@ function CardPreview({ number, holder, expiry }: { number: string; holder: strin
 
   return (
     <div
-      className="relative w-full aspect-[1.586/1] rounded-2xl overflow-hidden select-none"
-      style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f3460 100%)" }}
+      className="relative w-full aspect-[1.586/1] rounded-2xl overflow-hidden select-none bg-black"
+      
     >
       <div className="absolute inset-0 opacity-[0.07]"
         style={{ backgroundImage: "radial-gradient(circle, #fff 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
@@ -78,7 +78,44 @@ export default function PaymentPage() {
   const [cvv, setCvv] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [offerExpired, setOfferExpired] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
+
+  if (offerExpired) {
+    const flight = selectedFlight;
+    const searchQs = flight
+      ? new URLSearchParams({
+          from: flight.itineraries[0]?.departure?.iataCode ?? "",
+          to: flight.itineraries[0]?.arrival?.iataCode ?? "",
+          departure: flight.itineraries[0]?.departure?.date ?? "",
+          ...(flight.itineraries[1] ? { return: flight.itineraries[1].departure.date } : {}),
+          tripType: flight.itineraries.length > 1 ? "roundtrip" : "oneway",
+          numOfPassengers: String(travelers.length || 1),
+        }).toString()
+      : "";
+
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-5 text-center px-4">
+        <div className="h-16 w-16 rounded-2xl bg-black border flex items-center justify-center">
+          <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-base font-black text-slate-900">This flight offer has expired</p>
+          <p className="text-sm text-slate-400 mt-1.5 max-w-xs leading-relaxed">
+            Flight prices and availability change quickly. This offer is no longer valid, search again to see current options for the same route.
+          </p>
+        </div>
+        <button
+          onClick={() => router.push(searchQs ? `/search?${searchQs}` : "/")}
+          className="rounded-2xl bg-black px-8 py-3.5 text-sm font-black text-white uppercase tracking-widest hover:bg-black transition-all"
+        >
+          Search Same Route Again
+        </button>
+      </div>
+    );
+  }
 
   if (!selectedFlight) {
     return (
@@ -140,7 +177,11 @@ export default function PaymentPage() {
       clearBooking();
       router.push(`/booking/${data.bookingId}`);
     } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
+      if (err.message === "OFFER_EXPIRED") {
+        setOfferExpired(true);
+      } else {
+        setError(err.message || "Something went wrong. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -319,12 +360,12 @@ export default function PaymentPage() {
 
             <div className="px-5 py-4">
               <p className="text-xs font-black tracking-tight text-gray-900 uppercase leading-none mb-3">Contact</p>
-              <div className="flex items-center gap-8">
-                <div>
+              <div className="flex flex-col gap-2.5 sm:flex-row sm:gap-8">
+                <div className="min-w-0">
                   <p className="text-xs text-slate-400 font-medium mb-0.5">Email</p>
-                  <p className="text-sm font-bold text-slate-900">{contact?.emailAddress}</p>
+                  <p className="text-sm font-bold text-slate-900 break-all">{contact?.emailAddress}</p>
                 </div>
-                <div>
+                <div className="shrink-0">
                   <p className="text-xs text-slate-400 font-medium mb-0.5">Phone</p>
                   <p className="text-sm font-bold text-slate-900">{contact?.countryCallingCode} {contact?.number}</p>
                 </div>
@@ -384,7 +425,7 @@ export default function PaymentPage() {
               <button
                 onClick={handlePay}
                 disabled={!isFormValid || isLoading}
-                className="w-full rounded-2xl bg-slate-900 py-4 text-sm font-black text-white transition-all hover:bg-black active:scale-[0.98] uppercase tracking-widest shadow-lg shadow-slate-200/60 disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100"
+                className="w-full rounded-2xl bg-black py-4 text-sm font-black text-white transition-all hover:bg-black active:scale-[0.98] uppercase tracking-widest shadow-lg shadow-slate-200/60 disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100"
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-2">

@@ -80,7 +80,7 @@ export default function VerifyForm({ email, setMode, onVerifySuccess }: any) {
                 />
                 {errorMessage && <p className="text-red-500 text-xs font-medium">{errorMessage}</p>}
 
-                <button className="bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition-colors">
+                <button className="bg-black text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition-colors">
                     {isLoading ? "Checking..." : "Confirm Code"}
                 </button>
             </form>

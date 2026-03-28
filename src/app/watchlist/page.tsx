@@ -101,7 +101,7 @@ export default function WatchlistPage() {
             </p>
           </div>
           <button onClick={() => router.push("/profile")} className="text-xs font-bold text-slate-400 hover:text-slate-700 transition-colors">
-            ← Profile
+            Profile
           </button>
         </div>
       </div>

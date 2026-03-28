@@ -53,7 +53,7 @@ export default function AirportInput({
   };
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full py-2">
       <input
         className={`w-full bg-transparent text-sm outline-none ${glass ? "text-black placeholder:text-black/50" : "text-gray-900 placeholder:text-gray-400"}`}
         value={value}

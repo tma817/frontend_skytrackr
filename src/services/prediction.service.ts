@@ -51,7 +51,8 @@ export const predictionService = {
     departureDate: string,
     currentPrice: number,
     currency = "CAD",
-    oneWay = true
+    oneWay = true,
+    returnDate?: string
   ): Promise<PriceAnalysis> {
     const params = new URLSearchParams({
       origin,
@@ -60,6 +61,7 @@ export const predictionService = {
       currentPrice: String(currentPrice),
       currency,
       oneWay: String(oneWay),
+      ...(returnDate ? { returnDate } : {}),
     });
     const res = await fetch(`${BASE}/flights/price-analysis?${params}`);
     if (!res.ok) throw new Error("Failed to fetch price analysis");

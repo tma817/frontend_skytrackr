@@ -231,7 +231,7 @@ export default function Navbar() {
 						) : (
 							<>
 								<button
-									className="cursor-pointer rounded-lg border-2 border-black bg-slate-9 min-h-10 w-full font-medium text-white transition-colors duration-150 hover:opacity-80 text-sm"
+									className="cursor-pointer bg-black rounded-lg border-2 border-black bg-slate-9 min-h-10 w-full font-medium text-white transition-colors duration-150 hover:opacity-80 text-sm"
 									onClick={() => { setAuthModalOpen(true); setMode("login"); setMenuOpen(false); }}
 								>
 									Login
