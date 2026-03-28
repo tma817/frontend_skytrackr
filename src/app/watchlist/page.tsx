@@ -66,15 +66,21 @@ export default function WatchlistPage() {
     finally { setRemoving(null); }
   }
 
-  function handleSearchAgain(item: WatchlistItem) {
-    const qs = new URLSearchParams({
-      from: item.origin, to: item.destination,
-      tripType: item.tripType === "round-trip" ? "roundtrip" : "oneway",
-      departure: item.departureDate,
-      numOfPassengers: String(Math.max(1, parseInt(String(item.passengers)) || 1)),
-    });
-    router.push(`/search?${qs.toString()}`);
-  }
+	function handleSearchAgain(item: WatchlistItem) {
+	const qs = new URLSearchParams({
+		from: item.origin,
+		to: item.destination,
+		tripType: item.tripType === "round-trip" ? "roundtrip" : "oneway",
+		departure: item.departureDate,
+		numOfPassengers: String(item.passengers),
+	});
+
+	if (item.returnDate) {
+		qs.set("return", item.returnDate);
+	}
+
+	router.push(`/search?${qs.toString()}`);
+	}
 
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center">
