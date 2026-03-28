@@ -4,10 +4,13 @@ export interface FlightLocation {
     date: string;
     iataCode: string;
     terminal?: string;
+    cityName?: string | null;
+    airportName?: string | null;
 }
 
 export interface FlightSegment {
     departure: {
+        [x: string]: any;
         iataCode: string;
         terminal?: string;
         at: string;
@@ -15,6 +18,7 @@ export interface FlightSegment {
         date: string;
     };
     arrival: {
+        [x: string]: any;
         iataCode: string;
         terminal?: string;
         at: string;

@@ -27,14 +27,14 @@ export default function PassengerPicker({
   return (
     <div className="relative w-full" ref={containerRef}>
       <div
-        className={`flex w-full cursor-pointer items-center text-sm outline-none ${glass ? "text-white" : "text-black"}`}
+        className={`flex w-full cursor-pointer items-center text-sm outline-none ${glass ? "text-black" : "text-black"}`}
         onClick={() => setIsOpen(!isOpen)}
       >
         {value} {value > 1 ? "adults" : "adult"}
       </div>
 
       {isOpen && (
-        <div className="absolute right-0 top-[calc(100%+12px)] z-[100] w-64 rounded-lg border bg-white p-4 shadow-2xl">
+        <div className="absolute right-0 top-[calc(100%+12px)] z-[100] w-64 rounded-lg bg-white p-4 shadow-2xl">
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm font-bold text-black">Adults</div>

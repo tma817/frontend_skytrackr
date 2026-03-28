@@ -1,38 +1,23 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import SearchBar from "@/components/SearchBar";
 import FlightCard from "@/components/FlightCard";
 import { useSearchFlights } from "@/hooks/useSearchFlights";
 import PriceGrid from "@/components/PriceGrid";
 import type { FilterParams } from "@/services/flight.service";
-import { watchlistService } from "@/services/watchlist.service";
-import type { FlightResult } from "@/types/flight";
-
-// Modified the return to make it unique so that whenever any id with same departure or detail, 
-// it doesn't bookmark that flight as well
-function getStableId(f: FlightResult) {
-    const outbound = f.itineraries.find(i => i.type === "outbound");
-	const inbound = f.itineraries.find(i => i.type === "inbound");
-    return [
-        f.airline.name,
-        outbound?.departure.iataCode,
-        outbound?.arrival.iataCode,
-        outbound?.departure.date,
-        outbound?.departure.time,
-		outbound?.arrival.time,
-		inbound?.departure.time,
-		inbound?.arrival.time,
-		Math.round(f.price.amount)
-    ].join("-");
-}
+import { watchlistService, WatchlistItem } from "@/services/watchlist.service";
+import { getAccessToken } from "@/utils/auth-helpers";
+import { useEffect } from "react";
 
 export default function SearchPage() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 
 	const [priceGridOpen, setPriceGridOpen] = useState(false);
+	const [loginPromptOpen, setLoginPromptOpen] = useState(false);
+	const [filtersOpen, setFiltersOpen] = useState(false);
 
 	const from = searchParams.get("from") ?? "";
 	const to = searchParams.get("to") ?? "";
@@ -41,14 +26,31 @@ export default function SearchPage() {
 	const returnDate = searchParams.get("return") ?? "";
 	const numOfPassengers = searchParams.get("numOfPassengers") ?? "1";
 
+
+	const [watchlist, setWatchlist] = useState<WatchlistItem[]>([]);
+
+	useEffect(() => {
+	if (!getAccessToken()) return;
+	watchlistService.getWatchlist()
+		.then(data => setWatchlist(data))
+		.catch(err => console.error(err));
+	}, []);
+
 	// ===== Filters =====
 	const [filters, setFilters] = useState<FilterParams>({});
 
-	function setFilter<K extends keyof FilterParams>(key: K, value: FilterParams[K]) {
+	function setFilter<K extends keyof FilterParams>(
+		key: K,
+		value: FilterParams[K],
+	) {
 		setFilters((prev) => ({ ...prev, [key]: value }));
 	}
 	function clearFilter<K extends keyof FilterParams>(key: K) {
-		setFilters((prev) => { const next = { ...prev }; delete next[key]; return next; });
+		setFilters((prev) => {
+			const next = { ...prev };
+			delete next[key];
+			return next;
+		});
 	}
 
 	// ===== Flights via Hook =====
@@ -63,76 +65,37 @@ export default function SearchPage() {
 		});
 
 	// ===== Watchlist =====
-	// flightId → watchlist _id (for removal)
-	const watchlistMap = useRef<Map<string, string>>(new Map());
-	const [watchedIds, setWatchedIds] = useState<Set<string>>(new Set());
-	const watchBusy = useRef(false);
+	const [watchBusy, setWatchBusy] = useState(false);
 
-	useEffect(() => {
-
-		// New changes
-		setWatchedIds(new Set());
-		watchlistMap.current = new Map();
-
-		watchlistService.getWatchlist().then((items) => {
-			const byFlight = new Map<string, string>();
-			items.forEach((i) => {
-				if (i.flightId) byFlight.set(i.flightId, i._id);
-			});
-			watchlistMap.current = byFlight;
-			setWatchedIds(new Set(byFlight.keys()));
-
-			//console.log("Watchlist flightIds:", [...byFlight.keys()]);
-        	//console.log("Current flight ids:", flights.map(f => f.id));
-
-		}).catch(() => { /* not logged in — silent */ });
-	}, [from, to, departure, returnDate]);
-
-	async function handleToggleWatch(f: { id: string; [k: string]: any }) {
-		/*console.log("handleToggleWatch called", {
-        stableId: getStableId(f),
-        isAdded: watchedIds.has(getStableId(f)),
-        busy: watchBusy.current,
-    	});
-		*/
-		
-		const stableId = getStableId(f);
-    	const isAdded = watchedIds.has(stableId);
-		
-		if (watchBusy.current) return;
-		watchBusy.current = true;
+	async function handleToggleWatch(f: any) {
+		if (!getAccessToken()) {
+			setLoginPromptOpen(true);
+			return;
+		}
+		if (watchBusy) return;
+		setWatchBusy(true);
 		try {
-			if (isAdded) {
-				const wId = watchlistMap.current.get(stableId); // use stableId instead of f.id
-				if (wId) {
-					await watchlistService.removeFromWatchlist(wId);
-					watchlistMap.current.delete(stableId); // change from f.id to stableId
-					setWatchedIds((prev) => { const s = new Set(prev); s.delete(stableId); return s; }); // change from f.id to stableId
-				}
+			const watched = watchlistService.isFlightWatched(f, watchlist);
+			if (watched) {
+				await watchlistService.removeFromWatchlist(watched._id);
+				setWatchlist(prev => prev.filter(item => item._id !== watched._id));
 			} else {
-				console.log("calling addToWatchlist...");
-				const item = await watchlistService.addToWatchlist(
+				const newItem = await watchlistService.addToWatchlist(
 					f as any,
 					numOfPassengers,
 					tripType === "roundtrip" ? "round-trip" : "one-way",
 				);
-
-				const itemId = String((item as any)._id ?? item._id); // add id
-
-				//console.log("addToWatchlist response:", item);
-				watchlistMap.current.set(stableId, String(itemId)); // changed from item._id to itemId, f.id to stableId
-				setWatchedIds((prev) => new Set([...prev, stableId])); // changed from f.id to stableId
+				setWatchlist(prev => [...prev, newItem]);
 			}
 		} catch (err: any) {
 			console.error("handleToggleWatch error:", err);
 			if (err?.message === "UNAUTHORIZED") {
-				router.push("/login");
+				setLoginPromptOpen(true);
 			}
 		} finally {
 			watchBusy.current = false;
 		}
 	}
-
 	const handleSearch = (payload: any) => {
 		const qs = new URLSearchParams({
 			from: payload.from ?? "",
@@ -167,28 +130,25 @@ export default function SearchPage() {
 
 	return (
 		<>
-			<main className="min-h-screen">
-				{/* ===== Header + SearchBar ===== */}
+			<main className="min-h-screen font-sans">
+				{/* ===== Header ===== */}
 				<div className="border-b">
-					<div className="bg-gradient-to-r from-yellow-50 via-pink-50 to-purple-50 px-8 py-8">
+					<div className="relative px-8 py-10">
+						{/* Blurred hero background */}
+						<div
+							className="absolute inset-0 -z-10"
+							style={{
+								backgroundImage: "url('/images/hero-bg.png')",
+								backgroundSize: "cover",
+								backgroundPosition: "center",
+								filter: "blur(3px)",
+								transform: "scale(1.05)",
+							}}
+						/>
 						<div className="mx-auto max-w-6xl">
-							<div className="text-sm text-gray-700">
-								<span className="font-medium text-gray-900">{from}</span> →{" "}
-								<span className="font-medium text-gray-900">{to}</span>
-								<span className="mx-2 text-gray-300">|</span>
-								{tripType === "roundtrip" ? (
-									<span>
-										{departure} ~ {returnDate}
-									</span>
-								) : (
-									<span>{departure}</span>
-								)}
-								<span className="mx-2 text-gray-300">|</span>
-								<span>{numOfPassengers}</span>
-							</div>
-
 							<SearchBar
-								className="mt-4"
+								glass={false}
+								className="rounded-2xl shadow-xl border"
 								defaultFrom={from}
 								defaultTo={to}
 								defaultPassengers={numOfPassengers}
@@ -199,152 +159,135 @@ export default function SearchPage() {
 				</div>
 
 				{/* ===== Body ===== */}
-				<div className="mx-auto max-w-6xl px-5 py-6 flex gap-8">
-					<div className="grid grid-cols-12 gap-8 flex-1">
-						{/* ===== Filters ===== */}
-						<aside className="col-span-3 space-y-5">
-							<div className="flex items-center justify-between">
-								<h2 className="text-sm font-semibold text-gray-900">Filters</h2>
-								{Object.keys(filters).length > 0 && (
-									<button
-										onClick={() => setFilters({})}
-										className="text-xs text-blue-600 hover:underline"
-									>
-										Clear all
-									</button>
-								)}
-							</div>
+				<div className="mx-auto px-4 md:px-10 py-6">
+					<div className="flex flex-col md:grid md:grid-cols-12 gap-6 md:gap-8">
 
-							{/* Stops */}
-							<div className="border-b pb-4">
-								<p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Stops</p>
-								{([
-									{ label: "Any", value: undefined },
-									{ label: "Non-stop", value: 0 },
-									{ label: "1 stop", value: 1 },
-								] as { label: string; value: number | undefined }[]).map(({ label, value }) => (
-									<label key={label} className="flex cursor-pointer items-center gap-2 py-1 text-sm">
-										<input
-											type="radio"
-											name="stops"
-											checked={filters.stops === value}
-											onChange={() =>
-												value === undefined ? clearFilter("stops") : setFilter("stops", value)
-											}
-											className="accent-black"
-										/>
-										{label}
-									</label>
-								))}
-							</div>
-
-							{/* Max price */}
-							<div className="border-b pb-4">
-								<p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Max Price (CAD)</p>
-								<input
-									type="number"
-									min={0}
-									step={50}
-									placeholder="e.g. 1000"
-									value={filters.maxPrice ?? ""}
-									onChange={(e) => {
-										const v = e.target.value;
-										v === "" ? clearFilter("maxPrice") : setFilter("maxPrice", Number(v));
-									}}
-									className="w-full rounded-md border px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-black"
-								/>
-							</div>
-
-							{/* Departure time */}
-							<div className="border-b pb-4">
-								<p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Departure Time</p>
-								<div className="flex items-center gap-2">
-									<input
-										type="time"
-										value={filters.timeFrom ?? ""}
-										onChange={(e) => {
-											const v = e.target.value;
-											v === "" ? clearFilter("timeFrom") : setFilter("timeFrom", v);
-										}}
-										className="flex-1 rounded-md border px-0.3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-black"
-									/>
-									<span className="text-xs text-gray-400">to</span>
-									<input
-										type="time"
-										value={filters.timeTo ?? ""}
-										onChange={(e) => {
-											const v = e.target.value;
-											v === "" ? clearFilter("timeTo") : setFilter("timeTo", v);
-										}}
-										className="flex-1 rounded-md border px-0.3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-black"
-									/>
+						{/* ===== Filters sidebar — desktop only ===== */}
+						<aside className="hidden md:block md:col-span-3">
+							<div className="rounded-2xl border bg-white overflow-hidden">
+								<div className="flex items-center justify-between px-5 py-4 border-b">
+									<h2 className="text-sm font-bold tracking-tight text-gray-900">Filters</h2>
+									{Object.keys(filters).length > 0 && (
+										<button onClick={() => setFilters({})} className="text-[11px] font-semibold text-gray-400 hover:text-black transition-colors">
+											Clear all
+										</button>
+									)}
 								</div>
-							</div>
-
-							{/* Cabin */}
-							<div>
-								<p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Cabin Class</p>
-								<select
-									value={filters.cabin ?? ""}
-									onChange={(e) => {
-										const v = e.target.value;
-										v === "" ? clearFilter("cabin") : setFilter("cabin", v);
-									}}
-									className="w-full rounded-md border px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-black"
-								>
-									<option value="">Any</option>
-									<option value="ECONOMY">Economy</option>
-									<option value="PREMIUM_ECONOMY">Premium Economy</option>
-									<option value="BUSINESS">Business</option>
-									<option value="FIRST">First</option>
-								</select>
+								<div className="divide-y">
+									{/* Stops */}
+									<div className="px-5 py-4">
+										<p className="mb-3 font-bold uppercase tracking-widest">Stops</p>
+										<div className="flex flex-col gap-1">
+											{([{ label: "Any", value: undefined }, { label: "Non-stop", value: 0 }, { label: "1 stop", value: 1 }] as { label: string; value: number | undefined }[]).map(({ label, value }) => {
+												const active = filters.stops === value;
+												return (
+													<label key={label} className={`flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${active ? "bg-gray-900 text-white" : "hover:bg-gray-50 text-gray-700"}`}>
+														<input type="radio" name="stops" checked={active} onChange={() => value === undefined ? clearFilter("stops") : setFilter("stops", value)} className="hidden" />
+														<span className={`h-2 w-2 rounded-full border-2 flex-shrink-0 ${active ? "border-white bg-white" : "border-gray-300"}`} />
+														{label}
+													</label>
+												);
+											})}
+										</div>
+									</div>
+									{/* Max price */}
+									<div className="px-5 py-4">
+										<p className="mb-3 text-[12px] font-bold uppercase tracking-widest">Max Price (CAD)</p>
+										<div className="relative">
+											<span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
+											<input type="number" min={0} step={50} placeholder="Any" value={filters.maxPrice ?? ""} onChange={(e) => { const v = e.target.value; v === "" ? clearFilter("maxPrice") : setFilter("maxPrice", Number(v)); }} className="w-full rounded-lg border border-gray-200 bg-gray-50 pl-7 pr-3 py-2 text-sm outline-none transition focus:border-gray-400 focus:bg-white focus:ring-0" />
+										</div>
+									</div>
+									{/* Departure time */}
+									<div className="px-5 py-4">
+										<p className="mb-3 text-[12px] font-bold uppercase tracking-widest">Departure Time</p>
+										<div className="flex items-center gap-2">
+											<input type="time" value={filters.timeFrom ?? ""} onChange={(e) => { const v = e.target.value; v === "" ? clearFilter("timeFrom") : setFilter("timeFrom", v); }} className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 text-sm outline-none transition focus:border-gray-400 focus:bg-white" />
+											<span className="text-xs font-medium text-gray-300">—</span>
+											<input type="time" value={filters.timeTo ?? ""} onChange={(e) => { const v = e.target.value; v === "" ? clearFilter("timeTo") : setFilter("timeTo", v); }} className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 text-sm outline-none transition focus:border-gray-400 focus:bg-white" />
+										</div>
+									</div>
+									{/* Cabin */}
+									<div className="px-5 py-4">
+										<p className="mb-3 text-[12px] font-bold uppercase tracking-widest">Cabin Class</p>
+										<div className="grid grid-cols-2 gap-1.5">
+											{[{ label: "Any", value: "" }, { label: "Economy", value: "ECONOMY" }, { label: "Prem. Eco", value: "PREMIUM_ECONOMY" }, { label: "Business", value: "BUSINESS" }, { label: "First", value: "FIRST" }].map(({ label, value }) => {
+												const active = (filters.cabin ?? "") === value;
+												return (
+													<button key={value} type="button" onClick={() => value === "" ? clearFilter("cabin") : setFilter("cabin", value)} className={`rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors ${active ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-white"}`}>
+														{label}
+													</button>
+												);
+											})}
+										</div>
+									</div>
+								</div>
 							</div>
 						</aside>
 
 						{/* ===== Flights List ===== */}
-						<section className="col-span-9">
+						<section className="md:col-span-9">
+							{/* Results row — mobile has filter button here */}
+							{!loading && !error && (
+								<div className="mb-3 flex items-center justify-between gap-2">
+									<p className="text-sm text-gray-500">
+										{flights.length > 0 ? (
+											<><span className="font-semibold text-gray-900">{flights.length}</span>{" "}result{flights.length !== 1 ? "s" : ""} found</>
+										) : (
+											"No results found"
+										)}
+									</p>
+									<div className="flex items-center gap-2">
+										{/* Filter button — mobile only */}
+										<button
+											onClick={() => setFiltersOpen(true)}
+											className="md:hidden flex items-center gap-1.5 rounded-lg border bg-white px-3 py-1.5 text-sm font-semibold shadow-sm transition hover:bg-slate-50 active:scale-95"
+										>
+											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+												<path fillRule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 0 1 .628.74v2.288a2.25 2.25 0 0 1-.659 1.59l-4.682 4.683a2.25 2.25 0 0 0-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 0 1 8 18.25v-5.757a2.25 2.25 0 0 0-.659-1.591L2.659 6.22A2.25 2.25 0 0 1 2 4.629V2.34a.75.75 0 0 1 .628-.74Z" clipRule="evenodd" />
+											</svg>
+											Filters
+											{Object.keys(filters).length > 0 && (
+												<span className="flex h-4 w-4 items-center justify-center rounded-full bg-black text-[10px] font-bold text-white">
+													{Object.keys(filters).length}
+												</span>
+											)}
+										</button>
+										<button
+											onClick={() => setPriceGridOpen(true)}
+											className="flex items-center gap-1.5 rounded-lg border bg-white px-3 py-1.5 text-sm font-semibold shadow-sm transition hover:bg-slate-50 hover:shadow-md active:scale-95"
+										>
+											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+												<path fillRule="evenodd" d="M.99 5.24A2.25 2.25 0 0 1 3.25 3h13.5A2.25 2.25 0 0 1 19 5.25l.01 9.5A2.25 2.25 0 0 1 16.76 17H3.26A2.267 2.267 0 0 1 1 14.75l-.01-9.51Zm8.26 9.52v-.625a.75.75 0 0 0-1.5 0v.625a.75.75 0 0 0 1.5 0Zm2.495-4.875a.75.75 0 0 0-1.5 0v4.875a.75.75 0 0 0 1.5 0V9.877Zm2.76-3a.75.75 0 0 0-1.5 0v7.875a.75.75 0 0 0 1.5 0V6.877Zm-8.76 1.5a.75.75 0 0 0-1.5 0v6.375a.75.75 0 0 0 1.5 0V8.377Z" clipRule="evenodd" />
+											</svg>
+											Price Grid
+										</button>
+									</div>
+								</div>
+							)}
+
 							{loading ? (
 								<div className="flex flex-col items-center justify-center py-20">
 									<div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-black" />
-									<p className="mt-4 text-gray-500 font-medium">
-										Searching for best flights...
-									</p>
+									<p className="mt-4 text-gray-500 font-medium">Searching for best flights...</p>
 								</div>
 							) : error ? (
 								<div className="text-center py-20 text-red-600">{error}</div>
 							) : flights.length > 0 ? (
 								// Prevents duplicate flight results
 								<div className="flex flex-col gap-2.5">
-									{(() => {
-										const seen = new Set<string>();
-										const uniqueFlights = flights.filter((f) => {
-											const id = getStableId(f);
-											if (seen.has(id)) return false;
-											seen.add(id);
-											return true;
-										});
-
-										return uniqueFlights.map((f) => {
-											const stableId = getStableId(f);
-											return (
-												<FlightCard
-													key={f.id}
-													flight={f}
-													onClick={() => goTicket(f.id, f.search_id!)}
-													isAdded={watchedIds.has(stableId)}
-													onToggle={() => handleToggleWatch(f)}
-												/>
-											);
-										});
-									})()}
-
+									{flights.map((f) => (
+										<FlightCard
+											key={f.id}
+											flight={f}
+											onClick={() => goTicket(f.id, f.search_id!)}
+											isAdded={!!watchlistService.isFlightWatched(f, watchlist)}
+											onToggle={() => handleToggleWatch(f)}
+										/>
+									))}
 									{hasMore && (
 										<div className="pt-4 flex justify-center">
-											<button
-												onClick={loadMore}
-												disabled={loadingMore}
-												className="rounded-lg border px-5 py-2 text-sm font-medium hover:bg-gray-50 disabled:opacity-60"
-											>
+											<button onClick={loadMore} disabled={loadingMore} className="rounded-lg border px-5 py-2 text-sm font-medium hover:bg-gray-50 disabled:opacity-60">
 												{loadingMore ? "Loading..." : "Load more flights"}
 											</button>
 										</div>
@@ -352,24 +295,90 @@ export default function SearchPage() {
 								</div>
 							) : (
 								<div className="text-center py-20 border-2 border-dashed rounded-xl">
-									<p className="text-gray-500">
-										No flights found for this route. Try another date.
-									</p>
+									<p className="text-gray-500">No flights found for this route. Try another date.</p>
 								</div>
 							)}
 						</section>
 					</div>
-
-					{/* ===== Price Grid button ===== */}
-					<div>
-						<button
-							onClick={() => setPriceGridOpen(true)}
-							className="flex items-center justify-center rounded-xl bg-white border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:shadow-md active:scale-95"
-						>
-							Price Grid
-						</button>
-					</div>
 				</div>
+
+				{/* ===== Mobile Filter Drawer ===== */}
+				{filtersOpen && (
+					<div className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
+						<div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setFiltersOpen(false)} />
+						<div className="relative bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto">
+							{/* Drag handle */}
+							<div className="flex justify-center pt-3 pb-1">
+								<div className="h-1 w-10 rounded-full bg-gray-200" />
+							</div>
+							<div className="flex items-center justify-between px-5 py-3 border-b">
+								<h2 className="text-sm font-bold tracking-tight text-gray-900">Filters</h2>
+								<div className="flex items-center gap-3">
+									{Object.keys(filters).length > 0 && (
+										<button onClick={() => setFilters({})} className="text-[11px] font-semibold text-gray-400 hover:text-black transition-colors">
+											Clear all
+										</button>
+									)}
+									<button onClick={() => setFiltersOpen(false)} className="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors text-base leading-none">
+										✕
+									</button>
+								</div>
+							</div>
+							<div className="divide-y">
+								{/* Stops */}
+								<div className="px-5 py-4">
+									<p className="mb-3 text-[12px] font-bold uppercase tracking-widest">Stops</p>
+									<div className="flex gap-2">
+										{([{ label: "Any", value: undefined }, { label: "Non-stop", value: 0 }, { label: "1 stop", value: 1 }] as { label: string; value: number | undefined }[]).map(({ label, value }) => {
+											const active = filters.stops === value;
+											return (
+												<button key={label} type="button" onClick={() => value === undefined ? clearFilter("stops") : setFilter("stops", value)} className={`flex-1 rounded-lg border py-2 text-sm font-medium transition-colors ${active ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300"}`}>
+													{label}
+												</button>
+											);
+										})}
+									</div>
+								</div>
+								{/* Max price */}
+								<div className="px-5 py-4">
+									<p className="mb-3 text-[12px] font-bold uppercase tracking-widest">Max Price (CAD)</p>
+									<div className="relative">
+										<span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
+										<input type="number" min={0} step={50} placeholder="Any" value={filters.maxPrice ?? ""} onChange={(e) => { const v = e.target.value; v === "" ? clearFilter("maxPrice") : setFilter("maxPrice", Number(v)); }} className="w-full rounded-lg border border-gray-200 bg-gray-50 pl-7 pr-3 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:bg-white" />
+									</div>
+								</div>
+								{/* Departure time */}
+								<div className="px-5 py-4">
+									<p className="mb-3 text-[12px] font-bold uppercase tracking-widest">Departure Time</p>
+									<div className="flex items-center gap-2">
+										<input type="time" value={filters.timeFrom ?? ""} onChange={(e) => { const v = e.target.value; v === "" ? clearFilter("timeFrom") : setFilter("timeFrom", v); }} className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-2 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:bg-white" />
+										<span className="text-xs font-medium text-gray-300">—</span>
+										<input type="time" value={filters.timeTo ?? ""} onChange={(e) => { const v = e.target.value; v === "" ? clearFilter("timeTo") : setFilter("timeTo", v); }} className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-2 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:bg-white" />
+									</div>
+								</div>
+								{/* Cabin */}
+								<div className="px-5 py-4">
+									<p className="mb-3 text-[12px] font-bold uppercase tracking-widest">Cabin Class</p>
+									<div className="grid grid-cols-3 gap-2">
+										{[{ label: "Any", value: "" }, { label: "Economy", value: "ECONOMY" }, { label: "Prem. Eco", value: "PREMIUM_ECONOMY" }, { label: "Business", value: "BUSINESS" }, { label: "First", value: "FIRST" }].map(({ label, value }) => {
+											const active = (filters.cabin ?? "") === value;
+											return (
+												<button key={value} type="button" onClick={() => value === "" ? clearFilter("cabin") : setFilter("cabin", value)} className={`rounded-lg border px-2 py-2 text-xs font-medium transition-colors ${active ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-white"}`}>
+													{label}
+												</button>
+											);
+										})}
+									</div>
+								</div>
+							</div>
+							<div className="px-5 py-4 pb-8">
+								<button onClick={() => setFiltersOpen(false)} className="w-full rounded-xl bg-black py-3 text-sm font-bold text-white active:scale-95 transition">
+									Show results
+								</button>
+							</div>
+						</div>
+					</div>
+				)}
 			</main>
 
 			{/* ===== Price Grid Modal ===== */}
@@ -379,31 +388,87 @@ export default function SearchPage() {
 						className="absolute inset-0 bg-black/40 backdrop-blur-sm"
 						onClick={() => setPriceGridOpen(false)}
 					/>
-					<div className="relative z-10 w-full max-w-3xl mx-4 rounded-2xl bg-white p-6 shadow-2xl">
-						<div className="flex justify-between items-start mb-4">
-							<div>
-								<h2 className="text-xl font-bold tracking-tight">Price Grid</h2>
-								<p className="text-xs text-slate-400 mt-0.5">
-									{tripType === "roundtrip" ? "Round-trip cheapest combos" : "One-way cheapest dates"} · {from} → {to}
-								</p>
+					<div className="relative font-sans uppercase z-10 w-full max-w-3xl mx-4 rounded-2xl bg-white shadow-2xl overflow-hidden">
+						<div className="p-6">
+							<div className="flex justify-between items-start mb-5">
+								<div>
+									<h2 className="text-lg font-black tracking-tight text-gray-900">
+										Price Grid
+									</h2>
+									<p className="text-xs text-gray-400 mt-0.5">
+										{tripType === "roundtrip"
+											? "Round-trip cheapest combos"
+											: "One-way cheapest dates"}
+									</p>
+								</div>
+								<button
+									onClick={() => setPriceGridOpen(false)}
+									className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors text-lg leading-none"
+								>
+									✕
+								</button>
 							</div>
+
+							<PriceGrid
+								origin={from}
+								destination={to}
+								departureDate={departure}
+								returnDate={returnDate || undefined}
+								currency="CAD"
+								oneWay={tripType !== "roundtrip"}
+								numOfPassengers={numOfPassengers}
+							/>
+						</div>
+					</div>
+				</div>
+			)}
+			{/* ===== Login Prompt Modal ===== */}
+			{loginPromptOpen && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center">
+					<div
+						className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+						onClick={() => setLoginPromptOpen(false)}
+					/>
+					<div className="relative z-10 mx-4 w-full max-w-sm rounded-2xl bg-white shadow-2xl overflow-hidden">
+						<div className="p-8 flex flex-col items-center text-center">
+							{/* Icon */}
+							<div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-sky-50 border border-sky-100">
+								<svg
+									className="h-7 w-7 text-sky-400"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth="1.8"
+									viewBox="0 0 24 24"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+									/>
+								</svg>
+							</div>
+
+							<h2 className="text-lg font-black text-gray-900 tracking-tight">
+								Sign in to watch prices
+							</h2>
+							<p className="mt-2 text-sm text-gray-400 leading-relaxed">
+								Create a free account to track flight prices and get notified
+								when they drop.
+							</p>
+
 							<button
-								onClick={() => setPriceGridOpen(false)}
-								className="text-slate-400 hover:text-black text-xl leading-none"
+								onClick={() => router.push("/login")}
+								className="mt-6 w-full rounded-xl bg-gray-900 py-3 text-sm font-bold text-white transition hover:bg-black active:scale-95"
 							>
-								✕
+								Sign in
+							</button>
+							<button
+								onClick={() => setLoginPromptOpen(false)}
+								className="mt-3 w-full rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-500 transition hover:bg-gray-50 active:scale-95"
+							>
+								Maybe later
 							</button>
 						</div>
-
-						<PriceGrid
-							origin={from}
-							destination={to}
-							departureDate={departure}
-							returnDate={returnDate || undefined}
-							currency="CAD"
-							oneWay={tripType !== "roundtrip"}
-							numOfPassengers={numOfPassengers}
-						/>
 					</div>
 				</div>
 			)}

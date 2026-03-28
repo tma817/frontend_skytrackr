@@ -1,6 +1,5 @@
 "use client"
 import { useForm, useFieldArray } from "react-hook-form";
-import { PiUserCircleFill, PiEnvelopeSimpleFill } from "react-icons/pi";
 import { useEffect } from "react";
 
 interface PassengerFormProps {
@@ -10,7 +9,7 @@ interface PassengerFormProps {
 }
 
 export default function PassengerForm({ adultCount, onSubmit, initialData }: PassengerFormProps) {
-  const { register, control, handleSubmit, reset, formState: { errors } } = useForm({
+  const { register, control, handleSubmit, reset } = useForm({
     defaultValues: initialData || {
       travelers: Array.from({ length: adultCount }, (_, i) => ({
         id: (i + 1).toString(),
@@ -19,156 +18,143 @@ export default function PassengerForm({ adultCount, onSubmit, initialData }: Pas
         dateOfBirth: "",
         gender: "MALE",
       })),
-      contact: {
-        emailAddress: "",
-        countryCallingCode: "+1",
-        number: ""
-      }
-    }
+      contact: { emailAddress: "", countryCallingCode: "+1", number: "" },
+    },
   });
 
   useEffect(() => {
-    if (initialData) {
-      reset(initialData);
-    }
+    if (initialData) reset(initialData);
   }, [initialData, reset]);
 
   const { fields } = useFieldArray({ control, name: "travelers" });
 
+  const inputCls = "w-full border rounded-xl p-3 bg-transparent text-sm text-gray-900 placeholder:text-gray-300 focus:border-sky-400 focus:outline-none transition-colors duration-200";
+  const labelCls = "block text-[10px] font-bold uppercase tracking-[0.18em] mb-2 group-focus-within:text-sky-500 transition-colors duration-200";
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="bg-white p-8 border border-slate-100 rounded-[2rem] max-w-4xl mx-auto space-y-12">
-      
-      {/* SECTION 1: PASSENGERS */}
-      <div className="space-y-6">
-        <h2 className="text-xl font-black text-slate-800 flex items-center gap-3">
-          <PiUserCircleFill className="text-black" size={28} />
-          Passenger Information
-        </h2>
-        
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-10 p-10 font-sans bg-white rounded-2xl">
+
+      {/* ── Passengers ── */}
+      <div className="space-y-8">
+        <div>
+          <h2 className="text-2xl font-black tracking-tight  text-gray-900 uppercase leading-none">Passenger Information</h2>
+          <p className="text-xs text-gray-400 mt-1">Must match official travel documents exactly</p>
+        </div>
+
         {fields.map((field, index) => (
-          <div key={field.id} className="space-y-1 animate-in fade-in duration-500">
-            <div className="flex justify-between items-center">
-              <h3 className="text-xl font-black text-slate-800 flex items-center gap-3">
+          <div key={field.id}>
+            <div className="flex items-center gap-3 mb-5">
+              <span className="text-[16px] font-bold uppercase">
                 Passenger {index + 1}
-              </h3>
-              <span className="text-[10px] font-bold bg-blue-100 text-blue-500 p-1 rounded-2xl px-2 uppercase tracking-tight">
-                {index === 0 ? "Primary Contact" : "Additional Passenger"}
               </span>
+              {index === 0 && (
+                <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-white bg-black border px-2 py-0.5 rounded-full">
+                  Primary
+                </span>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                {/* First Name */}
-                <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-black uppercase ml-1">First Name</label>
-                    <input 
-                        {...register(`travelers.${index}.firstName` as const, { required: true })}
-                        placeholder="e.g. JORGE"
-                        className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-[11px] font-bold uppercase placeholder:font-normal placeholder:normal-case placeholder:text-slate-400"
-                    />
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="group">
+                <label className={labelCls}>First Name</label>
+                <input
+                  {...register(`travelers.${index}.firstName` as const, { required: true })}
+                  placeholder="First Name"
+                  className={inputCls + " uppercase"}
+                />
+              </div>
 
-                {/* Last Name */}
-                <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-black uppercase ml-1">Last Name</label>
-                    <input 
-                        {...register(`travelers.${index}.lastName` as const, { required: true })}
-                        placeholder="e.g. GONZALES"
-                        className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-[11px] font-bold uppercase placeholder:font-normal placeholder:normal-case placeholder:text-slate-400"
-                    />
-                </div>
+              <div className="group">
+                <label className={labelCls}>Last Name</label>
+                <input
+                  {...register(`travelers.${index}.lastName` as const, { required: true })}
+                  placeholder="Last Name"
+                  className={inputCls + " uppercase"}
+                />
+              </div>
 
-                {/* Date of Birth */}
-                <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-black uppercase ml-1">Date Of Birth</label>
-                    <input
-                        type="date"
-                        {...register(`travelers.${index}.dateOfBirth` as const, { required: true })}
-                        className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-[11px] font-bold text-slate-600"
-                    />
-                </div>
+              <div className="group">
+                <label className={labelCls}>Date of Birth</label>
+                <input
+                  type="date"
+                  {...register(`travelers.${index}.dateOfBirth` as const, { required: true })}
+                  className={inputCls}
+                />
+              </div>
 
-                {/* Gender */}
-                <div className="space-y-2">
-                    <label className="text-[11px] font-black text-slate-400 uppercase ml-1">
-                        Gender
+              <div className="group">
+                <label className={labelCls}>Gender</label>
+                <div className="flex gap-2">
+                  {["MALE", "FEMALE"].map((g) => (
+                    <label key={g} className="flex-1 cursor-pointer">
+                      <input
+                        type="radio"
+                        value={g}
+                        {...register(`travelers.${index}.gender` as const)}
+                        className="hidden peer"
+                      />
+                      <div className="w-full py-3 text-center rounded-xl border text-xs font-bold uppercase tracking-[0.12em] text-gray-400 transition-all duration-200 peer-checked:border-black peer-checked:bg-black peer-checked:text-white hover:border-gray-300">
+                        {g === "MALE" ? "Male" : "Female"}
+                      </div>
                     </label>
-                    <div className="flex gap-1.5 border border-slate-200 rounded-xl w-fit"> 
-                        {['MALE', 'FEMALE'].map((g) => (
-                        <label key={g} className="cursor-pointer">
-                            <input 
-                            type="radio" 
-                            value={g} 
-                            {...register(`travelers.${index}.gender` as const)} 
-                            className="hidden peer"
-                            />
-                            <div className="
-                            px-4 py-2 text-center rounded-lg
-                            peer-checked:bg-black peer-checked:text-white peer-checked:shadow-sm
-                            text-slate-500 font-bold text-[11px] uppercase transition-all
-                            hover:text-slate-400
-                            ">
-                            {g === 'MALE' ? 'MALE' : 'FEMALE'}
-                            </div>
-                        </label>
-                        ))}
-                    </div>
+                  ))}
                 </div>
+              </div>
             </div>
+
+            {index < fields.length - 1 && (
+              <div className="mt-8 border-t border-gray-100" />
+            )}
           </div>
         ))}
       </div>
 
-      {/* SECTION 2: CONTACT */}
-      <div className="space-y-4 pt-4">
-        <h2 className="text-xl font-black text-slate-800 flex items-center gap-3">
-          <PiEnvelopeSimpleFill className="text-black" size={28} />
-          Contact Details
-        </h2>
-        
-        <div className="grid grid-cols-1 gap-6">
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-black uppercase ml-1">Email Address</label>
-            <div className="relative">
-              <input 
-                type="email"
-                {...register("contact.emailAddress", { required: true })}
-                placeholder="example@gmail.com"
-                // className="w-full p-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-[11px] font-bold transition-all placeholder:font-normal"
-                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-[12px] font-bold placeholder:font-normal placeholder:normal-case placeholder:text-slate-400"
-              />
-            </div>
-          </div>
 
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-black uppercase ml-1">Phone Number</label>
-            <div className="flex gap-2">
-              <input 
-                {...register("contact.countryCallingCode")}
-                placeholder="+1"
-                className="w-14 py-2 border border-slate-200 rounded-xl text-center text-[11px] font-bold focus:border-blue-500 outline-none"
-              />
-              <div className="relative flex-1">
-                <input 
-                  {...register("contact.number", { required: true })}
-                  placeholder="Phone number"
-                  className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-[12px] font-bold placeholder:font-normal placeholder:normal-case placeholder:text-slate-400"
-                />
-              </div>
-            </div>
+
+      {/* ── Contact ── */}
+      <div className="space-y-5">
+        <div>
+          <h2 className="text-2xl font-black tracking-tight  text-gray-900 uppercase leading-none">Contact Details</h2>
+          <p className="text-xs text-gray-400 mt-1">Booking confirmation will be sent here</p>
+        </div>
+
+        <div className="group">
+          <label className={labelCls}>Email Address</label>
+          <input
+            type="email"
+            {...register("contact.emailAddress", { required: true })}
+            placeholder="you@example.com"
+            className={inputCls}
+          />
+        </div>
+
+        <div className="group">
+          <label className={labelCls}>Phone Number</label>
+          <div className="flex gap-2">
+            <input
+              {...register("contact.countryCallingCode")}
+              placeholder="+1"
+              className="w-16 border rounded-xl p-3 bg-transparent text-sm text-center text-gray-900 placeholder:text-gray-300 focus:border-sky-400 focus:outline-none transition-colors duration-200"
+            />
+            <input
+              {...register("contact.number", { required: true })}
+              placeholder="Phone number"
+              className={inputCls + " flex-1"}
+            />
           </div>
         </div>
       </div>
 
-      {/* FOOTER */}
-      <div className="pt-4 space-y-4">
-        <button 
+      {/* ── Submit ── */}
+      <div className="space-y-3">
+        <button
           type="submit"
-          className="w-full bg-black hover:bg-slate-600 text-white py-5 rounded-2xl font-black text-sm shadow-xs shadow-blue-100 transition-all active:scale-[0.98] uppercase tracking-[0.1em]"
+          className="w-full flex items-center justify-center rounded-xl bg-black py-3.5 text-sm font-bold text-white hover:bg-zinc-800 active:scale-[0.99] transition-all duration-150"
         >
-          Confirm & Select Seats
+          Continue to Seat Selection
         </button>
-        <p className="text-center text-[10px] text-slate-400 font-medium px-10 leading-relaxed uppercase tracking-tighter">
-          Please ensure information matches your official travel documents.
+        <p className="text-center text-xs text-gray-400">
+          Ensure all details match your official travel documents
         </p>
       </div>
     </form>

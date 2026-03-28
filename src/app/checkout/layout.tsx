@@ -3,58 +3,78 @@ import { usePathname } from "next/navigation";
 
 export default function CheckoutLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isPax = pathname.includes("/pax");
   const isSeats = pathname.includes("/seat");
   const isPayment = pathname.includes("/payment");
+  const step = isPayment ? 3 : isSeats ? 2 : 1;
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4">
-      <div className="max-w-6xl mx-auto">
-
-        <div className="flex justify-center mb-10">
-          <div className="flex items-center gap-4">
-            <StepIndicator
-              number={1}
-              label="Information"
-              active={isPax}
-              completed={isSeats || isPayment}
-            />
-            <div className={`w-16 h-1 transition-all duration-500 ${isSeats || isPayment ? 'bg-blue-600' : 'bg-slate-200'}`} />
-            <StepIndicator
-              number={2}
-              label="Seats"
-              active={isSeats}
-              completed={isPayment}
-            />
-            <div className={`w-16 h-1 transition-all duration-500 ${isPayment ? 'bg-blue-600' : 'bg-slate-200'}`} />
-            <StepIndicator
-              number={3}
-              label="Payment"
-              active={isPayment}
-              completed={false}
-            />
-          </div>
+    <div className="min-h-screen bg-gray-50 font-sans">
+      <div className="bg-white sticky top-0 z-20">
+        <div className="mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="w-24" />
+          <Stepper step={step} />
+          <div className="w-24" />
         </div>
-        <main>
-          {children}
-        </main>
-        
+      </div>
+
+      <div className=" mx-auto px-6 py-10">
+        {children}
       </div>
     </div>
   );
 }
 
-function StepIndicator({ number, label, active, completed }: any) {
+function Stepper({ step }: { step: number }) {
+  const steps = ["Information", "Seats", "Payment"];
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${
-        completed ? 'bg-blue-600 text-white' : active ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-white text-slate-300 border border-slate-200'
-      }`}>
-        {number}
-      </div>
-      <span className={`text-[11px] font-black uppercase tracking-widest ${active || completed ? 'text-slate-800' : 'text-slate-300'}`}>
-        {label}
-      </span>
+    <div className="flex items-center gap-0">
+      {steps.map((label, i) => {
+        const num = i + 1;
+        const completed = num < step;
+        const active = num === step;
+
+        return (
+          <div key={label} className="flex items-center">
+            {/* Step pill */}
+            <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full transition-all duration-300" style={{
+              background: active ? "#000000" : "transparent",
+            }}>
+              {/* Circle */}
+              <div className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
+                completed
+                  ? "bg-emerald-500"
+                  : active
+                  ? "bg-white"
+                  : "bg-slate-200"
+              }`}>
+                {completed ? (
+                  <svg className="h-3 w-3 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <span className={`text-[10px] font-black ${active ? "text-black" : "text-slate-400"}`}>
+                    {num}
+                  </span>
+                )}
+              </div>
+
+              {/* Label — only show for active */}
+              {active && (
+                <span className="text-[11px] font-black text-white uppercase tracking-widest whitespace-nowrap pr-0.5">
+                  {label}
+                </span>
+              )}
+            </div>
+
+            {/* Connector */}
+            {i < steps.length - 1 && (
+              <div className={`w-8 h-px mx-1 transition-all duration-500 ${
+                completed ? "bg-slate-400" : "bg-slate-200"
+              }`} />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

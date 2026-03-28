@@ -1,39 +1,37 @@
 // app/components/LoginForm.tsx
 import { useState } from "react";
 import { setCookie } from "cookies-next";
+import { API_BASE } from "@/utils/api";
 
 type Props = {
-	setMode: (m: "login" | "signup" | "verify") => void;
+	setMode: (m: "login" | "signup" | "verify" | "forgot") => void;
 	onLoginSuccess: (email: string) => void;
 };
 
 export default function LoginForm({ setMode, onLoginSuccess }: Props) {
 	const [showPassword, setShowPassword] = useState(false);
-
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState("");
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setIsLoading(true);
 		setError("");
-		const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-		// console.log(email,password,baseUrl)
 		try {
-			const response = await fetch(`${baseUrl}/auth/login`, {
+			const response = await fetch(`${API_BASE}/auth/login`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email, password }),
 			});
-			
+
 			const contentType = response.headers.get("content-type");
 			if (!contentType || !contentType.includes("application/json")) {
 				throw new Error("Server did not return JSON");
 			}
 
 			const data = await response.json();
-		
 
 			if (!response.ok) {
 				throw new Error(data.message || "Failed to login, try again later");
@@ -42,8 +40,6 @@ export default function LoginForm({ setMode, onLoginSuccess }: Props) {
 				setCookie("accessToken", data.access_token, {
 					maxAge: 60 * 60 * 24,
 					path: "/",
-					// secure: true,
-					// sameSite: 'lax'
 				});
 				alert("Login successful");
 				window.location.href = "/profile";
@@ -52,8 +48,7 @@ export default function LoginForm({ setMode, onLoginSuccess }: Props) {
 			if (err.message.includes("verify")) {
 				setMode("verify");
 				onLoginSuccess(email);
-			}
-			else {
+			} else {
 				setError(err.message);
 			}
 		} finally {
@@ -63,101 +58,132 @@ export default function LoginForm({ setMode, onLoginSuccess }: Props) {
 
 	return (
 		<>
-			<h2 className="text-5xl font-bold text-center">Log In</h2>
+			{/* Header */}
+			<div className="text-center">
+				<span className="inline-flex items-center gap-1.5 text-[16px] font-bold uppercase tracking-[0.25em] text-sky-500 mb-3">
+					SkyTrackR
+				</span>
+				<h2 className="text-2xl font-black tracking-tight text-gray-900 leading-none">
+					Welcome back
+				</h2>
+				<p className="mt-1.5 text-xs text-gray-400 tracking-wide">
+					Sign in to track your flights & prices
+				</p>
+			</div>
 
-			<form onSubmit={handleSubmit} className="flex flex-col gap-10">
-				<div>
-					<label className="mb-1 block text-sm font-medium">
-						Email
+
+			{/* Form */}
+			<form onSubmit={handleSubmit} className="flex flex-col gap-5 px-5">
+				{/* Email */}
+				<div className="group">
+					<label className="block text-[10px] font-bold uppercase tracking-[0.18em] mb-2 group-focus-within:text-sky-500 transition-colors duration-200">
+						Email Address
 					</label>
 					<input
 						type="email"
 						required
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
-						className="w-full rounded-lg border px-4 py-3"
+						placeholder="you@example.com"
+						className="w-full border rounded-xl p-3 bg-transparent text-sm text-gray-900 placeholder:text-gray-300 focus:border-sky-400 focus:outline-none transition-colors duration-200"
 					/>
 				</div>
 
-				<div>
-					<label className="mb-1 block text-sm font-medium">Password</label>
+				{/* Password */}
+				<div className="group">
+					<div className="flex items-center justify-between mb-2">
+						<label className="block text-[10px] font-bold uppercase tracking-[0.18em] group-focus-within:text-sky-500 transition-colors duration-200">
+							Password
+						</label>
+						<button
+							type="button"
+							onClick={() => setMode("forgot")}
+							className="text-[10px] font-semibold uppercase tracking-wider text-sky-500 hover:text-sky-600 transition-colors duration-150"
+						>
+							Forgot?
+						</button>
+					</div>
 					<div className="relative">
 						<input
 							type={showPassword ? "text" : "password"}
 							required
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
-							className="rounded-lg border px-4 py-3 w-full"
 							spellCheck="false"
+							className="w-full border rounded-xl p-3  bg-transparent pb-2.5 text-sm text-gray-900 placeholder:text-gray-300 focus:border-sky-400 focus:outline-none transition-colors duration-200 pr-8"
 						/>
 						<button
 							type="button"
 							onClick={() => setShowPassword(!showPassword)}
-							className="absolute inset-y-0 end-0 flex items-center z-20 px-3 cursor-pointer text-gray-400 rounded-e-md focus:outline-none focus:text-blue-600 dark:text-neutral-600 dark:focus:text-blue-500"
 							tabIndex={-1}
+							className="absolute right-0 bottom-3 px-3 text-gray-300 hover:text-gray-500 transition-colors duration-150"
 						>
 							{showPassword ? (
-								// Eye open
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									height="24px"
-									viewBox="0 -960 960 960"
-									width="24px"
-									fill="#000000"
-								>
-									<path d="M480-320q75 0 127.5-52.5T660-500q0-75-52.5-127.5T480-680q-75 0-127.5 52.5T300-500q0 75 52.5 127.5T480-320Zm0-72q-45 0-76.5-31.5T372-500q0-45 31.5-76.5T480-608q45 0 76.5 31.5T588-500q0 45-31.5 76.5T480-392Zm0 192q-146 0-266-81.5T40-500q54-137 174-218.5T480-800q146 0 266 81.5T920-500q-54 137-174 218.5T480-200Zm0-300Zm0 220q113 0 207.5-59.5T832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280Z" />
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+									<path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
+									<path fillRule="evenodd" d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 010-1.113zM17.25 12a5.25 5.25 0 11-10.5 0 5.25 5.25 0 0110.5 0z" clipRule="evenodd" />
 								</svg>
 							) : (
-								// Eye closed
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									height="24px"
-									viewBox="0 -960 960 960"
-									width="24px"
-									fill="#000000"
-								>
-									<path d="m644-428-58-58q9-47-27-88t-93-32l-58-58q17-8 34.5-12t37.5-4q75 0 127.5 52.5T660-500q0 20-4 37.5T644-428Zm128 126-58-56q38-29 67.5-63.5T832-500q-50-101-143.5-160.5T480-720q-29 0-57 4t-55 12l-62-62q41-17 84-25.5t90-8.5q151 0 269 83.5T920-500q-23 59-60.5 109.5T772-302Zm20 246L624-222q-35 11-70.5 16.5T480-200q-151 0-269-83.5T40-500q21-53 53-98.5t73-81.5L56-792l56-56 736 736-56 56ZM222-624q-29 26-53 57t-41 67q50 101 143.5 160.5T480-280q20 0 39-2.5t39-5.5l-36-38q-11 3-21 4.5t-21 1.5q-75 0-127.5-52.5T300-500q0-11 1.5-21t4.5-21l-84-82Zm319 93Zm-151 75Z" />
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+									<path d="M3.53 2.47a.75.75 0 00-1.06 1.06l18 18a.75.75 0 101.06-1.06l-18-18zM22.676 12.553a11.249 11.249 0 01-2.631 4.31l-3.099-3.099a5.25 5.25 0 00-6.71-6.71L7.759 4.577A11.217 11.217 0 0112 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752.001 1.113z" />
+									<path d="M15.75 12c0 .18-.013.357-.037.53l-4.244-4.243A3.75 3.75 0 0115.75 12zM12.063 15.713l-4.244-4.244a3.75 3.75 0 004.243 4.243zM1.323 11.447A11.25 11.25 0 0115.57 5.438L14.25 6.76a9.75 9.75 0 00-10.93 4.69A9.75 9.75 0 005.75 15.75l-1.32 1.32a11.25 11.25 0 01-3.107-5.623z" />
 								</svg>
 							)}
 						</button>
 					</div>
 				</div>
 
-				<div className="flex justify-between text-sm">
-					<label className="flex items-center gap-2">
-						<input type="checkbox" className="rounded border-gray-400" />
-						<span>Remember me</span>
-					</label>
+				{/* Remember me */}
+				<label className="flex items-center gap-2.5 cursor-pointer select-none">
+					<input
+						type="checkbox"
+						className="w-4 h-4 rounded border-gray-300 accent-sky-400 cursor-pointer"
+					/>
+					<span className="text-xs text-gray-400">Remember me for 30 days</span>
+				</label>
 
-					<a href="#" className="text-blue-600 hover:underline">
-						Forgot password?
-					</a>
-				</div>
-
+				{/* Error */}
 				{error && (
-					<p className="text-red-500 text-sm font-medium self-center">
+					<div className="flex items-center gap-2 rounded-lg bg-red-50 border border-red-100 px-3 py-2.5 text-xs text-red-500">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 shrink-0">
+							<path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+						</svg>
 						{error}
-					</p>
+					</div>
 				)}
 
+				{/* Submit */}
 				<button
 					type="submit"
 					disabled={isLoading}
-					className="self-center w-full rounded-lg cursor-pointer bg-blue-600 px-8 py-3 text-white font-semibold hover:bg-blue-700 transition disabled:bg-gray-400"
+					className="mt-1 flex items-center justify-center gap-2 w-full rounded-xl bg-black py-3.5 text-sm font-bold text-white hover:bg-zinc-800 active:scale-[0.99] transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
 				>
-					{isLoading ? "Signing in..." : "Log In"}
+					{isLoading ? (
+						<>
+							<svg className="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+								<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+								<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+							</svg>
+							Signing in...
+						</>
+					) : (
+						<>
+							Sign In
+						</>
+					)}
 				</button>
 			</form>
 
-			<div className="flex items-center gap-2 self-center text-sm">
-				<p>Don&#39;t have an account?</p>
+			{/* Footer */}
+			<p className="text-center text-xs text-gray-400">
+				No account yet?{" "}
 				<button
 					onClick={() => setMode("signup")}
-					className="text-blue-600 cursor-pointer hover:underline"
+					className="font-semibold text-gray-900 hover:text-sky-500 transition-colors duration-150 cursor-pointer"
 				>
-					Create a free account
+					Create one free
 				</button>
-			</div>
+			</p>
 		</>
 	);
 }

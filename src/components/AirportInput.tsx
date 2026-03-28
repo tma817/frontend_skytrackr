@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import debounce from "lodash/debounce";
+import { API_BASE } from "@/utils/api";
 
 interface Airport {
   name: string;
@@ -31,7 +32,7 @@ export default function AirportInput({
       return;
     }
     try {
-      const res = await fetch(`http://localhost:3000/airports/search?term=${term}`);
+      const res = await fetch(`${API_BASE}/airports/search?term=${term}`);
       const data = await res.json();
       setSuggestions(data);
     } catch (err) {
@@ -39,7 +40,6 @@ export default function AirportInput({
     }
   };
 
-  // Debounce 300ms
   const debouncedFetch = useCallback(
     debounce((term: string) => fetchAirports(term), 300),
     []
@@ -53,9 +53,9 @@ export default function AirportInput({
   };
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full py-2">
       <input
-        className={`w-full bg-transparent text-sm outline-none ${glass ? "text-white placeholder:text-white/50" : "text-gray-900 placeholder:text-gray-400"}`}
+        className={`w-full bg-transparent text-sm outline-none ${glass ? "text-black placeholder:text-black/50" : "text-gray-900 placeholder:text-gray-400"}`}
         value={value}
         onChange={handleChange}
         onFocus={() => setIsOpen(true)}
@@ -63,18 +63,18 @@ export default function AirportInput({
       />
       
       {isOpen && suggestions.length > 0 && (
-        <ul className="absolute left-0 top-full z-50 mt-2 w-full max-h-60 overflow-auto rounded-md border bg-white shadow-lg">
+        <ul className="absolute left-0 top-full z-50 mt-2 w-full max-h-60 overflow-auto rounded-md bg-white shadow-lg">
           {suggestions.map((airport) => (
             <li
               key={airport.iata}
-              className="flex cursor-pointer flex-col px-4 py-2 hover:bg-gray-100"
+              className="flex cursor-pointer flex-col px-4 py-2 hover:bg-gray-100 items-start"
               onClick={() => {
                 const displayValue = `${airport.city} (${airport.iata})`;
                 onChange(airport.iata,displayValue); 
                 setIsOpen(false);
               }}
             >
-              <div className="flex justify-between">
+              <div className="flex w-full flex-row justify-between items-center">
                 <span className="font-bold text-black">{airport.city} ({airport.iata})</span>
                 <span className="text-xs text-gray-400">{airport.country}</span>
               </div>

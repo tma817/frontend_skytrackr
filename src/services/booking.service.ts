@@ -28,10 +28,12 @@ export type CreateOrderResponse = {
   pnr?: string;
 };
 
+import { API_BASE } from "@/utils/api";
+
 export const bookingService = {
   async createOrder(payload: CreateOrderPayload): Promise<CreateOrderResponse> {
     console.log(payload)
-    const response = await fetch("http://localhost:3000/bookings", {
+    const response = await fetch(`${API_BASE}/bookings`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -39,7 +41,12 @@ export const bookingService = {
 
     if (!response.ok) {
       const text = await response.text().catch(() => "");
-      throw new Error(`Booking failed (${response.status}) ${text}`);
+      let message = "Something went wrong. Please try again.";
+      try {
+        const json = JSON.parse(text);
+        message = json.message || message;
+      } catch {}
+      throw new Error(message);
     }
 
     return response.json();

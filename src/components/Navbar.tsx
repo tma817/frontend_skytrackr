@@ -49,7 +49,7 @@ function TrackBookingDropdown({ onClose }: { onClose?: () => void }) {
 			<button
 				type="button"
 				onClick={() => { setOpen((o) => !o); setError(""); }}
-				className="flex items-center gap-1.5 cursor-pointer min-h-10 px-3 rounded-lg transition-colors duration-150 hover:bg-gray-100 text-sm font-medium w-full md:w-auto"
+				className="flex items-center gap-1.5 cursor-pointer min-h-10 px-3 rounded-lg transition-colors duration-150 hover:bg-gray-100 text-sm w-full md:w-auto"
 			>
 				Track Booking
 			</button>
@@ -119,8 +119,8 @@ export default function Navbar() {
 
 	return (
 		<>
-			<header className="border-b bg-white sticky top-0 z-40">
-				<div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+			<header className="border-b bg-white sticky top-0 z-40 font-sans font-medium">
+				<div className="mx-auto flex items-center justify-between px-6 py-4">
 					{/* Logo */}
 					<Link href="/" className="flex items-center gap-2" onClick={() => setMenuOpen(false)}>
 						<Image src="/images/logo.png" alt="SkyTrackR logo" width={22} height={22} priority />
@@ -129,18 +129,18 @@ export default function Navbar() {
 
 					{/* Desktop nav */}
 					<nav className="hidden md:flex items-center gap-6 text-sm">
-						<button
+						{/* <button
 							type="button"
 							className="cursor-pointer select-none min-h-10 min-w-23 rounded-lg transition-colors duration-150 hover:bg-gray-100"
 						>
 							CAD <span className="ml-1">🇨🇦</span>
-						</button>
+						</button> */}
 
 						<Link
-							href="/subscribe"
+							href="/airlines"
 							className="hover:underline text-center flex justify-center items-center rounded-lg min-h-10 min-w-23 transition-colors duration-150 hover:bg-gray-100"
 						>
-							Subscribe
+							Airlines
 						</Link>
 
 						<TrackBookingDropdown />
@@ -170,7 +170,7 @@ export default function Navbar() {
 								</button>
 								<button
 									type="button"
-									className="cursor-pointer rounded-lg border-2 min-h-10 min-w-23 hover:underline transition-colors duration-150 hover:bg-gray-100"
+									className="cursor-pointer rounded-lg border min-h-10 min-w-23 hover:underline transition-colors duration-150 hover:bg-gray-100"
 									onClick={() => { setAuthModalOpen(true); setMode("signup"); }}
 								>
 									Sign Up
@@ -201,11 +201,11 @@ export default function Navbar() {
 						</button>
 
 						<Link
-							href="/subscribe"
+							href="/airlines"
 							onClick={() => setMenuOpen(false)}
 							className="flex items-center min-h-10 px-3 rounded-lg text-sm transition-colors duration-150 hover:bg-gray-100"
 						>
-							Subscribe
+							Airlines
 						</Link>
 
 						<TrackBookingDropdown onClose={() => setMenuOpen(false)} />
@@ -223,7 +223,7 @@ export default function Navbar() {
 								</Link>
 								<button
 									onClick={logout}
-									className="cursor-pointer rounded-lg border-2 border-black bg-black min-h-10 w-full font-medium text-white transition-colors duration-150 hover:opacity-80 text-sm"
+									className="cursor-pointer rounded-lg border-2 border-slate-900 bg-black min-h-10 w-full font-medium text-white transition-colors duration-150 hover:opacity-80 text-sm"
 								>
 									Logout
 								</button>
@@ -231,14 +231,14 @@ export default function Navbar() {
 						) : (
 							<>
 								<button
-									className="cursor-pointer rounded-lg border-2 border-black bg-black min-h-10 w-full font-medium text-white transition-colors duration-150 hover:opacity-80 text-sm"
+									className="cursor-pointer bg-black rounded-lg border-2 border-black bg-slate-9 min-h-10 w-full font-medium text-white transition-colors duration-150 hover:opacity-80 text-sm"
 									onClick={() => { setAuthModalOpen(true); setMode("login"); setMenuOpen(false); }}
 								>
 									Login
 								</button>
 								<button
 									type="button"
-									className="cursor-pointer rounded-lg border-2 min-h-10 w-full hover:bg-gray-100 transition-colors duration-150 text-sm"
+									className="cursor-pointer  rounded-lg border-2 min-h-10 w-full hover:bg-gray-100 transition-colors duration-150 text-sm"
 									onClick={() => { setAuthModalOpen(true); setMode("signup"); setMenuOpen(false); }}
 								>
 									Sign Up

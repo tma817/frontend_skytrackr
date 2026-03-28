@@ -24,10 +24,10 @@ export default function BookingSummary({
   const finalTotal = baseFlightTotal + seatsTotal;
 
   const cp = confirmedPrice;
-  
+
 
   return (
-    <div className="rounded-2xl border bg-white p-6 shadow-sm sticky top-8 flex flex-col gap-3 z-10">
+    <div className="rounded-2xl border bg-white p-6 shadow-sm flex flex-col gap-3 z-10">
       <div className="flex items-center justify-between">
         <h3 className="font-black text-black uppercase text-sm">Price Details</h3>
         {cp && (
@@ -132,7 +132,7 @@ export default function BookingSummary({
           <button
             type="button"
             onClick={onContinue}
-            className="w-full rounded-2xl bg-slate-900 py-5 text-sm font-black text-white shadow-xl shadow-slate-200 transition-all hover:bg-black active:scale-[0.98] uppercase tracking-widest"
+            className="w-full rounded-2xl bg-black py-5 text-sm font-black text-white shadow-xl shadow-slate-200 transition-all hover:bg-black active:scale-[0.98] uppercase tracking-widest"
           >
             {buttonText}
           </button>
