@@ -121,62 +121,72 @@ export default function WatchlistPage() {
               const pred = predictions[item._id];
 
               return (
-                <div key={item._id} className="px-5 py-5">
+				<div key={item._id} className="px-5 py-5">
+				<div className="flex items-center gap-4">
+					{/* Logo */}
+					<div className="shrink-0">
+					{item.airlineLogo ? (
+						<img src={item.airlineLogo} alt={item.airlineName} className="h-9 w-9 object-contain" />
+					) : (
+						<div className="h-9 w-9 rounded-lg bg-slate-100 flex items-center justify-center text-[9px] font-black text-slate-400">
+						{item.airlineName?.slice(0, 2).toUpperCase() ?? "–"}
+						</div>
+					)}
+					</div>
 
-                  {/* ── Main row ── */}
-                  <div className="flex items-center gap-4">
-                    {/* Logo */}
-                    <div className="shrink-0">
-                      {item.airlineLogo ? (
-                        <img src={item.airlineLogo} alt={item.airlineName} className="h-9 w-9 object-contain" />
-                      ) : (
-                        <div className="h-9 w-9 rounded-lg bg-slate-100 flex items-center justify-center text-[9px] font-black text-slate-400">
-                          {item.airlineName?.slice(0, 2).toUpperCase() ?? "–"}
-                        </div>
-                      )}
-                    </div>
+					{/* Route */}
+					<div className="flex-1 min-w-0">
+					<div className="flex items-baseline gap-2">
+						<span className="text-xl font-black text-slate-900 tracking-tight">{item.origin}</span>
+						<span className="text-slate-300">→</span>
+						<span className="text-xl font-black text-slate-900 tracking-tight">{item.destination}</span>
+					</div>
 
-                    {/* Route — primary info */}
-                    <div className="flex-1 min-w-0">
-                      {/* Big route */}
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-xl font-black text-slate-900 tracking-tight">{item.origin}</span>
-                        <span className="text-slate-300">·</span>
-                        <span className="text-xl font-black text-slate-900 tracking-tight">{item.destination}</span>
-                      </div>
-                      {/* Secondary meta — clearly smaller + lighter */}
-                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                        <span className="text-[11px] text-slate-400">{item.airlineName}</span>
-                        <span className="text-slate-200 text-[11px]">·</span>
-                        <span className="text-[11px] text-slate-400">{item.departureDate}</span>
-                        <span className="text-slate-200 text-[11px]">·</span>
-                        <span className="text-[11px] text-slate-400">{item.passengers} pax</span>
-                        <span className="text-slate-200 text-[11px]">·</span>
-                        <span className={`text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded ${s.bg} ${s.text}`}>
-                          {item.tripType === "round-trip" ? "RT" : "OW"}
-                        </span>
-                      </div>
-                    </div>
+					<div className="flex items-center gap-1.5 mt-1 flex-wrap">
+						<span className="text-[11px] text-slate-400">{item.airlineName}</span>
+						<span className="text-slate-200 text-[11px]">·</span>
+						<span className="text-[11px] text-slate-400">{item.passengers} {item.passengers === 1 ? "passenger" : "passengers"}</span>
+						<span className="text-slate-200 text-[11px]">·</span>
+						<span className={`text-[10px] font-bold tracking-wide px-1.5 py-0.5 rounded ${s.bg} ${s.text}`}>
+						{item.tripType === "round-trip" ? "Round Trip" : "One Way"}
+						</span>
+					</div>
 
-                    {/* Price — right side */}
-                    <div className="text-right shrink-0">
-                      <p className="text-2xl font-black text-slate-900 tracking-tight">
-                        <span className="text-sm font-bold text-slate-400 mr-0.5">{item.currency}</span>{item.currentPrice.toFixed(0)}
-                      </p>
-                      {dropped && (
-                        <p className="text-[11px] font-bold text-emerald-600 mt-0.5">▼ {Math.abs(item.priceDiff).toFixed(0)} saved</p>
-                      )}
-                      {increased && (
-                        <p className="text-[11px] font-bold text-red-500 mt-0.5">▲ {item.priceDiff.toFixed(0)} up</p>
-                      )}
-                      {!dropped && !increased && (
-                        <div className="flex items-center justify-end gap-1 mt-0.5">
-                          <div className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
-                          <span className="text-[10px] text-slate-400">{s.label}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+					{/* Times */}
+					<div className="flex items-center gap-3 mt-1.5">
+						<div className="flex items-center gap-1">
+						<span className="text-[10px] font-semibold text-slate-400">Out</span>
+						<span className="text-[11px] text-slate-500">{item.departureDate}</span>
+						{item.departureTime && <span className="text-[11px] font-bold text-slate-700">{item.departureTime}</span>}
+						</div>
+						{item.returnDate && (
+						<>
+							<span className="text-slate-200 text-[11px]">·</span>
+							<div className="flex items-center gap-1">
+							<span className="text-[10px] font-semibold text-slate-400">Ret</span>
+							<span className="text-[11px] text-slate-500">{item.returnDate}</span>
+							{item.returnTime && <span className="text-[11px] font-bold text-slate-700">{item.returnTime}</span>}
+							</div>
+						</>
+						)}
+					</div>
+					</div>
+
+					{/* Price */}
+					<div className="text-right shrink-0">
+					<p className="text-2xl font-black text-slate-900 tracking-tight">
+						<span className="text-sm font-bold text-slate-400 mr-0.5">{item.currency}</span>{item.currentPrice.toFixed(0)}
+					</p>
+					{dropped && <p className="text-[11px] font-bold text-emerald-600 mt-0.5">▼ {Math.abs(item.priceDiff).toFixed(0)} saved</p>}
+					{increased && <p className="text-[11px] font-bold text-red-500 mt-0.5">▲ {item.priceDiff.toFixed(0)} up</p>}
+					{!dropped && !increased && (
+						<div className="flex items-center justify-end gap-1 mt-0.5">
+						<div className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
+						<span className="text-[10px] text-slate-400">{s.label}</span>
+						</div>
+					)}
+					</div>
+				</div>
 
                   {/* ── AI Prediction ── */}
                   <div className="mt-4 pt-3 border-t border-slate-100">

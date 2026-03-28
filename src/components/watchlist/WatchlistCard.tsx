@@ -1,65 +1,70 @@
-// "use client"
-// import { useRouter } from "next/navigation";
-// import { FlightResult } from "../lib/demoFlights";
+import { WatchlistItem } from "@/services/watchlist.service";
 
-// type WatchlistCardProps = {
-//   FlightResult: FlightResult;
-// };
+interface WatchlistCardProps {
+  item: WatchlistItem;
+  onClick: () => void;
+}
 
-// export default function WatchlistCard({ FlightResult }: WatchlistCardProps) {
-// 	const router = useRouter();
+export function WatchlistCard({ item, onClick }: WatchlistCardProps) {
+  const dropped = item.priceDiff < 0;
+  const increased = item.priceDiff > 0;
+  const statusColor = item.status === "price_dropped" ? "bg-emerald-500" : item.status === "price_increased" ? "bg-red-500" : "bg-slate-300";
 
-// 	const goTicket = (flightId: string) => {
-// 		const qs = new URLSearchParams({
-// 			from: FlightResult.from,
-// 			to: FlightResult.to,
-// 			date: FlightResult.date,
-// 			pax: String(FlightResult.pax),
-// 		});
-// 		router.push(`/ticket/${flightId}?${qs.toString()}`);
-// 	};
+  return (
+    <div onClick={onClick} className="px-5 py-4 flex items-center gap-4 cursor-pointer hover:bg-gray-100 transition-colors duration-150 rounded-lg">
+      {item.airlineLogo ? (
+        <img src={item.airlineLogo} alt={item.airlineName} className="h-8 w-8 object-contain shrink-0" />
+      ) : (
+        <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center text-[9px] font-black text-slate-400 shrink-0">
+          {item.airlineName?.slice(0, 2).toUpperCase() ?? "–"}
+        </div>
+      )}
 
-// 	return (
-// 		<button
-// 			key={f.id}
-// 			type="button"
-// 			onClick={() => goTicket(f.id)}
-// 			className="w-full text-left"
-// 		>
-// 			<div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-4 shadow-sm hover:border-gray-300 hover:shadow transition">
-// 				<div className="flex items-center gap-3">
-// 					{/* {airlineBadge(f.airline)} */}
+      <div className="flex-1 min-w-0">
+        {/* Route */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-base font-black text-slate-900">{item.origin}</span>
+          <span className="text-slate-300 text-sm">→</span>
+          <span className="text-base font-black text-slate-900">{item.destination}</span>
+		  <span className="text-[9px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full ml-1">{item.tripType === "round-trip" ? "Round Trip" : "One Way"}</span>
+        </div>
 
-// 					<div>
-// 						<div className="flex items-center gap-2">
-// 							<div className="text-sm font-semibold text-gray-900">
-// 								{FlightResult.duration}
-// 							</div>
-// 							<div className="text-sm text-gray-700">
-// 								{FlightResult.airline}
-// 							</div>
-// 						</div>
+        {/* Airline */}
+        <span className="text-[10px] text-slate-400">{item.airlineName}</span>
 
-// 						<div className="mt-1 text-xs text-gray-500">
-// 							{FlightResult.tag ? FlightResult.tag : ""}
-// 						</div>
-// 					</div>
-// 				</div>
+        {/* Departure */}
+        <div className="flex items-center gap-1.5 mt-1">
+          <span className="text-[10px] font-semibold text-slate-500">Out</span>
+          <span className="text-[10px] text-slate-400">{item.departureDate}</span>
+          {item.departureTime && (
+            <span className="text-[10px] font-bold text-slate-600">{item.departureTime}</span>
+          )}
+        </div>
 
-// 				<div className="text-sm text-gray-700">{FlightResult.time}</div>
+        {/* Return */}
+        {item.returnDate && (
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-semibold text-slate-500">Ret</span>
+            <span className="text-[10px] text-slate-400">{item.returnDate}</span>
+            {item.returnTime && (
+              <span className="text-[10px] font-bold text-slate-600">{item.returnTime}</span>
+            )}
+          </div>
+        )}
+      </div>
 
-// 				<div className="text-right">
-// 					<div className="text-xs text-gray-600">{FlightResult.stops}</div>
-// 					<div className="text-xs text-gray-400">{FlightResult.note ?? ""}</div>
-// 				</div>
-
-// 				<div className="text-right">
-// 					<div className="text-sm font-semibold text-gray-900">
-// 						${FlightResult.price.toLocaleString()}
-// 					</div>
-// 					<div className="text-xs text-gray-400">round trip</div>
-// 				</div>
-// 			</div>
-// 		</button>
-// 	);
-// }
+      <div className="text-right shrink-0">
+        <p className="text-base font-black text-slate-900">{item.currency} {item.currentPrice.toFixed(0)}</p>
+        <p className="text-[10px] text-slate-400">{item.passengers} {item.passengers === 1 ? "passenger" : "passengers"}</p>
+        {dropped && <p className="text-[10px] font-bold text-emerald-600">▼ {Math.abs(item.priceDiff).toFixed(0)}</p>}
+        {increased && <p className="text-[10px] font-bold text-red-500">▲ {item.priceDiff.toFixed(0)}</p>}
+        {!dropped && !increased && (
+          <div className="flex items-center justify-end gap-1 mt-0.5">
+            <div className={`h-1.5 w-1.5 rounded-full ${statusColor}`} />
+            <span className="text-[10px] text-slate-400">No change</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
