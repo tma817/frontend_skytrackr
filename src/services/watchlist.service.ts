@@ -73,10 +73,6 @@ export const watchlistService = {
 			),
 		};
 
-    if (res.status === 401) throw new Error("UNAUTHORIZED");
-    if (!res.ok) throw new Error("Failed to add to watchlist");
-    return res.json();
-  },
 		const res = await fetch(API_BASE, {
 			method: "POST",
 			headers: authHeaders(),
