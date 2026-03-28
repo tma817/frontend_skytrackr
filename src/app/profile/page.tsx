@@ -61,6 +61,20 @@ export default function ProfilePage() {
     finally { setSaving(false); }
   }
 
+  function handleClicked(item: WatchlistItem) {
+	const qs = new URLSearchParams({
+		searchId: item.searchId,
+		from: item.origin,
+		to: item.destination,
+		tripType: item.tripType === "round-trip" ? "roundtrip" : "oneway",
+		departure: item.departureDate,
+		return: item.returnDate,
+		numOfPassengers: String(Math.max(1, parseInt(String(item.passengers)) || 1)),
+	});
+	router.push(`/ticket/${item.flightId}?${qs.toString()}`);
+	}
+
+
   function handleCancel() { setFname(user?.fname || ""); setLname(user?.lname || ""); setPhone(user?.phoneNumber || ""); setSaveError(null); setIsEditing(false); }
 
   const initials = `${user?.fname?.[0] ?? ""}${user?.lname?.[0] ?? ""}`.toUpperCase() || "?";
@@ -149,9 +163,7 @@ export default function ProfilePage() {
                     const statusColor = item.status === "price_dropped" ? "bg-emerald-500" : item.status === "price_increased" ? "bg-red-500" : "bg-slate-300";
 
                     return (
-                      <div key={item._id} className="px-5 py-4 flex items-center gap-4">
-                        {/* Logo */}
-                        {item.airlineLogo ? (
+					<div onClick={() => handleClicked(item)} key={item._id} className="px-5 py-4 flex items-center gap-4 cursor-pointer hover:bg-gray-100 transition-colors duration-150 rounded-lg">                        {item.airlineLogo ? (
                           <img src={item.airlineLogo} alt={item.airlineName} className="h-8 w-8 object-contain shrink-0" />
                         ) : (
                           <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center text-[9px] font-black text-slate-400 shrink-0">
