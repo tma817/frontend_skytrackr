@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import AuthWrapper from "../components/auth/AuthWrapper";
 import Footer from "@/components/Footer";
+import { CurrencyProvider } from "@/context/CurrencyContext";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -31,9 +32,11 @@ export default async  function RootLayout({
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}
 			>
-				<Navbar />
-				<AuthWrapper>{children}</AuthWrapper>
-				<Footer />
+				<CurrencyProvider>
+          <Navbar />
+          <AuthWrapper>{children}</AuthWrapper>
+          <Footer />
+        </CurrencyProvider>
 			</body>
 		</html>
 	);

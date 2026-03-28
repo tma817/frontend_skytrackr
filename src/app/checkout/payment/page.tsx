@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useBookingStore } from "@/store/useBookingStore";
 import { useRouter } from "next/navigation";
 import { bookingService } from "@/services/booking.service";
+import { useCurrency } from "@/context/CurrencyContext";
 import money from "@/utils/money";
 import Link from "next/link";
 
@@ -31,7 +32,6 @@ function CardPreview({ number, holder, expiry }: { number: string; holder: strin
   return (
     <div
       className="relative w-full aspect-[1.586/1] rounded-2xl overflow-hidden select-none bg-black"
-      
     >
       <div className="absolute inset-0 opacity-[0.07]"
         style={{ backgroundImage: "radial-gradient(circle, #fff 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
@@ -71,6 +71,9 @@ const inputCls = "w-full border border-slate-200 rounded-xl px-4 py-3 text-sm fo
 export default function PaymentPage() {
   const router = useRouter();
   const { selectedFlight, travelers, contact, selectedSeats, clearBooking } = useBookingStore();
+  const { currency, rates } = useCurrency();
+  const rate = rates[currency] ?? 1;
+  const convert = (amount: number) => amount * rate;
 
   const [cardNumber, setCardNumber] = useState("");
   const [cardHolder, setCardHolder] = useState("");
@@ -142,7 +145,6 @@ export default function PaymentPage() {
 
   const flightAmount = selectedFlight.price.amount;
   const finalTotal = flightAmount + seatsTotal;
-  const currency = selectedFlight.price.currency;
   const isFormValid = cardNumber.replace(/\s/g, "").length >= 15 && cardHolder.trim().length > 2 && expiry.length === 5 && cvv.length >= 3;
 
   const handlePay = async () => {
@@ -203,7 +205,7 @@ export default function PaymentPage() {
           {/* Payment Form Card */}
           <div className="bg-white rounded-2xl border overflow-hidden">
             <div className="px-5 py-3.5 border-b flex items-center justify-between">
-              <span className="text-xs font-black tracking-tight  text-gray-900 uppercase leading-none">Card Details</span>
+              <span className="text-xs font-black tracking-tight text-gray-900 uppercase leading-none">Card Details</span>
               <div className="flex items-center gap-1.5 text-emerald-500">
                 <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -227,7 +229,7 @@ export default function PaymentPage() {
                     placeholder="0000 0000 0000 0000"
                     value={cardNumber}
                     onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                    className={inputCls + ""}
+                    className={inputCls}
                   />
                 </div>
 
@@ -377,7 +379,7 @@ export default function PaymentPage() {
           {/* Price breakdown */}
           <div className="bg-white rounded-2xl border overflow-hidden">
             <div className="px-5 py-3.5 border-b">
-              <span className="text-xs font-black tracking-tight  text-gray-900 uppercase leading-none">Price Breakdown</span>
+              <span className="text-xs font-black tracking-tight text-gray-900 uppercase leading-none">Price Breakdown</span>
             </div>
 
             <div className="px-5 py-4 space-y-3">
@@ -386,13 +388,13 @@ export default function PaymentPage() {
                   <p className="text-sm font-semibold">Flight Fare</p>
                   <p className="text-[10px] mt-0.5">{travelers.length} passenger{travelers.length !== 1 ? "s" : ""} · {selectedFlight.cabin}</p>
                 </div>
-                <span className="text-sm font-bold text-slate-900">{money(flightAmount, currency)}</span>
+                <span className="text-sm font-bold text-slate-900">{money(convert(flightAmount), currency)}</span>
               </div>
 
               {seatsTotal > 0 && (
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold ">Seat Selection</p>
-                  <span className="text-sm font-bold text-slate-900">+{money(seatsTotal, currency)}</span>
+                  <p className="text-sm font-semibold">Seat Selection</p>
+                  <span className="text-sm font-bold text-slate-900">+{money(convert(seatsTotal), currency)}</span>
                 </div>
               )}
 
@@ -407,7 +409,7 @@ export default function PaymentPage() {
             <div className="px-5 py-4 flex items-baseline justify-between">
               <span className="text-[10px] font-black uppercase tracking-widest">Total Due</span>
               <div className="text-right">
-                <span className="text-2xl font-black text-slate-900 tracking-tight">{money(finalTotal, currency)}</span>
+                <span className="text-2xl font-black text-slate-900 tracking-tight">{money(convert(finalTotal), currency)}</span>
                 <p className="text-[10px] text-slate-400 mt-0.5">All taxes included</p>
               </div>
             </div>
@@ -436,7 +438,7 @@ export default function PaymentPage() {
                     Processing…
                   </span>
                 ) : (
-                  `Confirm & Pay ${money(finalTotal, currency)}`
+                  `Confirm & Pay ${money(convert(finalTotal), currency)}`
                 )}
               </button>
 

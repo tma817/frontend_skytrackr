@@ -9,6 +9,39 @@ import AuthModal from "./auth/AuthModal";
 import { deleteCookie } from "cookies-next";
 import { authService } from "@/services/auth.service";
 import { PiArrowRightBold, PiListBold, PiXBold, PiMagnifyingGlassBold } from "react-icons/pi";
+import { useCurrency } from "@/context/CurrencyContext";
+
+function CurrencySelector({ mobile = false }: { mobile?: boolean }) {
+    const { currency, setCurrency, CURRENCIES } = useCurrency();
+
+    if (mobile) {
+        return (
+            <div className="flex items-center min-h-10 px-3 rounded-lg text-sm transition-colors duration-150 hover:bg-gray-100">
+                <select
+                    value={currency}
+                    onChange={(e) => setCurrency(e.target.value)}
+                    className="bg-transparent text-sm font-medium outline-none cursor-pointer w-full"
+                >
+                    {CURRENCIES.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                    ))}
+                </select>
+            </div>
+        );
+    }
+
+    return (
+        <select
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+            className="cursor-pointer min-h-10 px-3 rounded-lg border border-transparent text-sm font-medium outline-none transition-colors duration-150 hover:bg-gray-100 bg-transparent"
+        >
+            {CURRENCIES.map((c) => (
+                <option key={c} value={c}>{c}</option>
+            ))}
+        </select>
+    );
+}
 
 function TrackBookingDropdown({ onClose }: { onClose?: () => void }) {
 	const [open, setOpen] = useState(false);
@@ -108,7 +141,7 @@ export default function Navbar() {
 	// Close mobile menu on route change
 	useEffect(() => {
 		if (menuOpen) document.body.style.overflow = "hidden";
-		else document.body.style.overflow = "";
+		else document.body.style.overflow = "";	
 		return () => { document.body.style.overflow = ""; };
 	}, [menuOpen]);
 
@@ -135,6 +168,7 @@ export default function Navbar() {
 						>
 							CAD <span className="ml-1">🇨🇦</span>
 						</button> */}
+						<CurrencySelector />
 
 						<Link
 							href="/airlines"
@@ -193,12 +227,13 @@ export default function Navbar() {
 				{/* Mobile menu */}
 				{menuOpen && (
 					<div className="md:hidden border-t bg-white px-6 py-4 flex flex-col gap-1">
-						<button
+						{/* <button
 							type="button"
 							className="flex items-center justify-start w-full cursor-pointer select-none min-h-10 rounded-lg px-3 transition-colors duration-150 hover:bg-gray-100 text-sm"
 						>
 							CAD <span className="ml-1">🇨🇦</span>
-						</button>
+						</button> */}
+						<CurrencySelector mobile />
 
 						<Link
 							href="/airlines"

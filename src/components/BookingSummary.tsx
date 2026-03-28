@@ -1,5 +1,6 @@
 "use client";
 import { useBookingStore } from "@/store/useBookingStore";
+import { useCurrency } from "@/context/CurrencyContext";
 import money from "@/utils/money";
 
 export default function BookingSummary({
@@ -10,6 +11,9 @@ export default function BookingSummary({
   buttonText?: string;
 }) {
   const { selectedFlight, confirmedPrice, travelers, selectedSeats } = useBookingStore();
+  const { currency, rates } = useCurrency();
+  const rate = rates[currency] ?? 1;
+  const convert = (amount: number) => amount * rate;
 
   if (!selectedFlight) return null;
 
@@ -19,12 +23,9 @@ export default function BookingSummary({
     }, 0);
   }, 0);
 
-  const currency = confirmedPrice?.price.currency ?? selectedFlight.price.currency;
   const baseFlightTotal = confirmedPrice?.price.grandTotal ?? parseFloat(selectedFlight.price.amount);
   const finalTotal = baseFlightTotal + seatsTotal;
-
   const cp = confirmedPrice;
-
 
   return (
     <div className="rounded-2xl border bg-white p-6 shadow-sm flex flex-col gap-3 z-10">
@@ -64,7 +65,7 @@ export default function BookingSummary({
                     </p>
                   )}
                 </div>
-                <span className="font-bold text-slate-900 shrink-0">{money(tp.price.total, currency)}</span>
+                <span className="font-bold text-slate-900 shrink-0">{money(convert(tp.price.total), currency)}</span>
               </div>
             ))}
 
@@ -72,27 +73,27 @@ export default function BookingSummary({
             <div className="border-t pt-2 mt-1 space-y-1.5">
               <div className="flex justify-between text-xs text-slate-500">
                 <span>Base fare</span>
-                <span>{money(cp.price.base, currency)}</span>
+                <span>{money(convert(cp.price.base), currency)}</span>
               </div>
 
               {cp.price.taxes.length > 0 ? (
                 cp.price.taxes.map((t, i) => (
                   <div key={i} className="flex justify-between text-xs text-slate-400">
                     <span className="font-mono">{t.code}</span>
-                    <span>{money(t.amount, currency)}</span>
+                    <span>{money(convert(t.amount), currency)}</span>
                   </div>
                 ))
               ) : cp.price.taxTotal > 0 ? (
                 <div className="flex justify-between text-xs text-slate-500">
                   <span>Taxes &amp; fees</span>
-                  <span>{money(cp.price.taxTotal, currency)}</span>
+                  <span>{money(convert(cp.price.taxTotal), currency)}</span>
                 </div>
               ) : null}
 
               {cp.price.fees.filter(f => f.amount > 0).map((f, i) => (
                 <div key={i} className="flex justify-between text-xs text-slate-400 capitalize">
                   <span>{f.type.replace(/_/g, " ").toLowerCase()} fee</span>
-                  <span>{money(f.amount, currency)}</span>
+                  <span>{money(convert(f.amount), currency)}</span>
                 </div>
               ))}
             </div>
@@ -106,7 +107,7 @@ export default function BookingSummary({
                 {travelers.length || 1} Passenger(s)
               </span>
             </div>
-            <span className="font-bold text-slate-900">{money(baseFlightTotal, currency)}</span>
+            <span className="font-bold text-slate-900">{money(convert(baseFlightTotal), currency)}</span>
           </div>
         )}
 
@@ -114,7 +115,7 @@ export default function BookingSummary({
         {seatsTotal > 0 && (
           <div className="flex justify-between text-sm items-center animate-in fade-in slide-in-from-right-2">
             <span className="text-black font-medium">Seat Selection</span>
-            <span className="font-bold text-slate-900">+{money(seatsTotal, currency)}</span>
+            <span className="font-bold text-slate-900">+{money(convert(seatsTotal), currency)}</span>
           </div>
         )}
       </div>
@@ -123,7 +124,7 @@ export default function BookingSummary({
       <div className="mt-2 pt-4 border-t flex justify-between items-center">
         <span className="text-xs font-black uppercase text-slate-500">Total</span>
         <span className="text-3xl font-black tracking-tighter text-slate-900">
-          {money(finalTotal, currency)}
+          {money(convert(finalTotal), currency)}
         </span>
       </div>
 
