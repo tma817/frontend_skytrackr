@@ -126,6 +126,11 @@ export default function WatchlistPage() {
               const increased = item.priceDiff > 0;
               const pred = predictions[item._id];
 
+			const totalSegments = item.segments?.length ?? 0;
+			const inboundStartIndex = item.segments?.findIndex(s => s.arrival.iataCode === item.origin) ?? -1;
+			const outboundCount = inboundStartIndex === -1 ? totalSegments : inboundStartIndex + 1;
+			const outboundStops = outboundCount > 1 ? `${outboundCount - 1} ${outboundCount - 1 === 1 ? "stop" : "stops"}` : "Direct";
+
               return (
 				<div key={item._id} className="px-5 py-5">
 				<div className="flex items-center gap-4">
@@ -142,20 +147,25 @@ export default function WatchlistPage() {
 
 					{/* Route */}
 					<div className="flex-1 min-w-0">
-					<div className="flex items-baseline gap-2">
+					<div className="flex items-center gap-1.5">
 						<span className="text-xl font-black text-slate-900 tracking-tight">{item.origin}</span>
 						<span className="text-slate-300">→</span>
 						<span className="text-xl font-black text-slate-900 tracking-tight">{item.destination}</span>
+						<span className="text-[10px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full ml-1">{item.tripType === "round-trip" ? "Round Trip" : "One Way"}</span>
 					</div>
 
 					<div className="flex items-center gap-1.5 mt-1 flex-wrap">
 						<span className="text-[11px] text-slate-400">{item.airlineName}</span>
 						<span className="text-slate-200 text-[11px]">·</span>
+						{totalSegments > 0 && (
+						<>
+							<span className="text-[11px] text-slate-400">{outboundStops}</span>
+							<span className="text-slate-200 text-[11px]">·</span>
+						</>
+						)}
 						<span className="text-[11px] text-slate-400">{item.passengers} {item.passengers === 1 ? "passenger" : "passengers"}</span>
 						<span className="text-slate-200 text-[11px]">·</span>
-						<span className={`text-[10px] font-bold tracking-wide px-1.5 py-0.5 rounded ${s.bg} ${s.text}`}>
-						{item.tripType === "round-trip" ? "Round Trip" : "One Way"}
-						</span>
+
 					</div>
 
 					{/* Times */}
@@ -180,9 +190,7 @@ export default function WatchlistPage() {
 
 					{/* Price */}
 					<div className="text-right shrink-0">
-					<p className="text-2xl font-black text-slate-900 tracking-tight">
-						<span className="text-sm font-bold text-slate-400 mr-0.5">{item.currency}</span>{item.currentPrice.toFixed(0)}
-					</p>
+					<p className="text-2xl font-black text-slate-900 tracking-tight">{item.currency} {item.currentPrice.toFixed(0)}</p>
 					{dropped && <p className="text-[11px] font-bold text-emerald-600 mt-0.5">▼ {Math.abs(item.priceDiff).toFixed(0)} saved</p>}
 					{increased && <p className="text-[11px] font-bold text-red-500 mt-0.5">▲ {item.priceDiff.toFixed(0)} up</p>}
 					{!dropped && !increased && (
