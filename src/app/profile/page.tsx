@@ -108,7 +108,7 @@ export default function ProfilePage() {
                   <Link href="/" className="mt-2 inline-block text-xs font-bold text-slate-600 hover:underline">Search flights</Link>
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="divide-y divide-slate-100 bg-white rounded-2xl border shadow-sm overflow-hidden">
                   {bookings.map((booking) => {
                     const itineraries = booking.flightOffer?.itineraries ?? [];
                     const firstSeg = itineraries[0]?.segments?.[0];
@@ -157,7 +157,7 @@ export default function ProfilePage() {
                   <Link href="/" className="mt-2 inline-block text-xs font-bold text-slate-600 hover:underline">Search flights</Link>
                 </div>
               ) : (
-				<div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
+				<div className="bg-white rounded-2xl border shadow-sm overflow-hidden divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
 				{watchlist.map((item) => (
 					<WatchlistCard key={item._id} item={item} onClick={() => handleClicked(item)} />
 				))}
@@ -169,10 +169,10 @@ export default function ProfilePage() {
 
           {/* ── RIGHT COLUMN ── */}
           <div className="col-span-12 lg:col-span-5 sticky top-8">
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
 
               {/* Avatar header */}
-              <div style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)" }} className="px-6 py-6 flex items-center gap-4">
+              <div className="px-6 py-6 flex items-center gap-4 bg-black">
                 <div className="h-12 w-12 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center text-white text-lg font-black shrink-0">
                   {initials}
                 </div>

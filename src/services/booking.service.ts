@@ -41,7 +41,12 @@ export const bookingService = {
 
     if (!response.ok) {
       const text = await response.text().catch(() => "");
-      throw new Error(`Booking failed (${response.status}) ${text}`);
+      let message = "Something went wrong. Please try again.";
+      try {
+        const json = JSON.parse(text);
+        message = json.message || message;
+      } catch {}
+      throw new Error(message);
     }
 
     return response.json();

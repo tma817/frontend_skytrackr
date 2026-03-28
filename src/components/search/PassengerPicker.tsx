@@ -34,7 +34,7 @@ export default function PassengerPicker({
       </div>
 
       {isOpen && (
-        <div className="absolute left-0 top-[calc(100%+12px)] z-[100] w-64 rounded-lg bg-white p-4 shadow-2xl">
+        <div className="absolute right-0 top-[calc(100%+12px)] z-[100] w-64 rounded-lg bg-white p-4 shadow-2xl">
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm font-bold text-black">Adults</div>

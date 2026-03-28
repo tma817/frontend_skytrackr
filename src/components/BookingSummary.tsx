@@ -132,7 +132,7 @@ export default function BookingSummary({
           <button
             type="button"
             onClick={onContinue}
-            className="w-full rounded-2xl bg-slate-900 py-5 text-sm font-black text-white shadow-xl shadow-slate-200 transition-all hover:bg-black active:scale-[0.98] uppercase tracking-widest"
+            className="w-full rounded-2xl bg-black py-5 text-sm font-black text-white shadow-xl shadow-slate-200 transition-all hover:bg-black active:scale-[0.98] uppercase tracking-widest"
           >
             {buttonText}
           </button>

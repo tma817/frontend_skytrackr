@@ -7,6 +7,7 @@ interface PredictionGraphProps {
   origin: string;
   destination: string;
   departureDate: string;
+  returnDate?: string;
   currentPrice: number;
   currency: string;
   oneWay?: boolean;
@@ -16,6 +17,7 @@ export default function PredictionGraph({
   origin,
   destination,
   departureDate,
+  returnDate,
   currentPrice,
   currency,
   oneWay = true,
@@ -27,11 +29,11 @@ export default function PredictionGraph({
     if (!origin || !destination || !departureDate || !currentPrice) return;
     setLoading(true);
     predictionService
-      .getPriceAnalysis(origin, destination, departureDate, currentPrice, currency, oneWay)
+      .getPriceAnalysis(origin, destination, departureDate, currentPrice, currency, oneWay, returnDate)
       .then(setAnalysis)
       .catch(() => setAnalysis(null))
       .finally(() => setLoading(false));
-  }, [origin, destination, departureDate, currentPrice, currency, oneWay]);
+  }, [origin, destination, departureDate, returnDate, currentPrice, currency, oneWay]);
 
   return (
     <div className="p-6">

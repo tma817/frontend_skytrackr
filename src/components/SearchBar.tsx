@@ -78,7 +78,7 @@ export function SingleDatePicker({ value, onChange, placeholder, minDate, maxDat
       </div>
 
       {isOpen && (
-        <div className={`absolute z-50 bg-white  rounded-lg shadow-2xl border border-gray-100 ${align === "right" ? "right-0" : "left-0"}`}>
+        <div className={`absolute z-50 bg-white rounded-lg shadow-2xl border border-gray-100 left-1/2 -translate-x-1/2 sm:translate-x-0 ${align === "right" ? "sm:right-0 sm:left-auto" : "sm:left-0 sm:translate-x-0"}`}>
           <DayPicker
             mode="single"
             selected={value}
@@ -213,9 +213,9 @@ export default function SearchBar({
         }`}
       >
         {/* From */}
-        <div className={`flex h-[52px] flex-1 flex-col justify-center px-4 border-b md:border-b-0 md:border-r ${divider}`}>
+        <div className={`flex h-[52px] flex-1 flex-col justify-center px-5 md:px-4 border-b md:border-b-0 md:border-r ${divider}`}>
           {fromLabel && (
-            <span className={`text-[10px] font-semibold uppercase tracking-widest leading-none mb-0.5 ${glass ? "text-black/40" : "text-gray-400"}`}>
+            <span className={`text-[10px] font-semibold uppercase pt-2 tracking-widest leading-none mb-0.5 ${glass ? "text-black/40" : "text-gray-400"}`}>
               Leaving from
             </span>
           )}
@@ -228,9 +228,9 @@ export default function SearchBar({
         </div>
 
         {/* To */}
-        <div className={`flex h-[52px] flex-1 flex-col justify-center px-4 border-b md:border-b-0 md:border-r ${divider}`}>
+        <div className={`flex h-[52px] flex-1 flex-col justify-center px-5 md:px-4 border-b md:border-b-0 md:border-r ${divider}`}>
           {toLabel && (
-            <span className={`text-[10px] font-semibold uppercase tracking-widest leading-none mb-0.5 ${glass ? "text-black/40" : "text-gray-400"}`}>
+            <span className={`text-[10px] font-semibold pt-2 uppercase tracking-widest leading-none mb-0.5 ${glass ? "text-black/40" : "text-gray-400"}`}>
               Going to
             </span>
           )}
@@ -278,8 +278,8 @@ export default function SearchBar({
         </div>
 
         {/* Date pickers */}
-        <div className={`flex h-[52px] items-center px-2 border-b md:border-b-0 md:border-r md:flex-none md:w-[240px] ${divider}`}>
-          <div className="flex-1 min-w-0">
+        <div className={`flex flex-col sm:flex-row border-b md:border-b-0 md:border-r md:flex-none md:w-[240px] ${divider}`}>
+          <div className="flex h-[52px] items-center px-2 flex-1 min-w-0">
             <SingleDatePicker
               value={departureDate}
               onChange={(date) => {
@@ -294,10 +294,11 @@ export default function SearchBar({
             />
           </div>
 
-          {tripType === "roundtrip" && <div className={`self-stretch border-l mx-1 ${divider}`} />}
-
           {tripType === "roundtrip" && (
-            <div className="flex-1 min-w-0">
+            <div className={`hidden sm:block self-stretch border-l mx-1 ${divider}`} />
+          )}
+          {tripType === "roundtrip" && (
+            <div className={`flex h-[52px] items-center px-2 flex-1 min-w-0 border-t sm:border-t-0 ${divider}`}>
               <SingleDatePicker
                 value={returnDate}
                 onChange={setReturnDate}
@@ -318,8 +319,8 @@ export default function SearchBar({
           onClick={handleSearch}
           className={`h-[52px] w-full md:w-auto px-7 text-sm font-bold transition-all cursor-pointer ${
             glass
-              ? "rounded-r-2xl bg-white text-black "
-              : "rounded-r-2xl bg-white text-black active:scale-95"
+              ? "rounded-b-2xl md:rounded-bl-none md:rounded-r-2xl bg-white text-black"
+              : "rounded-b-2xl md:rounded-bl-none md:rounded-r-2xl bg-black text-white active:scale-95"
           }`}
         >
           Search

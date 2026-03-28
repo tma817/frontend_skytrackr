@@ -17,6 +17,7 @@ export default function SearchPage() {
 
 	const [priceGridOpen, setPriceGridOpen] = useState(false);
 	const [loginPromptOpen, setLoginPromptOpen] = useState(false);
+	const [filtersOpen, setFiltersOpen] = useState(false);
 
 	const from = searchParams.get("from") ?? "";
 	const to = searchParams.get("to") ?? "";
@@ -157,152 +158,62 @@ export default function SearchPage() {
 				</div>
 
 				{/* ===== Body ===== */}
-				<div className="mx-auto px-10 py-6 flex gap-8">
-					<div className="grid grid-cols-12 gap-8 flex-1">
-						{/* ===== Filters ===== */}
-						<aside className="col-span-3">
+				<div className="mx-auto px-4 md:px-10 py-6">
+					<div className="flex flex-col md:grid md:grid-cols-12 gap-6 md:gap-8">
+
+						{/* ===== Filters sidebar — desktop only ===== */}
+						<aside className="hidden md:block md:col-span-3">
 							<div className="rounded-2xl border bg-white overflow-hidden">
-								{/* Header */}
 								<div className="flex items-center justify-between px-5 py-4 border-b">
-									<h2 className="text-sm font-bold tracking-tight text-gray-900">
-										Filters
-									</h2>
+									<h2 className="text-sm font-bold tracking-tight text-gray-900">Filters</h2>
 									{Object.keys(filters).length > 0 && (
-										<button
-											onClick={() => setFilters({})}
-											className="text-[11px] font-semibold text-gray-400 hover:text-black transition-colors"
-										>
+										<button onClick={() => setFilters({})} className="text-[11px] font-semibold text-gray-400 hover:text-black transition-colors">
 											Clear all
 										</button>
 									)}
 								</div>
-
 								<div className="divide-y">
 									{/* Stops */}
 									<div className="px-5 py-4">
-										<p className="mb-3  font-bold uppercase tracking-widest">
-											Stops
-										</p>
+										<p className="mb-3 font-bold uppercase tracking-widest">Stops</p>
 										<div className="flex flex-col gap-1">
-											{(
-												[
-													{ label: "Any", value: undefined },
-													{ label: "Non-stop", value: 0 },
-													{ label: "1 stop", value: 1 },
-												] as { label: string; value: number | undefined }[]
-											).map(({ label, value }) => {
+											{([{ label: "Any", value: undefined }, { label: "Non-stop", value: 0 }, { label: "1 stop", value: 1 }] as { label: string; value: number | undefined }[]).map(({ label, value }) => {
 												const active = filters.stops === value;
 												return (
-													<label
-														key={label}
-														className={`flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${active ? "bg-gray-900 text-white" : "hover:bg-gray-50 text-gray-700"}`}
-													>
-														<input
-															type="radio"
-															name="stops"
-															checked={active}
-															onChange={() =>
-																value === undefined
-																	? clearFilter("stops")
-																	: setFilter("stops", value)
-															}
-															className="hidden"
-														/>
-														<span
-															className={`h-2 w-2 rounded-full border-2 flex-shrink-0 ${active ? "border-white bg-white" : "border-gray-300"}`}
-														/>
+													<label key={label} className={`flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${active ? "bg-gray-900 text-white" : "hover:bg-gray-50 text-gray-700"}`}>
+														<input type="radio" name="stops" checked={active} onChange={() => value === undefined ? clearFilter("stops") : setFilter("stops", value)} className="hidden" />
+														<span className={`h-2 w-2 rounded-full border-2 flex-shrink-0 ${active ? "border-white bg-white" : "border-gray-300"}`} />
 														{label}
 													</label>
 												);
 											})}
 										</div>
 									</div>
-
 									{/* Max price */}
 									<div className="px-5 py-4">
-										<p className="mb-3 text-[12px] font-bold uppercase tracking-widest">
-											Max Price (CAD)
-										</p>
+										<p className="mb-3 text-[12px] font-bold uppercase tracking-widest">Max Price (CAD)</p>
 										<div className="relative">
-											<span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
-												$
-											</span>
-											<input
-												type="number"
-												min={0}
-												step={50}
-												placeholder="Any"
-												value={filters.maxPrice ?? ""}
-												onChange={(e) => {
-													const v = e.target.value;
-													v === ""
-														? clearFilter("maxPrice")
-														: setFilter("maxPrice", Number(v));
-												}}
-												className="w-full rounded-lg border border-gray-200 bg-gray-50 pl-7 pr-3 py-2 text-sm outline-none transition focus:border-gray-400 focus:bg-white focus:ring-0"
-											/>
+											<span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
+											<input type="number" min={0} step={50} placeholder="Any" value={filters.maxPrice ?? ""} onChange={(e) => { const v = e.target.value; v === "" ? clearFilter("maxPrice") : setFilter("maxPrice", Number(v)); }} className="w-full rounded-lg border border-gray-200 bg-gray-50 pl-7 pr-3 py-2 text-sm outline-none transition focus:border-gray-400 focus:bg-white focus:ring-0" />
 										</div>
 									</div>
-
 									{/* Departure time */}
 									<div className="px-5 py-4">
-										<p className="mb-3 text-[12px] font-bold uppercase tracking-widest">
-											Departure Time
-										</p>
+										<p className="mb-3 text-[12px] font-bold uppercase tracking-widest">Departure Time</p>
 										<div className="flex items-center gap-2">
-											<input
-												type="time"
-												value={filters.timeFrom ?? ""}
-												onChange={(e) => {
-													const v = e.target.value;
-													v === ""
-														? clearFilter("timeFrom")
-														: setFilter("timeFrom", v);
-												}}
-												className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 text-sm outline-none transition focus:border-gray-400 focus:bg-white"
-											/>
-											<span className="text-xs font-medium text-gray-300">
-												—
-											</span>
-											<input
-												type="time"
-												value={filters.timeTo ?? ""}
-												onChange={(e) => {
-													const v = e.target.value;
-													v === ""
-														? clearFilter("timeTo")
-														: setFilter("timeTo", v);
-												}}
-												className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 text-sm outline-none transition focus:border-gray-400 focus:bg-white"
-											/>
+											<input type="time" value={filters.timeFrom ?? ""} onChange={(e) => { const v = e.target.value; v === "" ? clearFilter("timeFrom") : setFilter("timeFrom", v); }} className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 text-sm outline-none transition focus:border-gray-400 focus:bg-white" />
+											<span className="text-xs font-medium text-gray-300">—</span>
+											<input type="time" value={filters.timeTo ?? ""} onChange={(e) => { const v = e.target.value; v === "" ? clearFilter("timeTo") : setFilter("timeTo", v); }} className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 text-sm outline-none transition focus:border-gray-400 focus:bg-white" />
 										</div>
 									</div>
-
 									{/* Cabin */}
 									<div className="px-5 py-4">
-										<p className="mb-3 text-[12px] font-bold uppercase tracking-widest">
-											Cabin Class
-										</p>
+										<p className="mb-3 text-[12px] font-bold uppercase tracking-widest">Cabin Class</p>
 										<div className="grid grid-cols-2 gap-1.5">
-											{[
-												{ label: "Any", value: "" },
-												{ label: "Economy", value: "ECONOMY" },
-												{ label: "Prem. Eco", value: "PREMIUM_ECONOMY" },
-												{ label: "Business", value: "BUSINESS" },
-												{ label: "First", value: "FIRST" },
-											].map(({ label, value }) => {
+											{[{ label: "Any", value: "" }, { label: "Economy", value: "ECONOMY" }, { label: "Prem. Eco", value: "PREMIUM_ECONOMY" }, { label: "Business", value: "BUSINESS" }, { label: "First", value: "FIRST" }].map(({ label, value }) => {
 												const active = (filters.cabin ?? "") === value;
 												return (
-													<button
-														key={value}
-														type="button"
-														onClick={() =>
-															value === ""
-																? clearFilter("cabin")
-																: setFilter("cabin", value)
-														}
-														className={`rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors ${active ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-white"}`}
-													>
+													<button key={value} type="button" onClick={() => value === "" ? clearFilter("cabin") : setFilter("cabin", value)} className={`rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors ${active ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-white"}`}>
 														{label}
 													</button>
 												);
@@ -314,49 +225,50 @@ export default function SearchPage() {
 						</aside>
 
 						{/* ===== Flights List ===== */}
-						<section className="col-span-9">
-							{/* Results + Price Grid row */}
+						<section className="md:col-span-9">
+							{/* Results row — mobile has filter button here */}
 							{!loading && !error && (
-								<div className="mb-3 flex items-center justify-between">
+								<div className="mb-3 flex items-center justify-between gap-2">
 									<p className="text-sm text-gray-500">
 										{flights.length > 0 ? (
-											<>
-												<span className="font-semibold text-gray-900">
-													{flights.length}
-												</span>{" "}
-												result{flights.length !== 1 ? "s" : ""} found
-											</>
+											<><span className="font-semibold text-gray-900">{flights.length}</span>{" "}result{flights.length !== 1 ? "s" : ""} found</>
 										) : (
 											"No results found"
 										)}
 									</p>
-									<button
-										onClick={() => setPriceGridOpen(true)}
-										className="flex items-center gap-1.5 rounded-lg border bg-white px-3 py-1.5 text-sm font-semibold  shadow-sm transition hover:bg-slate-50 hover:shadow-md active:scale-95"
-									>
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											viewBox="0 0 20 20"
-											fill="currentColor"
-											className="w-4 h-4"
+									<div className="flex items-center gap-2">
+										{/* Filter button — mobile only */}
+										<button
+											onClick={() => setFiltersOpen(true)}
+											className="md:hidden flex items-center gap-1.5 rounded-lg border bg-white px-3 py-1.5 text-sm font-semibold shadow-sm transition hover:bg-slate-50 active:scale-95"
 										>
-											<path
-												fillRule="evenodd"
-												d="M.99 5.24A2.25 2.25 0 0 1 3.25 3h13.5A2.25 2.25 0 0 1 19 5.25l.01 9.5A2.25 2.25 0 0 1 16.76 17H3.26A2.267 2.267 0 0 1 1 14.75l-.01-9.51Zm8.26 9.52v-.625a.75.75 0 0 0-1.5 0v.625a.75.75 0 0 0 1.5 0Zm2.495-4.875a.75.75 0 0 0-1.5 0v4.875a.75.75 0 0 0 1.5 0V9.877Zm2.76-3a.75.75 0 0 0-1.5 0v7.875a.75.75 0 0 0 1.5 0V6.877Zm-8.76 1.5a.75.75 0 0 0-1.5 0v6.375a.75.75 0 0 0 1.5 0V8.377Z"
-												clipRule="evenodd"
-											/>
-										</svg>
-										Price Grid
-									</button>
+											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+												<path fillRule="evenodd" d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 0 1 .628.74v2.288a2.25 2.25 0 0 1-.659 1.59l-4.682 4.683a2.25 2.25 0 0 0-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 0 1 8 18.25v-5.757a2.25 2.25 0 0 0-.659-1.591L2.659 6.22A2.25 2.25 0 0 1 2 4.629V2.34a.75.75 0 0 1 .628-.74Z" clipRule="evenodd" />
+											</svg>
+											Filters
+											{Object.keys(filters).length > 0 && (
+												<span className="flex h-4 w-4 items-center justify-center rounded-full bg-black text-[10px] font-bold text-white">
+													{Object.keys(filters).length}
+												</span>
+											)}
+										</button>
+										<button
+											onClick={() => setPriceGridOpen(true)}
+											className="flex items-center gap-1.5 rounded-lg border bg-white px-3 py-1.5 text-sm font-semibold shadow-sm transition hover:bg-slate-50 hover:shadow-md active:scale-95"
+										>
+											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+												<path fillRule="evenodd" d="M.99 5.24A2.25 2.25 0 0 1 3.25 3h13.5A2.25 2.25 0 0 1 19 5.25l.01 9.5A2.25 2.25 0 0 1 16.76 17H3.26A2.267 2.267 0 0 1 1 14.75l-.01-9.51Zm8.26 9.52v-.625a.75.75 0 0 0-1.5 0v.625a.75.75 0 0 0 1.5 0Zm2.495-4.875a.75.75 0 0 0-1.5 0v4.875a.75.75 0 0 0 1.5 0V9.877Zm2.76-3a.75.75 0 0 0-1.5 0v7.875a.75.75 0 0 0 1.5 0V6.877Zm-8.76 1.5a.75.75 0 0 0-1.5 0v6.375a.75.75 0 0 0 1.5 0V8.377Z" clipRule="evenodd" />
+											</svg>
+											Price Grid
+										</button>
+									</div>
 								</div>
 							)}
 
 							{loading ? (
 								<div className="flex flex-col items-center justify-center py-20">
 									<div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-black" />
-									<p className="mt-4 text-gray-500 font-medium">
-										Searching for best flights...
-									</p>
+									<p className="mt-4 text-gray-500 font-medium">Searching for best flights...</p>
 								</div>
 							) : error ? (
 								<div className="text-center py-20 text-red-600">{error}</div>
@@ -371,14 +283,9 @@ export default function SearchPage() {
 											onToggle={() => handleToggleWatch(f)}
 										/>
 									))}
-
 									{hasMore && (
 										<div className="pt-4 flex justify-center">
-											<button
-												onClick={loadMore}
-												disabled={loadingMore}
-												className="rounded-lg border px-5 py-2 text-sm font-medium hover:bg-gray-50 disabled:opacity-60"
-											>
+											<button onClick={loadMore} disabled={loadingMore} className="rounded-lg border px-5 py-2 text-sm font-medium hover:bg-gray-50 disabled:opacity-60">
 												{loadingMore ? "Loading..." : "Load more flights"}
 											</button>
 										</div>
@@ -386,14 +293,90 @@ export default function SearchPage() {
 								</div>
 							) : (
 								<div className="text-center py-20 border-2 border-dashed rounded-xl">
-									<p className="text-gray-500">
-										No flights found for this route. Try another date.
-									</p>
+									<p className="text-gray-500">No flights found for this route. Try another date.</p>
 								</div>
 							)}
 						</section>
 					</div>
 				</div>
+
+				{/* ===== Mobile Filter Drawer ===== */}
+				{filtersOpen && (
+					<div className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
+						<div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setFiltersOpen(false)} />
+						<div className="relative bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto">
+							{/* Drag handle */}
+							<div className="flex justify-center pt-3 pb-1">
+								<div className="h-1 w-10 rounded-full bg-gray-200" />
+							</div>
+							<div className="flex items-center justify-between px-5 py-3 border-b">
+								<h2 className="text-sm font-bold tracking-tight text-gray-900">Filters</h2>
+								<div className="flex items-center gap-3">
+									{Object.keys(filters).length > 0 && (
+										<button onClick={() => setFilters({})} className="text-[11px] font-semibold text-gray-400 hover:text-black transition-colors">
+											Clear all
+										</button>
+									)}
+									<button onClick={() => setFiltersOpen(false)} className="flex h-7 w-7 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-colors text-base leading-none">
+										✕
+									</button>
+								</div>
+							</div>
+							<div className="divide-y">
+								{/* Stops */}
+								<div className="px-5 py-4">
+									<p className="mb-3 text-[12px] font-bold uppercase tracking-widest">Stops</p>
+									<div className="flex gap-2">
+										{([{ label: "Any", value: undefined }, { label: "Non-stop", value: 0 }, { label: "1 stop", value: 1 }] as { label: string; value: number | undefined }[]).map(({ label, value }) => {
+											const active = filters.stops === value;
+											return (
+												<button key={label} type="button" onClick={() => value === undefined ? clearFilter("stops") : setFilter("stops", value)} className={`flex-1 rounded-lg border py-2 text-sm font-medium transition-colors ${active ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300"}`}>
+													{label}
+												</button>
+											);
+										})}
+									</div>
+								</div>
+								{/* Max price */}
+								<div className="px-5 py-4">
+									<p className="mb-3 text-[12px] font-bold uppercase tracking-widest">Max Price (CAD)</p>
+									<div className="relative">
+										<span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
+										<input type="number" min={0} step={50} placeholder="Any" value={filters.maxPrice ?? ""} onChange={(e) => { const v = e.target.value; v === "" ? clearFilter("maxPrice") : setFilter("maxPrice", Number(v)); }} className="w-full rounded-lg border border-gray-200 bg-gray-50 pl-7 pr-3 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:bg-white" />
+									</div>
+								</div>
+								{/* Departure time */}
+								<div className="px-5 py-4">
+									<p className="mb-3 text-[12px] font-bold uppercase tracking-widest">Departure Time</p>
+									<div className="flex items-center gap-2">
+										<input type="time" value={filters.timeFrom ?? ""} onChange={(e) => { const v = e.target.value; v === "" ? clearFilter("timeFrom") : setFilter("timeFrom", v); }} className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-2 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:bg-white" />
+										<span className="text-xs font-medium text-gray-300">—</span>
+										<input type="time" value={filters.timeTo ?? ""} onChange={(e) => { const v = e.target.value; v === "" ? clearFilter("timeTo") : setFilter("timeTo", v); }} className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-2 py-2.5 text-sm outline-none transition focus:border-gray-400 focus:bg-white" />
+									</div>
+								</div>
+								{/* Cabin */}
+								<div className="px-5 py-4">
+									<p className="mb-3 text-[12px] font-bold uppercase tracking-widest">Cabin Class</p>
+									<div className="grid grid-cols-3 gap-2">
+										{[{ label: "Any", value: "" }, { label: "Economy", value: "ECONOMY" }, { label: "Prem. Eco", value: "PREMIUM_ECONOMY" }, { label: "Business", value: "BUSINESS" }, { label: "First", value: "FIRST" }].map(({ label, value }) => {
+											const active = (filters.cabin ?? "") === value;
+											return (
+												<button key={value} type="button" onClick={() => value === "" ? clearFilter("cabin") : setFilter("cabin", value)} className={`rounded-lg border px-2 py-2 text-xs font-medium transition-colors ${active ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300 hover:bg-white"}`}>
+													{label}
+												</button>
+											);
+										})}
+									</div>
+								</div>
+							</div>
+							<div className="px-5 py-4 pb-8">
+								<button onClick={() => setFiltersOpen(false)} className="w-full rounded-xl bg-black py-3 text-sm font-bold text-white active:scale-95 transition">
+									Show results
+								</button>
+							</div>
+						</div>
+					</div>
+				)}
 			</main>
 
 			{/* ===== Price Grid Modal ===== */}

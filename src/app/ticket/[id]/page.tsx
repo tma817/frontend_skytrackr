@@ -105,8 +105,8 @@ export default function TicketDetailPage() {
                   <div className="flex items-center gap-3">
                     <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full ${
                       itinerary.type === "outbound"
-                        ? "bg-slate-900 text-white"
-                        : "bg-blue-600 text-white"
+                        ? "bg-black text-white"
+                        : "bg-black text-white"
                     }`}>
                       {itinerary.type === "outbound" ? "Departure" : "Return"}
                     </span>
@@ -324,6 +324,7 @@ export default function TicketDetailPage() {
                   origin={flight.itineraries[0].departure.iataCode}
                   destination={flight.itineraries[0].arrival.iataCode}
                   departureDate={flight.itineraries[0].departure.date}
+                  returnDate={flight.itineraries[1]?.departure?.date}
                   currentPrice={flight.price.amount}
                   currency={flight.price.currency}
                   oneWay={flight.itineraries.length === 1}
