@@ -24,6 +24,12 @@ export type WatchlistItem = {
 	passengers: number;
 	tripType: "one-way" | "round-trip";
 	savedAt: string;
+	segments?: Array<{
+	carrierCode: string;
+	flightNumber: string;
+	departure: { iataCode: string; date: string; time: string; };
+	arrival: { iataCode: string; date: string; time: string; };
+	}>;
 };
 
 export const watchlistService = {
@@ -57,6 +63,14 @@ export const watchlistService = {
 			airlineLogo: flight.airline.logo,
 			passengers,
 			tripType,
+			segments: flight.itineraries.flatMap(i =>
+			i.segments.map(s => ({
+				carrierCode: s.carrierCode,
+				flightNumber: s.flightNumber,
+				departure: { iataCode: s.departure.iataCode, date: s.departure.date, time: s.departure.time },
+				arrival: { iataCode: s.arrival.iataCode, date: s.arrival.date, time: s.arrival.time },
+			}))
+			),
 		};
 
     if (res.status === 401) throw new Error("UNAUTHORIZED");
@@ -89,24 +103,17 @@ export const watchlistService = {
 		if (!res.ok) throw new Error("Failed to remove from watchlist");
 	},
 	isFlightWatched(flight: FlightResult, watchlist: WatchlistItem[]): WatchlistItem | undefined {
-		return watchlist.find(item => {
-			const outbound = flight.itineraries[0];
-			const inbound = flight.itineraries[1];
+	const flightKey = flight.itineraries
+		.flatMap(i => i.segments)
+		.map(s => `${s.carrierCode}${s.flightNumber}-${s.departure.iataCode}-${s.departure.date}-${s.departure.time}`)
+		.join("|");
 
-			const originMatch = item.origin === outbound.departure.iataCode;
-			const destinationMatch = item.destination === outbound.arrival.iataCode;
-			const departureMatch = item.departureDate === outbound.departure.date;
-			const airlineMatch = item.airlineName === flight.airline.name;
-			const returnMatch = inbound
-				? item.returnDate === inbound.departure.date
-				: item.tripType === 'one-way';
-			
-			const departureTimeMatch = item.departureTime === outbound.departure.time;
-			const returnTimeMatch = inbound
-			? item.returnTime === inbound.departure.time
-			: true;
-
-			return originMatch && destinationMatch && departureMatch && airlineMatch && returnMatch && departureTimeMatch && returnTimeMatch;
-		});
+	return watchlist.find(item => {
+		if (!item.segments?.length) return false;
+		const itemKey = item.segments
+		.map(s => `${s.carrierCode}${s.flightNumber}-${s.departure.iataCode}-${s.departure.date}-${s.departure.time}`)
+		.join("|");
+		return flightKey === itemKey;
+	});
 	}
 };
