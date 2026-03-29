@@ -31,12 +31,12 @@ export default async function RootLayout({
 		<html lang="en">
 			<body className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans min-h-screen flex flex-col`}>
 				<CurrencyProvider>
-          <Navbar />
-				<div className="flex-1">
-	          <AuthWrapper>{children}</AuthWrapper>
-				</div>
-          <Footer />
-        </CurrencyProvider>
+					<Navbar />
+					<div className="flex-1">
+						<AuthWrapper>{children}</AuthWrapper>
+					</div>
+					<Footer />
+				</CurrencyProvider>
 			</body>
 		</html>
 	);
