@@ -1,4 +1,5 @@
 import { FlightResult, FlightItinerary } from "@/types/flight";
+import { useCurrency } from "@/context/CurrencyContext";
 import money from "@/utils/money";
 
 interface FlightCardProps {
@@ -10,6 +11,9 @@ interface FlightCardProps {
 
 export default function FlightCard({ flight, onClick, isAdded, onToggle }: FlightCardProps) {
     const lowSeats = flight.numberOfBookableSeats != null && flight.numberOfBookableSeats <= 5;
+    const { currency, rates } = useCurrency();
+    const convertedTotal = rates[currency] ? flight.price.amount * rates[currency] : flight.price.amount;
+    const convertedPerPerson = rates[currency] ? flight.pricePerPerson * rates[currency] : flight.pricePerPerson;
 
     return (
         <div
@@ -80,12 +84,14 @@ export default function FlightCard({ flight, onClick, isAdded, onToggle }: Fligh
                 <div className="flex flex-col justify-center items-center p-6 min-w-[200px] gap-2">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Total price</span>
                     <div className="text-[2rem] font-black text-gray-900 leading-none">
-                        {money(flight.price.amount, flight.price.currency)}
+                        {/* {money(flight.price.amount, flight.price.currency)} */}
+                        {money(convertedTotal, currency)}
                     </div>
 
                     {flight.pricePerPerson != null && flight.pricePerPerson !== flight.price.amount && (
                         <span className="text-xs text-gray-400">
-                            {money(flight.pricePerPerson, flight.price.currency)} / person
+                            {/* {money(flight.pricePerPerson, flight.price.currency)} / person */}
+                            {money(convertedPerPerson, currency)} / person
                         </span>
                     )}
 

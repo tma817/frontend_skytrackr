@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import AuthWrapper from "../components/auth/AuthWrapper";
 import Footer from "@/components/Footer";
+import { CurrencyProvider } from "@/context/CurrencyContext";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -29,11 +30,13 @@ export default async function RootLayout({
 	return (
 		<html lang="en">
 			<body className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans min-h-screen flex flex-col`}>
-				<Navbar />
+				<CurrencyProvider>
+          <Navbar />
 				<div className="flex-1">
-					<AuthWrapper>{children}</AuthWrapper>
+	          <AuthWrapper>{children}</AuthWrapper>
 				</div>
-				<Footer />
+          <Footer />
+        </CurrencyProvider>
 			</body>
 		</html>
 	);

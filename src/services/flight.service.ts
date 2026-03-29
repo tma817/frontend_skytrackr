@@ -21,6 +21,7 @@ export type SearchFlightsInput = {
   page: number;
   limit?: number;
   filters?: FilterParams;
+  currencyCode?: string;
 };
 
 export type SearchFlightsOutput = {
@@ -47,7 +48,7 @@ function buildSearchParams(input: SearchFlightsInput): URLSearchParams {
   });
 
   if (input.returnDate) params.set("returnDate", input.returnDate);
-
+  
   if (f.maxPrice !== undefined) params.set("maxPrice", String(f.maxPrice));
   if (f.stops !== undefined) params.set("stops", String(f.stops));
   if (f.cabin) params.set("cabin", f.cabin);

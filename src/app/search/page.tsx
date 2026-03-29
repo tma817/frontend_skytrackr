@@ -10,8 +10,11 @@ import type { FilterParams } from "@/services/flight.service";
 import { watchlistService, WatchlistItem } from "@/services/watchlist.service";
 import { getAccessToken } from "@/utils/auth-helpers";
 import { useEffect } from "react";
+import { useCurrency } from "@/context/CurrencyContext";
+
 
 export default function SearchPage() {
+	const { currency } = useCurrency();
 	const router = useRouter();
 	const searchParams = useSearchParams();
 

@@ -1,4 +1,6 @@
 import { WatchlistItem } from "@/services/watchlist.service";
+import { useCurrency } from "@/context/CurrencyContext";
+import money from "@/utils/money";
 
 interface WatchlistCardProps {
   item: WatchlistItem;
@@ -15,6 +17,9 @@ export function WatchlistCard({ item, onClick }: WatchlistCardProps) {
   const outboundCount = inboundStartIndex === -1 ? totalSegments : inboundStartIndex + 1;
   const outboundStops = outboundCount > 1 ? `${outboundCount - 1} ${outboundCount - 1 === 1 ? "stop" : "stops"}` : "Direct";
 
+  const { currency, rates } = useCurrency();
+  const rate = rates[currency] ?? 1;
+  const convert = (amount: number) => amount * rate;
   return (
     <div onClick={onClick} className="px-5 py-4 flex items-center gap-4 cursor-pointer hover:bg-gray-100 transition-colors duration-150 rounded-lg">
       {item.airlineLogo ? (
@@ -69,10 +74,10 @@ export function WatchlistCard({ item, onClick }: WatchlistCardProps) {
       </div>
 
       <div className="text-right shrink-0">
-        <p className="text-base font-black text-slate-900">{item.currency} {item.currentPrice.toFixed(0)}</p>
+        <p className="text-base font-black text-slate-900">{money(convert(item.currentPrice), currency)}</p>
         <p className="text-[10px] text-slate-400">{item.passengers} {item.passengers === 1 ? "passenger" : "passengers"}</p>
-        {dropped && <p className="text-[10px] font-bold text-emerald-600">▼ {Math.abs(item.priceDiff).toFixed(0)}</p>}
-        {increased && <p className="text-[10px] font-bold text-red-500">▲ {item.priceDiff.toFixed(0)}</p>}
+        {dropped && <p className="text-[10px] font-bold text-emerald-600">▼ {money(convert(Math.abs(item.priceDiff)), currency)}</p>}
+        {increased && <p className="text-[10px] font-bold text-red-500">▲ {money(convert(item.priceDiff), currency)}</p>} 
         {!dropped && !increased && (
           <div className="flex items-center justify-end gap-1 mt-0.5">
             <div className={`h-1.5 w-1.5 rounded-full ${statusColor}`} />
