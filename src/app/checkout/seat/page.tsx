@@ -154,16 +154,16 @@ export default function SeatPage() {
             </div>
           )}
 
-          <div className="overflow-y-auto max-h-[680px]">
-            <div className="max-w-[520px] mx-auto">
-              <SeatMap
-                seatData={currentSegmentMap}
-                onSelectSeat={handleSeatSelect}
-                allSelectedSeatsForSegment={selectedSeats[currentSegmentId] || {}}
-                activeTravelerId={activeTravelerId}
-              />
-            </div>
-          </div>
+			<div className="overflow-x-auto">
+				<div className="min-w-[520px] mx-auto">
+					<SeatMap
+					seatData={currentSegmentMap}
+					onSelectSeat={handleSeatSelect}
+					allSelectedSeatsForSegment={selectedSeats[currentSegmentId] || {}}
+					activeTravelerId={activeTravelerId}
+					/>
+				</div>
+			</div>
         </div>
 
         {/* Right column */}

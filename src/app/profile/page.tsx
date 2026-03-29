@@ -157,10 +157,12 @@ export default function ProfilePage() {
                   <Link href="/" className="mt-2 inline-block text-xs font-bold text-slate-600 hover:underline">Search flights</Link>
                 </div>
               ) : (
-				<div className="bg-white rounded-2xl border shadow-sm overflow-hidden divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
-				{watchlist.map((item) => (
-					<WatchlistCard key={item._id} item={item} onClick={() => handleClicked(item)} />
-				))}
+				<div className="bg-white rounded-2xl border shadow-sm overflow-hidden max-h-[400px]">
+					<div className="overflow-y-auto subtle-scrollbar max-h-[400px] divide-y divide-slate-100">
+						{watchlist.map((item) => (
+						<WatchlistCard key={item._id} item={item} onClick={() => handleClicked(item)} />
+						))}
+					</div>
 				</div>
               )}
             </section>

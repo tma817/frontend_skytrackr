@@ -31,7 +31,9 @@ export function WatchlistCard({ item, onClick }: WatchlistCardProps) {
           <span className="text-base font-black text-slate-900">{item.origin}</span>
           <span className="text-slate-300 text-sm">→</span>
           <span className="text-base font-black text-slate-900">{item.destination}</span>
-          <span className="text-[9px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full ml-1">{item.tripType === "round-trip" ? "Round Trip" : "One Way"}</span>
+		  <span className="text-[9px] font-semibold text-slate-400 bg-slate-100 px-1.5 rounded-full ml-1 leading-5 whitespace-nowrap">
+			{item.tripType === "round-trip" ? "Round Trip" : "One Way"}
+			</span>
         </div>
 
         {/* Airline + stops */}

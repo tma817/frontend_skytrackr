@@ -188,14 +188,14 @@ export default function PaymentPage() {
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 font-sans">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 font-sans min-w-0">
 
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <h1 className="text-2xl font-black text-slate-900">Review & Pay</h1>
         <p className="text-sm text-slate-400 mt-1">Confirm your booking details below</p>
       </div>
 
-      <div className="grid grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 items-start">
 
         {/* ── LEFT COLUMN ── */}
         <div className="col-span-12 lg:col-span-7 space-y-4">
@@ -213,8 +213,8 @@ export default function PaymentPage() {
               </div>
             </div>
 
-            <div className="p-5 space-y-5">
-              <div className="max-w-sm mx-auto">
+            <div className="p-4 sm:p-5 space-y-4 sm:space-y-5">
+              <div className="w-full max-w-sm mx-auto">
                 <CardPreview number={cardNumber} holder={cardHolder} expiry={expiry} />
               </div>
 
@@ -242,7 +242,7 @@ export default function PaymentPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3.5">
+                <div className="grid grid-cols-2 gap-3 sm:gap-3.5">
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Expiry</label>
                     <input
@@ -273,7 +273,7 @@ export default function PaymentPage() {
         </div>
 
         {/* ── RIGHT COLUMN ── */}
-        <div className="col-span-12 lg:col-span-5 sticky top-8 space-y-4">
+        <div className="col-span-12 lg:col-span-5 lg:sticky lg:top-8 space-y-4">
 
           {/* Booking Summary */}
           <div className="bg-white rounded-2xl border overflow-hidden">
