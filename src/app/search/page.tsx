@@ -135,19 +135,21 @@ export default function SearchPage() {
 		<>
 			<main className="font-sans">
 				{/* ===== Header ===== */}
-				<div className="border-b overflow-hidden">
+				<div className="border-b">
 					<div className="relative px-8 py-10">
 						{/* Blurred hero background */}
-						<div
-							className="absolute inset-0 -z-10"
-							style={{
+						<div className="absolute inset-0 -z-10 overflow-hidden">
+							<div
+								className="absolute inset-0"
+								style={{
 								backgroundImage: "url('/images/hero-bg.png')",
 								backgroundSize: "cover",
 								backgroundPosition: "center",
 								filter: "blur(3px)",
 								transform: "scale(1.05)",
-							}}
-						/>
+								}}
+							/>
+						</div>
 						<div className="mx-auto max-w-6xl">
 							<SearchBar
 								glass={false}
