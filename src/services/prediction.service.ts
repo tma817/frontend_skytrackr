@@ -1,4 +1,5 @@
 import { API_BASE as BASE } from "@/utils/api";
+import { getDecodedToken } from "@/utils/auth-helpers";
 
 export interface PricePrediction {
   origin: string;
@@ -39,7 +40,9 @@ export const predictionService = {
     departureDate: string,
     currency = "CAD"
   ): Promise<PricePrediction> {
+    const userEmail = getDecodedToken()?.email;
     const params = new URLSearchParams({ origin, destination, departureDate, currency });
+    if (userEmail) params.set("userEmail", userEmail);
     const res = await fetch(`${BASE}/prediction/price?${params}`);
     if (!res.ok) throw new Error("Failed to fetch prediction");
     return res.json();
@@ -54,6 +57,7 @@ export const predictionService = {
     oneWay = true,
     returnDate?: string
   ): Promise<PriceAnalysis> {
+    const userEmail = getDecodedToken()?.email;
     const params = new URLSearchParams({
       origin,
       destination,
@@ -62,6 +66,7 @@ export const predictionService = {
       currency,
       oneWay: String(oneWay),
       ...(returnDate ? { returnDate } : {}),
+      ...(userEmail ? { userEmail } : {}),
     });
     const res = await fetch(`${BASE}/flights/price-analysis?${params}`);
     if (!res.ok) throw new Error("Failed to fetch price analysis");

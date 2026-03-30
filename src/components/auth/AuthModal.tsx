@@ -3,9 +3,10 @@ import LoginForm from "./LoginForm";
 import SignupForm from "./SignupForm";
 import VerifyForm from "./VerifyForm";
 import ForgotPasswordForm from "./ForgotPasswordForm";
+import PreferencesForm from "./PreferencesForm";
 import { useState, useRef, useEffect } from "react";
 
-type Mode = "login" | "signup" | "verify" | "forgot";
+type Mode = "login" | "signup" | "verify" | "forgot" | "preferences";
 
 type Props = {
   open: boolean;
@@ -16,6 +17,7 @@ type Props = {
 
 export default function AuthModal({ open, mode, setMode, onClose }: Props) {
   const [emailForVerify, setEmailForVerify] = useState("");
+  const [verifySource, setVerifySource] = useState<"signup" | "login">("login");
   const mouseDownOnBackdrop = useRef(false);
 
   // ESC to close
@@ -64,6 +66,7 @@ export default function AuthModal({ open, mode, setMode, onClose }: Props) {
             setMode={setMode}
             onLoginSuccess={(email) => {
               setEmailForVerify(email);
+              setVerifySource("login");
               setMode("verify");
             }}
           />
@@ -73,6 +76,7 @@ export default function AuthModal({ open, mode, setMode, onClose }: Props) {
             setMode={setMode}
             onSignupSuccess={(email) => {
               setEmailForVerify(email);
+              setVerifySource("signup");
               setMode("verify");
             }}
           />
@@ -81,7 +85,20 @@ export default function AuthModal({ open, mode, setMode, onClose }: Props) {
           <VerifyForm
             email={emailForVerify}
             setMode={setMode}
-            onVerifySuccess={() => setMode("login")}
+            onVerifySuccess={() => {
+              if (verifySource === "signup") {
+                setMode("preferences");
+              } else {
+                setMode("login");
+              }
+            }}
+          />
+        )}
+        {mode === "preferences" && (
+          <PreferencesForm
+            email={emailForVerify}
+            onSave={() => setMode("login")}
+            onSkip={() => setMode("login")}
           />
         )}
         {mode === "forgot" && (

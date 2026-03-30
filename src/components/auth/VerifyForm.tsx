@@ -19,8 +19,7 @@ export default function VerifyForm({ email, setMode, onVerifySuccess }: any) {
                 body: JSON.stringify({ email, otpCode: code }),
             });
             if (response.ok) {
-                alert("Verification successful! Please log in.");
-                setMode("login");
+                onVerifySuccess();
             } else {
                 const data = await response.json();
                 setErrorMessage(data.message || "Incorrect Token, please try again.");
