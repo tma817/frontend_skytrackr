@@ -1,6 +1,7 @@
 "use client"
 import { useForm, useFieldArray } from "react-hook-form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { getDecodedToken } from "@/utils/auth-helpers";
 
 interface PassengerFormProps {
   adultCount: number;
@@ -9,7 +10,9 @@ interface PassengerFormProps {
 }
 
 export default function PassengerForm({ adultCount, onSubmit, initialData }: PassengerFormProps) {
-  const { register, control, handleSubmit, reset } = useForm({
+  const [useAccountEmail, setUseAccountEmail] = useState(false);
+
+  const { register, control, handleSubmit, reset, setValue  } = useForm({
     defaultValues: initialData || {
       travelers: Array.from({ length: adultCount }, (_, i) => ({
         id: (i + 1).toString(),
@@ -21,6 +24,18 @@ export default function PassengerForm({ adultCount, onSubmit, initialData }: Pas
       contact: { emailAddress: "", countryCallingCode: "+1", number: "" },
     },
   });
+
+  const accountEmail = getDecodedToken()?.email ?? null;
+
+
+  function handleUseAccountEmail(checked: boolean) {
+    setUseAccountEmail(checked);
+    if (checked && accountEmail) {
+      setValue("contact.emailAddress", accountEmail);
+    } else {
+      setValue("contact.emailAddress", "");
+    }
+  }
 
   useEffect(() => {
     if (initialData) reset(initialData);
@@ -118,13 +133,37 @@ export default function PassengerForm({ adultCount, onSubmit, initialData }: Pas
           <p className="text-xs text-gray-400 mt-1">Booking confirmation will be sent here</p>
         </div>
 
-        <div className="group">
-          <label className={labelCls}>Email Address</label>
+
+		<div className="group">
+          <div className="flex items-center justify-between mb-2">
+            <label className={labelCls + " mb-0"}>Email Address</label>
+            {accountEmail && (
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useAccountEmail}
+                  onChange={(e) => handleUseAccountEmail(e.target.checked)}
+                  className="hidden peer"
+                />
+                <div className="h-4 w-4 rounded border-2 border-gray-300 peer-checked:border-black peer-checked:bg-black transition-all duration-150 flex items-center justify-center">
+                  {useAccountEmail && (
+                    <svg className="h-2.5 w-2.5 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  Use account email
+                </span>
+              </label>
+            )}
+          </div>
           <input
             type="email"
             {...register("contact.emailAddress", { required: true })}
             placeholder="you@example.com"
-            className={inputCls}
+            disabled={useAccountEmail}
+            className={inputCls + (useAccountEmail ? " opacity-60 cursor-not-allowed bg-gray-50" : "")}
           />
         </div>
 

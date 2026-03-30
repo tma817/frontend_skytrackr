@@ -34,14 +34,13 @@ export default function LoginForm({ setMode, onLoginSuccess }: Props) {
 			const data = await response.json();
 
 			if (!response.ok) {
-				throw new Error(data.message || "Failed to login, try again later");
+				throw new Error(data.message || "Failed to login, please try again");
 			}
 			if (response.ok) {
 				setCookie("accessToken", data.access_token, {
 					maxAge: 60 * 60 * 24,
 					path: "/",
 				});
-				alert("Login successful");
 				window.location.href = "/profile";
 			}
 		} catch (err: any) {
@@ -100,7 +99,7 @@ export default function LoginForm({ setMode, onLoginSuccess }: Props) {
 							onClick={() => setMode("forgot")}
 							className="text-[10px] font-semibold uppercase tracking-wider text-sky-500 hover:text-sky-600 transition-colors duration-150"
 						>
-							Forgot?
+							Forgot Password?
 						</button>
 					</div>
 					<div className="relative">

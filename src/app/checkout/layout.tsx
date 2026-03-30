@@ -1,11 +1,12 @@
 "use client"
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export default function CheckoutLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isSeats = pathname.includes("/seat");
   const isPayment = pathname.includes("/payment");
   const step = isPayment ? 3 : isSeats ? 2 : 1;
+
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
@@ -26,19 +27,33 @@ export default function CheckoutLayout({ children }: { children: React.ReactNode
 
 function Stepper({ step }: { step: number }) {
   const steps = ["Information", "Seats", "Payment"];
+
+	const router = useRouter();
+	const searchParams = useSearchParams();
+
+	function handleStepClick(num: number) {
+		if (num >= step) return;
+		const qs = searchParams.toString();
+		if (num === 1) router.push(`/checkout/pax?${qs}`);
+		if (num === 2) router.push(`/checkout/seat?${qs}`);
+	}
+
   return (
     <div className="flex items-center gap-0">
       {steps.map((label, i) => {
         const num = i + 1;
         const completed = num < step;
         const active = num === step;
-
+        const clickable = completed;
+		
         return (
           <div key={label} className="flex items-center">
             {/* Step pill */}
-            <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full transition-all duration-300" style={{
-              background: active ? "#000000" : "transparent",
-            }}>
+            <div
+              onClick={() => handleStepClick(num)}
+              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full transition-all duration-300 ${clickable ? "cursor-pointer hover:opacity-70" : "cursor-default"}`}
+              style={{ background: active ? "#000000" : "transparent" }}
+            >
               {/* Circle */}
               <div className={`h-5 w-5 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
                 completed
@@ -65,6 +80,12 @@ function Stepper({ step }: { step: number }) {
                 </span>
               )}
             </div>
+
+			{completed && (
+			<span className="text-[11px] font-black text-slate-500 uppercase tracking-widest whitespace-nowrap pr-0.5">
+				{label}
+			</span>
+			)}
 
             {/* Connector */}
             {i < steps.length - 1 && (
